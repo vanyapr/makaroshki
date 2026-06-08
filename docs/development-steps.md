@@ -131,7 +131,7 @@
 
 Цель: хранить индекс сообщений и outbox локально.
 
-Статус: базово реализовано в `messenger.html`. Есть маленький IndexedDB wrapper, schema version `1`, stores `messages`, `chats`, `outbox`, `meta`, операции для сообщений, поиска, outbox и сброса индекса. До этапов Protocol V1 и Local Test Repo Adapter это инфраструктурный слой, а не полноценный пользовательский поток отправки.
+Статус: базово реализовано в `messenger.html`. Есть маленький IndexedDB wrapper, schema version `2`, stores `messages`, `chats`, `outbox`, `meta`, `repoFiles`, операции для сообщений, поиска, outbox, сброса индекса и локального test repo. До Send/Receive Loop это инфраструктурный слой, а не полноценный пользовательский поток отправки.
 
 Шаги:
 
@@ -177,6 +177,8 @@
 ## Этап 7. Локальный Test Repo Adapter
 
 Цель: проверить протокол без удалённого git provider.
+
+Статус: базово реализовано в `messenger.html` как `window.MacaroniTestRepo`. Adapter хранит repo files в IndexedDB store `repoFiles`, умеет `write/read/list`, init layout, создать чат, записать сообщение + inbox notification и пересобрать индекс из repo files.
 
 Шаги:
 

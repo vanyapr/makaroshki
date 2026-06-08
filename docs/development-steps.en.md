@@ -131,7 +131,7 @@ Done when:
 
 Goal: store message index and outbox locally.
 
-Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `1`, stores `messages`, `chats`, `outbox`, `meta`, and operations for messages, search, outbox, and index reset. Until Protocol V1 and the Local Test Repo Adapter, this is infrastructure, not a full user-facing send flow.
+Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `2`, stores `messages`, `chats`, `outbox`, `meta`, `repoFiles`, and operations for messages, search, outbox, index reset, and the local test repo. Until the Send/Receive Loop, this is infrastructure, not a full user-facing send flow.
 
 Steps:
 
@@ -177,6 +177,8 @@ Done when:
 ## Stage 7. Local Test Repo Adapter
 
 Goal: verify protocol without a remote git provider.
+
+Status: basically implemented in `messenger.html` as `window.MacaroniTestRepo`. The adapter stores repo files in the IndexedDB `repoFiles` store and supports `write/read/list`, layout init, chat creation, message + inbox notification writes, and reindexing from repo files.
 
 Steps:
 

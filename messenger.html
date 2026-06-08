@@ -837,7 +837,7 @@
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
       var DB_NAME = "macaroni-messenger";
-      var DB_VERSION = 1;
+      var DB_VERSION = 2;
       var PROFILE_KEY = "macaroni.profile.v1";
       var dbPromise = null;
 
@@ -1144,6 +1144,7 @@
             var chats = createStore(db, "chats", { keyPath: "id" });
             createStore(db, "outbox", { keyPath: "id" });
             createStore(db, "meta", { keyPath: "key" });
+            createStore(db, "repoFiles", { keyPath: "path" });
 
             if (messages) {
               messages.createIndex("chat_id", "chat_id", { unique: false });
@@ -1268,6 +1269,177 @@
 
       function resetIndex() {
         return clearStores(["messages", "chats", "meta"]);
+      }
+
+      function repoWriteFile(path, content) {
+        requireString(path, "repo.path");
+        return putRecord("repoFiles", {
+          path: path,
+          content: String(content),
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      function repoWriteJson(path, value) {
+        return repoWriteFile(path, JSON.stringify(value, null, 2));
+      }
+
+      function repoReadFile(path) {
+        requireString(path, "repo.path");
+        return storageTransaction(["repoFiles"], "readonly").then(function (transaction) {
+          return requestToPromise(transaction.objectStore("repoFiles").get(path));
+        }).then(function (record) {
+          return record ? record.content : null;
+        });
+      }
+
+      function repoReadJson(path) {
+        return repoReadFile(path).then(function (content) {
+          return content ? JSON.parse(content) : null;
+        });
+      }
+
+      function repoListFiles(prefix) {
+        return listRecords("repoFiles").then(function (records) {
+          return records
+            .filter(function (record) {
+              return !prefix || record.path.indexOf(prefix) === 0;
+            })
+            .sort(function (left, right) {
+              return left.path.localeCompare(right.path);
+            });
+        });
+      }
+
+      function repoDeleteAll() {
+        return clearStores(["repoFiles"]);
+      }
+
+      function initTestRepo(profile) {
+        var now = new Date().toISOString();
+        var value = profile || loadProfile() || {
+          clientId: CLIENT_ID,
+          displayName: "Я"
+        };
+        return Promise.all([
+          repoWriteJson("protocol.json", createProtocolDocument(now)),
+          repoWriteJson("users/" + (value.clientId || CLIENT_ID) + ".json", createUserDocument(value, now))
+        ]);
+      }
+
+      function createTestChat(options) {
+        var value = options || {};
+        var ownerId = value.owner_id || CLIENT_ID;
+        var members = value.members || [
+          { id: ownerId, display_name: value.owner_name || "Я", role: "owner" }
+        ];
+        var chatMeta = createChatMeta({
+          title: value.title || "Новый чат",
+          created_by: ownerId,
+          member_ids: members.map(function (member) {
+            return member.id;
+          }).filter(function (memberId) {
+            return memberId !== ownerId;
+          }),
+          created_at: value.created_at
+        });
+        var chatMembers = createChatMembers(chatMeta.id, members);
+
+        return Promise.all([
+          repoWriteJson("chats/" + chatMeta.id + "/meta.json", chatMeta),
+          repoWriteJson("chats/" + chatMeta.id + "/members.json", chatMembers)
+        ]).then(function () {
+          return {
+            meta: chatMeta,
+            members: chatMembers
+          };
+        });
+      }
+
+      function sendTestMessage(options) {
+        var value = options || {};
+        var message = createTextMessage({
+          chat_id: value.chat_id,
+          from: value.from || CLIENT_ID,
+          to: value.to || [],
+          text: value.text,
+          created_at: value.created_at,
+          reply_to: value.reply_to,
+          attachments: value.attachments
+        });
+        var writes = [
+          repoWriteJson(messagePath(message.chat_id, message), message),
+          putMessage(message)
+        ];
+
+        message.to.forEach(function (recipientId) {
+          writes.push(repoWriteJson(inboxPath(recipientId, message.id), createInboxNotification(recipientId, message)));
+        });
+
+        return Promise.all(writes).then(function () {
+          return message;
+        });
+      }
+
+      function parseRepoJson(record) {
+        try {
+          return {
+            path: record.path,
+            value: JSON.parse(record.content)
+          };
+        } catch (error) {
+          return {
+            path: record.path,
+            error: error
+          };
+        }
+      }
+
+      function reindexFromTestRepo() {
+        return resetIndex().then(function () {
+          return repoListFiles();
+        }).then(function (files) {
+          var writes = [];
+          var skipped = [];
+
+          files.map(parseRepoJson).forEach(function (entry) {
+            if (entry.error) {
+              skipped.push({ path: entry.path, reason: entry.error.message });
+              return;
+            }
+
+            if (entry.path === "protocol.json") {
+              writes.push(putRecord("meta", { key: "protocol", value: entry.value }));
+              return;
+            }
+
+            if (/^chats\/[^/]+\/meta\.json$/.test(entry.path)) {
+              try {
+                validateChatMeta(entry.value);
+                writes.push(putRecord("chats", entry.value));
+              } catch (error) {
+                skipped.push({ path: entry.path, reason: error.message });
+              }
+              return;
+            }
+
+            if (/^chats\/[^/]+\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(entry.path)) {
+              try {
+                validateMessage(entry.value);
+                writes.push(putMessage(Object.assign({}, entry.value, { raw_json_path: entry.path })));
+              } catch (error) {
+                skipped.push({ path: entry.path, reason: error.message });
+              }
+            }
+          });
+
+          return Promise.all(writes).then(function () {
+            return {
+              indexed: writes.length,
+              skipped: skipped
+            };
+          });
+        });
       }
 
       function setStorageError(message) {
@@ -1494,6 +1666,19 @@
         inboxPath: inboxPath,
         validateMessage: validateMessage,
         validateChatMeta: validateChatMeta
+      };
+
+      window.MacaroniTestRepo = {
+        writeFile: repoWriteFile,
+        writeJson: repoWriteJson,
+        readFile: repoReadFile,
+        readJson: repoReadJson,
+        listFiles: repoListFiles,
+        deleteAll: repoDeleteAll,
+        init: initTestRepo,
+        createChat: createTestChat,
+        sendMessage: sendTestMessage,
+        reindex: reindexFromTestRepo
       };
 
       setClientIdText();
