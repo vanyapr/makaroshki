@@ -515,29 +515,48 @@
 
       .main {
         grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        align-content: start;
       }
 
       .sidebar {
+        align-self: start;
         border-right: 0;
         border-bottom: var(--line) solid var(--ink);
-        grid-template-rows: 74px auto 86px;
+        grid-template-rows: 64px 58px 64px;
       }
 
       .chat-list {
         display: flex;
         gap: 8px;
-        overflow: hidden;
-        padding: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 8px 12px;
+        scrollbar-width: none;
+      }
+
+      .chat-list::-webkit-scrollbar {
+        display: none;
       }
 
       .chat-item {
-        height: 46px;
+        height: 42px;
         margin: 0;
         flex: 0 0 auto;
       }
 
+      .sidebar-footer {
+        align-items: stretch;
+        padding: 8px 12px 10px;
+      }
+
+      .refresh {
+        min-height: 46px;
+      }
+
       .conversation {
-        min-height: 520px;
+        grid-template-rows: 76px minmax(0, 1fr) auto;
+        min-height: 0;
       }
 
       .conversation-header {
