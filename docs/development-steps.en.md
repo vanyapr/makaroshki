@@ -131,6 +131,8 @@ Done when:
 
 Goal: store message index and outbox locally.
 
+Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `1`, stores `messages`, `chats`, `outbox`, `meta`, and operations for messages, search, outbox, and index reset. Until Protocol V1 and the Local Test Repo Adapter, this is infrastructure, not a full user-facing send flow.
+
 Steps:
 
 1. Create minimal IndexedDB wrapper.

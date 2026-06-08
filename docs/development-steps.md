@@ -131,6 +131,8 @@
 
 Цель: хранить индекс сообщений и outbox локально.
 
+Статус: базово реализовано в `messenger.html`. Есть маленький IndexedDB wrapper, schema version `1`, stores `messages`, `chats`, `outbox`, `meta`, операции для сообщений, поиска, outbox и сброса индекса. До этапов Protocol V1 и Local Test Repo Adapter это инфраструктурный слой, а не полноценный пользовательский поток отправки.
+
 Шаги:
 
 1. Создать минимальный IndexedDB wrapper.
