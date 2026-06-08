@@ -1,5 +1,11 @@
 # Macaroni Messenger
 
+![1000% vibecoded](https://img.shields.io/badge/1000%25-vibecoded-ff69b4?style=for-the-badge)
+![One HTML File](https://img.shields.io/badge/one%20file-HTML-blue?style=for-the-badge)
+![No Backend](https://img.shields.io/badge/backend-none-success?style=for-the-badge)
+![Git Powered](https://img.shields.io/badge/powered%20by-git-orange?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/privacy-absolutely%20not-red?style=for-the-badge)
+
 ## Мессенджер, который состоит из одного HTML-файла
 
 Macaroni Messenger - это мессенджер без серверов, без базы данных, без регистрации и без обещаний приватности.
@@ -16,6 +22,14 @@ Macaroni Messenger - это мессенджер без серверов, без
 - [docs/product-brief.md](docs/product-brief.md) - подробный продуктовый и архитектурный бриф.
 - [docs/roadmap.md](docs/roadmap.md) - актуальный roadmap.
 - [docs/development-steps.md](docs/development-steps.md) - последовательный план разработки.
+
+English docs:
+
+- [README.en.md](README.en.md)
+- [PHILOSOPHY.en.md](PHILOSOPHY.en.md)
+- [docs/product-brief.en.md](docs/product-brief.en.md)
+- [docs/roadmap.en.md](docs/roadmap.en.md)
+- [docs/development-steps.en.md](docs/development-steps.en.md)
 
 ## Главная фича
 
