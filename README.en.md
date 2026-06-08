@@ -16,6 +16,8 @@ Documents:
 - [docs/product-brief.en.md](docs/product-brief.en.md) - detailed product and architecture brief.
 - [docs/roadmap.en.md](docs/roadmap.en.md) - current roadmap.
 - [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
+- [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
+- [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
 
 Russian versions:
 
@@ -24,6 +26,8 @@ Russian versions:
 - [docs/product-brief.md](docs/product-brief.md)
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/development-steps.md](docs/development-steps.md)
+- [docs/access-token.md](docs/access-token.md)
+- [docs/gitverse-token.md](docs/gitverse-token.md)
 
 ## Main Feature
 
