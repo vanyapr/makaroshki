@@ -250,7 +250,7 @@ Steps:
 9. Search input.
 10. Mobile/narrow layout.
 
-Current mobile UI contract: the sidebar does not stretch the chat list with empty space, chats use a compact horizontal strip, and the composer fits fully inside the viewport.
+Current mobile UI contract: the sidebar does not stretch the chat list with empty space, chats use a compact horizontal strip, and the composer fits fully inside the viewport without sticking to the bottom edge.
 
 Done when:
 

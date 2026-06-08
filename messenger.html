@@ -576,11 +576,16 @@
 
       .composer {
         grid-template-columns: 1fr;
-        padding: 0 18px 18px;
+        gap: 10px;
+        padding: 0 18px calc(22px + env(safe-area-inset-bottom));
+      }
+
+      .message-input {
+        height: 54px;
       }
 
       .send {
-        min-height: 56px;
+        min-height: 44px;
       }
 
       .unsupported-panel {
