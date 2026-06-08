@@ -1,225 +1,232 @@
 # Roadmap
 
-Roadmap фиксирует практичный путь к первому рабочему Macaroni Messenger: маленький git-backed async messenger без собственного backend'а, без realtime-обещаний и без приватности по умолчанию.
+Roadmap фиксирует актуальное понимание Macaroni Messenger: это маленький git-backed messenger, который в базовой поставке является одним файлом `messenger.html`.
 
-## Продуктовая позиция
+## Текущее понимание задачи
 
-Macaroni Messenger - JS-first клиент для небольших групп, где сообщения являются JSON-файлами в git-репозитории.
+Macaroni Messenger - не "JS-first приложение с возможным web target".
 
-Главное платформенное соглашение:
+Macaroni Messenger - это **single-file HTML messenger**.
 
-> Мессенджер должен работать на любой платформе, где можно крутить JavaScript.
+Главное обещание продукта:
 
-Ключевая фича:
+> Скачать или сохранить один HTML-файл, открыть его в браузере и получить рабочий мессенджер поверх git.
 
-> Клиент можно развернуть как один обычный HTML-файл почти где угодно.
+Backend отсутствует.
 
-Поэтому ядро проекта не привязывается к Electron, Tauri, конкретному UI-фреймворку, конкретной базе или конкретному способу доступа к git.
+Регистрация в Macaroni отсутствует.
 
-Не делаем:
+Git является источником истины.
 
-- замену Telegram;
-- собственный сервер;
-- realtime-доставку;
-- шифрование в ядре;
-- вложения в git;
-- удаление сообщений с обещанием "стерто навсегда";
-- enterprise-архитектуру ради красоты.
+Локальный индекс является кешем.
 
-Делаем:
+Приватность не обещается.
 
-- простую отправку и получение текстовых сообщений через git;
-- локальный индекс через runtime-specific storage adapter;
-- single-file `messenger.html` target без собственного backend'а;
-- честное предупреждение о публичности;
-- оффлайн-очередь исходящих;
-- понятный UI без git-терминов для обычного пользователя.
+## Product Contract
 
-## Зафиксированные решения
+Базовый клиент:
 
-- Рабочее название: **Macaroni Messenger**.
+- поставляется как `messenger.html`;
+- открывается в обычном браузере;
+- содержит HTML, CSS и JavaScript внутри одного файла;
+- не требует установки сервера;
+- не требует базы данных за пределами browser storage;
+- работает с git-репозиторием через browser-compatible transport;
+- объясняет пользователю, что сообщения не приватны.
+
+Дополнительные оболочки допустимы:
+
+- Electron;
+- Tauri/WebView;
+- мобильный WebView;
+- локальный desktop wrapper;
+- hosted static page.
+
+Но оболочки не являются продуктовым центром. Они запускают тот же HTML-клиент или минимально оборачивают его.
+
+## Не Делаем
+
+- Telegram replacement.
+- Собственный backend.
+- Собственную регистрацию.
+- Realtime-доставку.
+- Сложную криптографию в ядре.
+- Хранение больших бинарников в git.
+- Удаление сообщений с обещанием "стерто навсегда".
+- Абстрактную платформу до появления рабочего `messenger.html`.
+- Enterprise-слои ради архитектурного косплея.
+
+## Делаем
+
+- Один `messenger.html`.
+- Git-backed текстовые сообщения.
+- Локальный индекс в browser storage.
+- Polling/sync через git-compatible flow.
+- Честный privacy warning.
+- Оффлайн-очередь исходящих.
+- Простую UI-схему: chats, messages, composer, sync status.
+- Подробный product brief отдельно от короткого README.
+
+## Зафиксированные Решения
+
+- Название: **Macaroni Messenger**.
+- Первый артефакт: `messenger.html`.
 - Базовый протокол: **Macaroni Protocol v1**.
-- Базовая архитектура: TypeScript core + runtime adapters.
-- Первый важный delivery format: single-file `messenger.html`.
-- Источник истины: git-репозиторий.
-- Локальный индекс: storage adapter, пересобираемый из файлов репозитория.
-- Первая ветка сообщений: `main`.
-- Сообщение: отдельный immutable JSON-файл.
-- Редактирование и удаление: только отдельными событиями, не в MVP.
-- Вложения в MVP: нет. Позже - только URL/LFS/внешнее хранилище, не бинарники в git по умолчанию.
-- Приватность: не обещается. Шифрование только как будущий plugin layer.
-- Доставка: polling через `git fetch`/`pull`.
-- MVP-коммиты: один commit на сообщение. Батчинг позже, если реально понадобится.
+- Источник истины: git repository.
+- Runtime MVP: browser.
+- UI MVP: vanilla HTML/CSS/JS или минимальный build output, который всё равно собирается в один HTML-файл.
+- Storage MVP: IndexedDB или другой browser storage; localStorage допустим только для демо/прототипа, если объём мал.
+- Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
+- Сообщение: immutable JSON-файл.
+- Ветка сообщений: `main`.
+- Вложения MVP: только URL или вообще без вложений.
+- Редактирование/удаление MVP: нет. Позже - отдельные события.
+- Шифрование MVP: нет. Позже - plugin layer.
 
-## MVP 0.1
+## Документы
 
-Цель: доказать, что два локальных клиента могут обмениваться текстовыми сообщениями через обычный git-репозиторий без backend'а.
+- `README.md` - короткая витрина проекта: что это, зачем и почему один HTML-файл.
+- `docs/product-brief.md` - подробный исходный бриф с моделью данных, философией, UX и протоколом.
+- `docs/roadmap.md` - актуальный план реализации.
+- `AGENTS.md` - правила работы в репозитории.
+
+Правило: если меняется продуктовая договорённость, сначала обновляется документация, потом код.
+
+## MVP 0.1: Working Messenger.html
+
+Цель: получить один файл `messenger.html`, который позволяет двум пользователям обменяться текстовыми сообщениями через git-репозиторий без backend'а Macaroni.
 
 Функции:
 
-- создать локальный профиль пользователя;
-- подключить существующий git repo по URL/path;
-- инициализировать структуру `protocol.json`, `users/`, `chats/`, `inbox/`;
-- создать чат;
-- добавить участника по username;
-- отправить текстовое сообщение;
-- записать сообщение в `chats/<chat_id>/messages/...`;
-- записать уведомление в `inbox/<recipient>/...`;
-- сделать commit и push;
-- делать polling/fetch;
-- индексировать новые сообщения через storage adapter;
-- показать список чатов и историю;
-- искать по локальному индексу;
-- сохранить исходящее сообщение локально при ошибке сети;
-- пережить restart без потери очереди.
+- первый запуск с privacy warning;
+- локальный профиль пользователя;
+- подключение репозитория;
+- сохранение настроек в browser storage;
+- инициализация repo layout;
+- создание чата;
+- добавление участника по username;
+- отправка текстового сообщения;
+- запись сообщения как JSON-файла;
+- запись inbox notification;
+- синхронизация с repo;
+- polling/ручное обновление;
+- локальная индексация сообщений;
+- показ списка чатов;
+- показ истории сообщений;
+- поиск по локальному индексу;
+- outbox при ошибке сети/sync;
+- восстановление состояния после reload/restart браузера.
 
 Критерии готовности:
 
-- два пользователя в одном test repo видят сообщения друг друга;
-- клиент работает после restart;
-- при offline/push error сообщение остается в исходящей очереди;
-- повторная индексация не создает дубликаты;
-- пользователь видит жирный privacy warning при первом запуске;
-- README и roadmap соответствуют реальному поведению.
+- `messenger.html` открывается как самостоятельный файл или со static hosting.
+- Нет обязательной папки assets для запуска MVP.
+- Два профиля в одном test repo видят сообщения друг друга.
+- Повторная индексация не создаёт дубликаты.
+- Ошибка отправки не теряет сообщение.
+- Privacy warning виден до первого сообщения.
+- README, product brief и roadmap не противоречат фактическому поведению.
 
-## Архитектурные слои
+## MVP 0.1 Work Plan
 
-Ядро:
+1. Документация.
+   - Сверить README, product brief, roadmap и AGENTS.
+   - Зафиксировать single-file delivery как базовый контракт.
+   - Вынести технические детали протокола из README только в docs.
 
-- protocol types;
-- validation;
-- message id generation;
-- repo layout helpers;
-- indexing pipeline;
-- outbox state machine;
-- sync orchestration.
+2. Первый HTML shell.
+   - Создать `messenger.html`.
+   - Inline CSS.
+   - Inline JS.
+   - Рабочий layout: sidebar, messages, composer, status bar.
+   - Privacy warning modal/first-run screen.
 
-Adapters:
+3. Protocol v1.
+   - `protocol.json`.
+   - `users/<user>.json`.
+   - `chats/<chat_id>/meta.json`.
+   - `chats/<chat_id>/members.json`.
+   - `chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
+   - `inbox/<user>/<message_id>.json`.
+   - Минимальные validators без тяжёлой dependency.
 
-- git transport: isomorphic-git, hosting API, Node/local git или другой JS-совместимый backend;
-- storage: SQLite, IndexedDB, OPFS, localStorage для демо, in-memory для тестов;
-- credentials: OS keychain, browser storage, runtime-specific secret provider;
-- UI: React/Svelte/Vue/plain DOM, но не в core.
+4. Browser storage.
+   - Профиль.
+   - Repo config.
+   - Messages index.
+   - Outbox.
+   - First-run/privacy acceptance flag.
+   - Rebuild index command.
 
-Правило: core не импортирует UI, Electron, Node-only API или конкретную базу. Runtime-specific код живет в adapters.
+5. Git transport.
+   - Выбрать самый простой browser-compatible adapter.
+   - Зафиксировать его ограничения в docs.
+   - Поддержать init/read/write/sync для MVP.
+   - Не показывать пользователю raw git errors.
 
-## Single HTML target
+6. Send/receive loop.
+   - Создание message JSON.
+   - Уникальный message id.
+   - Append-only запись.
+   - Sync before/after send.
+   - Polling/manual refresh.
+   - Outbox retry.
 
-Это не демо "для галочки", а одна из главных причин существования проекта.
-
-Минимальная версия должна уметь собираться в один файл `messenger.html`, который можно положить:
-
-- на GitHub Pages;
-- GitLab Pages;
-- любой static hosting;
-- S3-compatible bucket;
-- обычный nginx;
-- локально рядом с repo;
-- на флешку, если очень хочется киберпанка без бюджета.
-
-Правило delivery:
-
-- базовый клиент поставляется одним HTML-файлом;
-- CSS и JavaScript в MVP inline, без обязательной папки ассетов;
-- Electron/WebView-обертки могут существовать, но они запускают тот же HTML-клиент;
-- если зависимость мешает single-file delivery, она подозрительна по умолчанию.
-
-Ограничения browser target:
-
-- прямой SSH git из браузера не считаем базовым сценарием;
-- для remote repo нужен HTTPS/API adapter или hosting-specific flow;
-- токены нельзя хранить без явного предупреждения;
-- CORS и ограничения git-хостинга должны быть видны в onboarding;
-- offline state хранится в IndexedDB/OPFS или другом browser storage.
-
-Правило отсечения: если фича ломает возможность single-file HTML target без очень веской причины, она не входит в core.
-
-## План до первого утреннего среза
-
-Минимальный результат "к утру" - не красивый мессенджер на продажу, а проверенный вертикальный прототип.
-
-1. Документация и соглашения.
-   - `README.md` прочитан и принят как продуктовая база.
-   - `docs/product-brief.md` хранит подробное исходное описание задачи и архитектурные идеи.
-   - `AGENTS.md` фиксирует стиль работы.
-   - `docs/roadmap.md` фиксирует MVP, антицели и порядок работ.
-
-2. Проектный скелет.
-   - Выбрать первый runnable target без ломки JS-first архитектуры.
-   - Считать single-file `messenger.html` target первоклассным, даже если первый dev shell будет проще.
-   - Создать минимальную структуру TypeScript core + adapters.
-   - Добавить базовые npm scripts: dev, build, lint/typecheck.
-   - Не добавлять тяжелые зависимости без отдельного решения.
-
-3. Протокол и файловая модель.
-   - Описать JSON-схемы v1 для `protocol.json`, user, chat meta, members, message.
-   - Сделать простые валидаторы.
-   - Сделать генерацию стабильных message id.
-
-4. Git transport.
-   - Подключение локального repo path для первого прототипа.
-   - Создание message file.
-   - Commit на сообщение.
-   - Pull/fetch перед отправкой и при polling.
-   - Нормальные пользовательские ошибки без слов "merge conflict".
-
-5. Локальный индекс.
-   - Storage interface для messages/chats/outbox.
-   - Первый storage adapter для выбранного runtime.
-   - Индексация файлов сообщений.
-   - Защита от дубликатов по message id.
-   - Полная пересборка индекса из repo.
-
-6. UI-прототип.
-   - Левая колонка чатов.
-   - Правая колонка сообщений.
-   - Поле ввода.
-   - Кнопка refresh.
-   - Индикатор sync status.
-   - Privacy warning при первом запуске.
-
-7. Проверка.
-   - Два локальных профиля на одном test repo.
-   - Отправка туда-обратно.
-   - Restart.
-   - Offline/push error.
+7. Verification.
+   - Локальный test repo.
+   - Два профиля.
+   - Send both ways.
+   - Browser reload.
+   - Offline/sync error.
    - Reindex.
+   - Проверка, что итоговый артефакт один HTML-файл.
+
+## Browser Reality Check
+
+Ограничения, которые нельзя замазывать:
+
+- Браузер не умеет обычный SSH git без помощников.
+- Git hosting API может иметь CORS/permissions ограничения.
+- Personal access token в браузере - чувствительная штука, нужен явный warning.
+- GitHub/GitLab/GitVerse могут отличаться API и auth flow.
+- `file://` может иметь ограничения, поэтому static hosting должен быть supported path.
+- Большой repo будет медленно индексироваться.
+
+Практичный MVP может начать с одного поддержанного hosting/provider flow или local/static test adapter. Главное - не врать, что "любой git" уже работает из браузера магически.
 
 ## После MVP
 
 0.2:
 
-- remote repo auth/token storage через системный keychain;
+- GitHub/GitLab/GitVerse provider adapters;
+- hosted static build;
+- импорт существующего repo;
+- read-only public repo mode;
 - нормальный onboarding;
-- read-only режим для публичных repo;
-- базовый export в HTML;
-- ручной compact/reindex;
-- простая настройка polling interval.
+- ручной export/import настроек;
+- reindex/repair tools.
 
 0.3:
 
-- receipts как append-only события;
 - URL attachments;
 - markdown rendering;
-- локальные notifications;
-- basic bot client API.
+- basic notifications;
+- receipts как append-only события;
+- HTML export of chat history;
+- Electron/WebView wrapper над тем же `messenger.html`.
 
 0.4:
 
-- plugin boundary для encrypted payload;
+- plugin boundary;
 - PGP/age proof-of-concept plugin;
-- Git LFS/WebDAV/S3 attachment adapters;
-- импорт/экспорт чатов.
+- bot/client runtime;
+- attachment adapters для LFS/WebDAV/S3;
+- migration/versioning tools для протокола.
 
-## Риски
+## Правило Отсечения
 
-- Git-hosting может ограничивать частые push/fetch.
-- Пользовательские токены нельзя хранить в plain text.
-- Большие бинарники быстро убьют repo.
-- Обычному пользователю нельзя показывать raw git errors.
-- Публичность нужно объяснять до первого сообщения, а не в подвале настроек.
-- В распределенной истории нельзя честно обещать настоящее удаление.
+Если фича не помогает одному `messenger.html` отправить, получить, найти или не потерять текстовое сообщение в маленькой группе, она не входит в MVP.
 
-## Правило отсечения
+Если фича требует backend Macaroni, она не входит в базовый продукт.
 
-Если фича не помогает отправить, получить, найти или не потерять текстовое сообщение в маленькой группе, она не входит в MVP.
+Если фича ломает single-file delivery, она должна принести очень понятную пользу. Иначе мимо.
