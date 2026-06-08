@@ -242,6 +242,55 @@
       min-height: 70px;
     }
 
+    .unsupported {
+      min-height: 100vh;
+      border: var(--line) solid var(--ink);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      background: var(--paper);
+    }
+
+    .unsupported-panel {
+      width: min(900px, 100%);
+      border: var(--line) solid var(--ink);
+      padding: 38px 42px;
+    }
+
+    .unsupported-title {
+      margin: 0 0 32px;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .unsupported-copy {
+      margin: 0 0 26px;
+      line-height: 1.35;
+    }
+
+    .unsupported-list {
+      margin: 0 0 32px;
+      padding-left: 34px;
+      line-height: 1.45;
+    }
+
+    .unsupported-note {
+      margin: 0;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+
+    body[data-support="pending"] .app,
+    body[data-support="unsupported"] .app {
+      display: none;
+    }
+
+    body[data-support="unsupported"] .unsupported {
+      display: flex;
+    }
+
     @media (max-width: 900px) {
       :root {
         --sidebar: 250px;
@@ -384,10 +433,33 @@
       .send {
         min-height: 56px;
       }
+
+      .unsupported-panel {
+        padding: 26px 22px;
+      }
+
+      .unsupported-title {
+        font-size: 24px;
+      }
     }
   </style>
 </head>
-<body>
+<body data-support="pending">
+  <section class="unsupported" aria-label="Браузер не поддерживается">
+    <div class="unsupported-panel">
+      <h1 class="unsupported-title">Ваш браузер недостаточно смешной для запуска Macaroni Messenger.</h1>
+      <p class="unsupported-copy">Требуется:</p>
+      <ul class="unsupported-list">
+        <li><code>file://</code> origin storage</li>
+        <li><code>localStorage</code></li>
+        <li><code>IndexedDB</code></li>
+        <li><code>WebCrypto</code></li>
+      </ul>
+      <p class="unsupported-copy">Рекомендуется: Chrome / Chromium / Edge.</p>
+      <p class="unsupported-note">Мы не предлагаем поднять локальный сервер. Откройте <code>messenger.html</code> нормальным браузером.</p>
+    </div>
+  </section>
+
   <main class="app" aria-label="Macaroni Messenger">
     <header class="topbar">
       <div class="brand">Macaroni Messenger</div>
@@ -453,5 +525,95 @@
       </section>
     </div>
   </main>
+
+  <script>
+    (function () {
+      var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
+      var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
+
+      function checkLocalStorage() {
+        try {
+          window.localStorage.setItem(LOCAL_STORAGE_PROBE, "1");
+          window.localStorage.removeItem(LOCAL_STORAGE_PROBE);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function checkIndexedDB() {
+        return new Promise(function (resolve) {
+          if (!window.indexedDB) {
+            resolve(false);
+            return;
+          }
+
+          var settled = false;
+          var request;
+          var timeout = window.setTimeout(function () {
+            if (!settled) {
+              settled = true;
+              resolve(false);
+            }
+          }, 1500);
+
+          try {
+            request = window.indexedDB.open(INDEXED_DB_PROBE, 1);
+          } catch (error) {
+            window.clearTimeout(timeout);
+            resolve(false);
+            return;
+          }
+
+          request.onerror = function () {
+            if (!settled) {
+              settled = true;
+              window.clearTimeout(timeout);
+              resolve(false);
+            }
+          };
+
+          request.onsuccess = function () {
+            if (settled) {
+              request.result.close();
+              return;
+            }
+
+            settled = true;
+            window.clearTimeout(timeout);
+            request.result.close();
+            window.indexedDB.deleteDatabase(INDEXED_DB_PROBE);
+            resolve(true);
+          };
+        });
+      }
+
+      async function checkSupport() {
+        var checks = {
+          fileProtocol: window.location.protocol === "file:",
+          localStorage: checkLocalStorage(),
+          indexedDB: await checkIndexedDB(),
+          crypto: !!(window.crypto && window.crypto.subtle)
+        };
+
+        return {
+          ok: Object.keys(checks).every(function (key) {
+            return checks[key];
+          }),
+          checks: checks
+        };
+      }
+
+      window.MacaroniSupport = {
+        checkSupport: checkSupport
+      };
+
+      checkSupport().then(function (result) {
+        document.body.dataset.support = result.ok ? "supported" : "unsupported";
+      }).catch(function () {
+        document.body.dataset.support = "unsupported";
+      });
+    }());
+  </script>
 </body>
 </html>

@@ -1,0 +1,23 @@
+# Design QA
+
+Reference: `/Users/ivanproskurakov/Downloads/ChatGPT Image 9 июн. 2026 г., 00_53_21.png`
+
+Prototype: `messenger.html`
+
+Viewport: `1536x1024`
+
+## Checks
+
+- Main `file://` screen keeps the existing Macaroni style: monospace typography, black borders, white background, dense chat layout.
+- Feature detection does not change the main chat layout when the browser is supported.
+- Unsupported browser screen uses the same visual language: centered bordered panel, monospace text, no decorative assets, no localhost fallback.
+- Required unsupported text is present: "Ваш браузер недостаточно смешной для запуска Macaroni Messenger."
+- No external CSS, JS, images, or assets are required.
+
+## Issues
+
+- P0: none.
+- P1: none.
+- P2: none.
+
+Final result: passed.
