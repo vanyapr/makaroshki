@@ -153,6 +153,8 @@
 
 Цель: определить файловую модель сообщений.
 
+Статус: базово реализовано в `messenger.html` и описано в `docs/protocol-v1.md`. Есть helpers `window.MacaroniProtocol` для `protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, генерации `chat_id`/`message_id` и минимальной validation без dependency.
+
 Шаги:
 
 1. Описать `protocol.json`.

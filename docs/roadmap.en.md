@@ -110,6 +110,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/roadmap.en.md` - current implementation plan in English.
 - `docs/development-steps.md` - sequential development queue in Russian.
 - `docs/development-steps.en.md` - sequential development queue in English.
+- `docs/protocol-v1.md` - Macaroni Protocol v1 file model in Russian.
+- `docs/protocol-v1.en.md` - Macaroni Protocol v1 file model in English.
 - `docs/access-token.md` - default access token guide in Russian, with GitHub first.
 - `docs/access-token.en.md` - default access token guide in English.
 - `docs/gitverse-token.md` - GitVerse token guide in Russian.

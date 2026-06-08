@@ -831,6 +831,8 @@
     (function () {
       const CLIENT_ID = "SA6E";
       const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const CLIENT_NAME = "Macaroni Messenger JS 0.1.0";
+      const PROTOCOL_VERSION = 1;
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
@@ -865,6 +867,217 @@
           CLIENT_ID_ALPHABET[rand()] +
           CLIENT_ID_ALPHABET[rand()]
         );
+      }
+
+      function randomSuffix(length) {
+        var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var value = "";
+        for (var index = 0; index < length; index += 1) {
+          value += alphabet[Math.floor(Math.random() * alphabet.length)];
+        }
+        return value;
+      }
+
+      function compactIso(value) {
+        return value.replace(/:/g, "-");
+      }
+
+      function dateParts(isoDate) {
+        var date = new Date(isoDate);
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid ISO date");
+        }
+
+        return {
+          year: String(date.getUTCFullYear()),
+          month: String(date.getUTCMonth() + 1).padStart(2, "0"),
+          day: String(date.getUTCDate()).padStart(2, "0")
+        };
+      }
+
+      function normalizeIdPart(value) {
+        return String(value || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+      }
+
+      function createProtocolDocument(createdAt) {
+        return {
+          name: "Macaroni Protocol",
+          version: PROTOCOL_VERSION,
+          created_at: createdAt || new Date().toISOString(),
+          message_format: "json",
+          privacy: "public_by_design",
+          features: {
+            encryption: "optional",
+            attachments: "url_only",
+            deletion: "markers_only"
+          }
+        };
+      }
+
+      function createUserDocument(profile, createdAt) {
+        var value = profile || {};
+        return {
+          version: PROTOCOL_VERSION,
+          id: value.clientId || CLIENT_ID,
+          display_name: value.displayName || "Я",
+          created_at: createdAt || new Date().toISOString(),
+          meta: {
+            client: CLIENT_NAME
+          }
+        };
+      }
+
+      function createChatId(memberIds, createdAt) {
+        var parts = dateParts(createdAt || new Date().toISOString());
+        var members = (memberIds || [CLIENT_ID])
+          .map(normalizeIdPart)
+          .filter(Boolean)
+          .sort()
+          .join("_");
+
+        return "chat_" + parts.year + parts.month + parts.day + "_" + (members || normalizeIdPart(CLIENT_ID)) + "_" + randomSuffix(4);
+      }
+
+      function createMessageId(authorId, createdAt) {
+        var iso = createdAt || new Date().toISOString();
+        return compactIso(iso) + "_" + String(authorId || CLIENT_ID).trim() + "_" + randomSuffix(6);
+      }
+
+      function messagePath(chatId, message) {
+        var parts = dateParts(message.created_at);
+        return [
+          "chats",
+          chatId,
+          "messages",
+          parts.year,
+          parts.month,
+          parts.day,
+          message.id + ".json"
+        ].join("/");
+      }
+
+      function inboxPath(recipientId, messageId) {
+        return ["inbox", recipientId, messageId + ".json"].join("/");
+      }
+
+      function createChatMeta(options) {
+        var value = options || {};
+        var createdAt = value.created_at || new Date().toISOString();
+        var chatId = value.id || createChatId([value.created_by].concat(value.member_ids || []), createdAt);
+        return {
+          version: PROTOCOL_VERSION,
+          id: chatId,
+          title: value.title || "Новый чат",
+          created_at: createdAt,
+          created_by: value.created_by || CLIENT_ID,
+          visibility: "repo",
+          privacy: "public_by_design"
+        };
+      }
+
+      function createChatMembers(chatId, members) {
+        return {
+          version: PROTOCOL_VERSION,
+          chat_id: chatId,
+          members: (members || []).map(function (member) {
+            return {
+              id: member.id,
+              display_name: member.display_name || member.id,
+              role: member.role || "member"
+            };
+          })
+        };
+      }
+
+      function createTextMessage(options) {
+        var value = options || {};
+        var createdAt = value.created_at || new Date().toISOString();
+        var from = value.from || CLIENT_ID;
+        var message = {
+          version: PROTOCOL_VERSION,
+          id: value.id || createMessageId(from, createdAt),
+          chat_id: value.chat_id,
+          type: "text",
+          from: from,
+          to: value.to || [],
+          created_at: createdAt,
+          text: value.text || "",
+          reply_to: value.reply_to || null,
+          attachments: value.attachments || [],
+          meta: {
+            client: CLIENT_NAME
+          },
+          signature: null
+        };
+
+        validateMessage(message);
+        return message;
+      }
+
+      function createInboxNotification(recipientId, message) {
+        return {
+          version: PROTOCOL_VERSION,
+          recipient: recipientId,
+          message_id: message.id,
+          chat_id: message.chat_id,
+          message_path: messagePath(message.chat_id, message),
+          created_at: message.created_at
+        };
+      }
+
+      function requireString(value, field) {
+        if (typeof value !== "string" || !value.trim()) {
+          throw new Error(field + " is required");
+        }
+      }
+
+      function requireIsoDate(value, field) {
+        requireString(value, field);
+        if (Number.isNaN(new Date(value).getTime())) {
+          throw new Error(field + " must be an ISO date");
+        }
+      }
+
+      function validateMessage(message) {
+        if (!message || message.version !== PROTOCOL_VERSION) {
+          throw new Error("Unsupported message version");
+        }
+
+        requireString(message.id, "message.id");
+        requireString(message.chat_id, "message.chat_id");
+        requireString(message.from, "message.from");
+        requireString(message.text, "message.text");
+        requireIsoDate(message.created_at, "message.created_at");
+
+        if (message.type !== "text") {
+          throw new Error("Only text messages are supported in Protocol v1 MVP");
+        }
+
+        if (!Array.isArray(message.to)) {
+          throw new Error("message.to must be an array");
+        }
+
+        if (!Array.isArray(message.attachments)) {
+          throw new Error("message.attachments must be an array");
+        }
+
+        return true;
+      }
+
+      function validateChatMeta(meta) {
+        if (!meta || meta.version !== PROTOCOL_VERSION) {
+          throw new Error("Unsupported chat meta version");
+        }
+
+        requireString(meta.id, "chat.id");
+        requireString(meta.title, "chat.title");
+        requireString(meta.created_by, "chat.created_by");
+        requireIsoDate(meta.created_at, "chat.created_at");
+        return true;
       }
 
       function loadProfile() {
@@ -1264,6 +1477,23 @@
         listOutbox: listOutbox,
         deleteOutbox: deleteOutbox,
         resetIndex: resetIndex
+      };
+
+      window.MacaroniProtocol = {
+        version: PROTOCOL_VERSION,
+        clientName: CLIENT_NAME,
+        createProtocolDocument: createProtocolDocument,
+        createUserDocument: createUserDocument,
+        createChatId: createChatId,
+        createChatMeta: createChatMeta,
+        createChatMembers: createChatMembers,
+        createMessageId: createMessageId,
+        createTextMessage: createTextMessage,
+        createInboxNotification: createInboxNotification,
+        messagePath: messagePath,
+        inboxPath: inboxPath,
+        validateMessage: validateMessage,
+        validateChatMeta: validateChatMeta
       };
 
       setClientIdText();

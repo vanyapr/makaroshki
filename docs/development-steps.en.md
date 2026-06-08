@@ -153,6 +153,8 @@ Done when:
 
 Goal: define message file model.
 
+Status: basically implemented in `messenger.html` and documented in `docs/protocol-v1.en.md`. `window.MacaroniProtocol` provides helpers for `protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, `chat_id`/`message_id` generation, and minimal validation without a dependency.
+
 Steps:
 
 1. Describe `protocol.json`.

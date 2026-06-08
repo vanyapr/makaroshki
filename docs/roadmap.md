@@ -110,6 +110,8 @@ Git является источником истины.
 - `docs/roadmap.en.md` - актуальный план реализации на английском.
 - `docs/development-steps.md` - последовательная очередь разработки по roadmap.
 - `docs/development-steps.en.md` - последовательная очередь разработки на английском.
+- `docs/protocol-v1.md` - файловая модель Macaroni Protocol v1.
+- `docs/protocol-v1.en.md` - файловая модель Macaroni Protocol v1 на английском.
 - `docs/access-token.md` - основная инструкция получения токена доступа, GitHub по умолчанию.
 - `docs/access-token.en.md` - основная инструкция получения токена доступа на английском.
 - `docs/gitverse-token.md` - инструкция получения токена GitVerse.
