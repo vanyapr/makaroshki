@@ -90,6 +90,8 @@ Git является источником истины.
 - Compatibility MVP: `file://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
+- Client identity MVP: четырёхсимвольный `CLIENT_ID` из alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
+- HTML download stamping: каждый скачанный `messenger.html` получает свой `CLIENT_ID`.
 - Сообщение: immutable JSON-файл.
 - Ветка сообщений: `main`.
 - Вложения MVP: только URL или вообще без вложений.
@@ -114,6 +116,7 @@ Git является источником истины.
 - feature detection перед onboarding;
 - экран несовместимости для неподдерживаемого браузера;
 - первый запуск с privacy warning;
+- короткий `CLIENT_ID` внутри скачанного HTML;
 - локальный профиль пользователя;
 - подключение репозитория;
 - сохранение настроек в browser storage;
@@ -167,9 +170,20 @@ Git является источником истины.
    - `chats/<chat_id>/members.json`.
    - `chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
    - `inbox/<user>/<message_id>.json`.
+   - Поле автора использует `CLIENT_ID` или профиль, привязанный к `CLIENT_ID`.
    - Минимальные validators без тяжёлой dependency.
 
-4. Browser storage.
+4. Client identity.
+   - В каждом скачанном/собранном `messenger.html` есть `const CLIENT_ID = "SA6E";`.
+   - Это подпись экземпляра файла, а не security signature.
+   - Генератор использует alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
+   - Длина идентификатора: 4 символа.
+   - Пространство вариантов: `32^4 = 1 048 576`.
+   - Коллизии возможны и не скрываются.
+   - Коллизии не решаются криптографией в MVP.
+   - В README есть FAQ: "четыре символа, вроде работает".
+
+5. Browser storage.
    - Проверить доступность storage на `file://`.
    - `localStorage` для токена и настроек.
    - `IndexedDB` для messages index и outbox.
@@ -180,13 +194,13 @@ Git является источником истины.
    - First-run/privacy acceptance flag.
    - Rebuild index command.
 
-5. Git transport.
+6. Git transport.
    - Выбрать самый простой browser-compatible adapter.
    - Зафиксировать его ограничения в docs.
    - Поддержать init/read/write/sync для MVP.
    - Не показывать пользователю raw git errors.
 
-6. Send/receive loop.
+7. Send/receive loop.
    - Создание message JSON.
    - Уникальный message id.
    - Append-only запись.
@@ -194,7 +208,7 @@ Git является источником истины.
    - Polling/manual refresh.
    - Outbox retry.
 
-7. Verification.
+8. Verification.
    - Локальный test repo.
    - Два профиля.
    - Send both ways.
@@ -202,6 +216,47 @@ Git является источником истины.
    - Offline/sync error.
    - Reindex.
    - Проверка, что итоговый артефакт один HTML-файл.
+   - Проверка, что `CLIENT_ID` присутствует в HTML и попадает в профиль/сообщения.
+
+## Client Identity Manifest
+
+Каждый скачанный экземпляр Macaroni Messenger получает короткий идентификатор:
+
+```js
+const CLIENT_ID = "SA6E";
+```
+
+Это download stamping, а не криптографическая подпись.
+
+Генерация:
+
+```js
+const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CLIENT_ID =
+  alphabet[rand()] +
+  alphabet[rand()] +
+  alphabet[rand()] +
+  alphabet[rand()];
+```
+
+Это не UUID.
+
+Это не криптографический ключ.
+
+Это не гарантия уникальности.
+
+Это распределенная система идентификации уровня "мама, папа, тётя Света".
+
+FAQ:
+
+- Насколько уникален идентификатор? Не очень.
+- Возможны коллизии? Да.
+- Что происходит при коллизии? Ничего хорошего.
+- Почему не UUID? Чтобы сохранить размер HTML-файла.
+- Почему не криптографический ключ? Потому что MVP не про это.
+- Почему четыре символа? Потому что `32^4 = 1 048 576`, а для маленьких групп этого достаточно.
+
+Если два пользователя получили одинаковый идентификатор, рекомендуем познакомиться.
 
 ## Browser Reality Check
 
