@@ -10,7 +10,12 @@ Macaroni Messenger - это мессенджер без серверов, без
 
 Если вы умеете скачивать веб-страницы, вы уже умеете устанавливать Macaroni Messenger.
 
-Подробный продуктовый и архитектурный бриф лежит в [docs/product-brief.md](docs/product-brief.md).
+Документы:
+
+- [PHILOSOPHY.md](PHILOSOPHY.md) - главный принцип проекта.
+- [docs/product-brief.md](docs/product-brief.md) - подробный продуктовый и архитектурный бриф.
+- [docs/roadmap.md](docs/roadmap.md) - актуальный roadmap.
+- [docs/development-steps.md](docs/development-steps.md) - последовательный план разработки.
 
 ## Главная фича
 
