@@ -12,6 +12,10 @@ Macaroni Messenger - это **single-file HTML messenger**.
 
 > Скачать или сохранить один HTML-файл, открыть его в браузере и получить рабочий мессенджер поверх git.
 
+Главный installation flow:
+
+> Двойной клик по локальному `messenger.html`.
+
 Backend отсутствует.
 
 Регистрация в Macaroni отсутствует.
@@ -27,20 +31,24 @@ Git является источником истины.
 Базовый клиент:
 
 - поставляется как `messenger.html`;
-- открывается в обычном браузере;
+- открывается локально через `file://` в совместимом браузере;
 - содержит HTML, CSS и JavaScript внутри одного файла;
 - не требует установки сервера;
+- не требует `localhost`;
 - не требует базы данных за пределами browser storage;
 - работает с git-репозиторием через browser-compatible transport;
 - объясняет пользователю, что сообщения не приватны.
+
+Поддерживаются только браузеры, которые дают нормальный persistent storage для локального HTML-файла.
+
+Остальные браузеры считаются несовместимыми. Проект не обязан тащить локальный сервер, чтобы чинить браузерные ограничения.
 
 Дополнительные оболочки допустимы:
 
 - Electron;
 - Tauri/WebView;
 - мобильный WebView;
-- локальный desktop wrapper;
-- hosted static page.
+- локальный desktop wrapper.
 
 Но оболочки не являются продуктовым центром. Они запускают тот же HTML-клиент или минимально оборачивают его.
 
@@ -59,10 +67,13 @@ Git является источником истины.
 ## Делаем
 
 - Один `messenger.html`.
+- Двойной клик как основной запуск.
 - Git-backed текстовые сообщения.
 - Локальный индекс в browser storage.
 - Polling/sync через git-compatible flow.
 - Честный privacy warning.
+- Feature detection при первом запуске.
+- Красивый экран несовместимости для неподдерживаемых браузеров.
 - Оффлайн-очередь исходящих.
 - Простую UI-схему: chats, messages, composer, sync status.
 - Подробный product brief отдельно от короткого README.
@@ -75,7 +86,9 @@ Git является источником истины.
 - Источник истины: git repository.
 - Runtime MVP: browser.
 - UI MVP: vanilla HTML/CSS/JS или минимальный build output, который всё равно собирается в один HTML-файл.
-- Storage MVP: IndexedDB или другой browser storage; localStorage допустим только для демо/прототипа, если объём мал.
+- Storage MVP: `localStorage` для токена/настроек, `IndexedDB` для индекса/кеша.
+- Compatibility MVP: `file://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
+- Recommended browsers: Chrome / Chromium / Edge.
 - Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
 - Сообщение: immutable JSON-файл.
 - Ветка сообщений: `main`.
@@ -98,6 +111,8 @@ Git является источником истины.
 
 Функции:
 
+- feature detection перед onboarding;
+- экран несовместимости для неподдерживаемого браузера;
 - первый запуск с privacy warning;
 - локальный профиль пользователя;
 - подключение репозитория;
@@ -119,8 +134,10 @@ Git является источником истины.
 
 Критерии готовности:
 
-- `messenger.html` открывается как самостоятельный файл или со static hosting.
+- `messenger.html` открывается двойным кликом в поддерживаемом браузере.
+- MVP не требует `localhost`.
 - Нет обязательной папки assets для запуска MVP.
+- Несовместимый браузер получает понятный экран несовместимости.
 - Два профиля в одном test repo видят сообщения друг друга.
 - Повторная индексация не создаёт дубликаты.
 - Ошибка отправки не теряет сообщение.
@@ -138,6 +155,8 @@ Git является источником истины.
    - Создать `messenger.html`.
    - Inline CSS.
    - Inline JS.
+   - Feature detection до основного UI.
+   - Unsupported browser screen.
    - Рабочий layout: sidebar, messages, composer, status bar.
    - Privacy warning modal/first-run screen.
 
@@ -151,6 +170,9 @@ Git является источником истины.
    - Минимальные validators без тяжёлой dependency.
 
 4. Browser storage.
+   - Проверить доступность storage на `file://`.
+   - `localStorage` для токена и настроек.
+   - `IndexedDB` для messages index и outbox.
    - Профиль.
    - Repo config.
    - Messages index.
@@ -185,21 +207,57 @@ Git является источником истины.
 
 Ограничения, которые нельзя замазывать:
 
+- Основной запуск - локальный `file://` файл, а не `localhost`.
 - Браузер не умеет обычный SSH git без помощников.
 - Git hosting API может иметь CORS/permissions ограничения.
 - Personal access token в браузере - чувствительная штука, нужен явный warning.
 - GitHub/GitLab/GitVerse могут отличаться API и auth flow.
-- `file://` может иметь ограничения, поэтому static hosting должен быть supported path.
+- Если браузер не даёт persistent storage на `file://`, он не поддерживается.
 - Большой repo будет медленно индексироваться.
 
-Практичный MVP может начать с одного поддержанного hosting/provider flow или local/static test adapter. Главное - не врать, что "любой git" уже работает из браузера магически.
+Практичный MVP может начать с одного поддержанного git-provider adapter или local test adapter. Главное - не врать, что "любой git" уже работает из браузера магически.
+
+Не предлагаем пользователю "поднять локальный сервер" как решение совместимости. Это убивает главный мем проекта.
+
+## Compatibility Screen
+
+Минимальная проверка:
+
+```js
+async function checkSupport() {
+  const checks = {
+    fileProtocol: location.protocol === "file:",
+    localStorage: !!window.localStorage,
+    indexedDB: !!window.indexedDB,
+    crypto: !!window.crypto?.subtle
+  };
+
+  return Object.values(checks).every(Boolean);
+}
+```
+
+Текст экрана:
+
+> Ваш браузер недостаточно смешной для запуска Macaroni Messenger.
+
+Требуется:
+
+- `file://` origin storage;
+- `localStorage`;
+- `IndexedDB`;
+- `WebCrypto`.
+
+Рекомендуется:
+
+- Chrome / Chromium;
+- Edge.
 
 ## После MVP
 
 0.2:
 
 - GitHub/GitLab/GitVerse provider adapters;
-- hosted static build;
+- проверенный support matrix для Chrome/Chromium/Edge;
 - импорт существующего repo;
 - read-only public repo mode;
 - нормальный onboarding;
@@ -228,5 +286,7 @@ Git является источником истины.
 Если фича не помогает одному `messenger.html` отправить, получить, найти или не потерять текстовое сообщение в маленькой группе, она не входит в MVP.
 
 Если фича требует backend Macaroni, она не входит в базовый продукт.
+
+Если фича требует `localhost`, она подозрительна и по умолчанию не входит в базовый продукт.
 
 Если фича ломает single-file delivery, она должна принести очень понятную пользу. Иначе мимо.
