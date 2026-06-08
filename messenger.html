@@ -283,6 +283,29 @@
       color: var(--ink);
     }
 
+    .support-checks {
+      border: var(--thin-line) solid var(--ink);
+      margin: 0 0 28px;
+    }
+
+    .support-check {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 90px;
+      gap: 16px;
+      padding: 10px 14px;
+      border-bottom: var(--thin-line) solid var(--ink);
+      line-height: 1.25;
+    }
+
+    .support-check:last-child {
+      border-bottom: 0;
+    }
+
+    .support-value {
+      text-align: right;
+      font-weight: 700;
+    }
+
     .setup,
     .settings-screen {
       min-height: 100vh;
@@ -570,11 +593,29 @@
       <h1 class="unsupported-title">Ваш браузер недостаточно смешной для запуска Macaroni Messenger.</h1>
       <p class="unsupported-copy">Требуется:</p>
       <ul class="unsupported-list">
-        <li><code>file://</code> origin storage</li>
+        <li><code>file://</code> или <code>https://</code> origin storage</li>
         <li><code>localStorage</code></li>
         <li><code>IndexedDB</code></li>
         <li><code>WebCrypto</code></li>
       </ul>
+      <div class="support-checks" aria-label="Проверки браузера">
+        <div class="support-check">
+          <span><code>file://</code> / <code>https://</code></span>
+          <span class="support-value" data-check="supportedOrigin">?</span>
+        </div>
+        <div class="support-check">
+          <span><code>localStorage</code></span>
+          <span class="support-value" data-check="localStorage">?</span>
+        </div>
+        <div class="support-check">
+          <span><code>IndexedDB</code></span>
+          <span class="support-value" data-check="indexedDB">?</span>
+        </div>
+        <div class="support-check">
+          <span><code>WebCrypto</code></span>
+          <span class="support-value" data-check="crypto">?</span>
+        </div>
+      </div>
       <p class="unsupported-copy">Рекомендуется: Chrome / Chromium / Edge.</p>
       <p class="unsupported-note">Мы не предлагаем поднять локальный сервер. Откройте <code>messenger.html</code> нормальным браузером.</p>
     </div>
@@ -952,7 +993,7 @@
 
       async function checkSupport() {
         var checks = {
-          fileProtocol: window.location.protocol === "file:",
+          supportedOrigin: window.location.protocol === "file:" || window.location.protocol === "https:",
           localStorage: checkLocalStorage(),
           indexedDB: await checkIndexedDB(),
           crypto: !!(window.crypto && window.crypto.subtle)
@@ -966,6 +1007,15 @@
         };
       }
 
+      function renderSupportChecks(checks) {
+        Object.keys(checks).forEach(function (key) {
+          var node = document.querySelector('[data-check="' + key + '"]');
+          if (node) {
+            node.textContent = checks[key] ? "OK" : "FAIL";
+          }
+        });
+      }
+
       window.MacaroniSupport = {
         checkSupport: checkSupport,
         createClientId: createClientId,
@@ -977,11 +1027,18 @@
 
       checkSupport().then(function (result) {
         document.body.dataset.support = result.ok ? "supported" : "unsupported";
+        renderSupportChecks(result.checks);
         if (result.ok) {
           showAppOrSetup();
         }
       }).catch(function () {
         document.body.dataset.support = "unsupported";
+        renderSupportChecks({
+          supportedOrigin: false,
+          localStorage: false,
+          indexedDB: false,
+          crypto: false
+        });
       });
     }());
   </script>

@@ -31,7 +31,7 @@ Git является источником истины.
 Базовый клиент:
 
 - поставляется как `messenger.html`;
-- открывается локально через `file://` в совместимом браузере;
+- открывается локально через `file://` или публично через GitHub Pages `https://` в совместимом браузере;
 - содержит HTML, CSS и JavaScript внутри одного файла;
 - не требует установки сервера;
 - не требует `localhost`;
@@ -87,7 +87,7 @@ Git является источником истины.
 - Runtime MVP: browser.
 - UI MVP: vanilla HTML/CSS/JS или минимальный build output, который всё равно собирается в один HTML-файл.
 - Storage MVP: `localStorage` для токена/настроек, `IndexedDB` для индекса/кеша.
-- Compatibility MVP: `file://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
+- Compatibility MVP: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
 - Client identity MVP: четырёхсимвольный `CLIENT_ID` из alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
@@ -191,7 +191,7 @@ Git является источником истины.
    - В README есть FAQ: "четыре символа, вроде работает".
 
 5. Browser storage.
-   - Проверить доступность storage на `file://`.
+   - Проверить доступность storage на `file://` и `https://`.
    - `localStorage` для токена и настроек.
    - `IndexedDB` для messages index и outbox.
    - Профиль.
@@ -269,12 +269,12 @@ FAQ:
 
 Ограничения, которые нельзя замазывать:
 
-- Основной запуск - локальный `file://` файл, а не `localhost`.
+- Основной запуск - локальный `file://` файл или GitHub Pages `https://`, а не `localhost`.
 - Браузер не умеет обычный SSH git без помощников.
 - Git hosting API может иметь CORS/permissions ограничения.
 - Personal access token в браузере - чувствительная штука, нужен явный warning.
 - GitHub/GitLab/GitVerse могут отличаться API и auth flow.
-- Если браузер не даёт persistent storage на `file://`, он не поддерживается.
+- Если браузер не даёт persistent storage на `file://` или `https://`, он не поддерживается.
 - Большой repo будет медленно индексироваться.
 
 Практичный MVP может начать с одного поддержанного git-provider adapter или local test adapter. Главное - не врать, что "любой git" уже работает из браузера магически.
@@ -288,7 +288,7 @@ FAQ:
 ```js
 async function checkSupport() {
   const checks = {
-    fileProtocol: location.protocol === "file:",
+    supportedOrigin: location.protocol === "file:" || location.protocol === "https:",
     localStorage: !!window.localStorage,
     indexedDB: !!window.indexedDB,
     crypto: !!window.crypto?.subtle
@@ -304,7 +304,7 @@ async function checkSupport() {
 
 Требуется:
 
-- `file://` origin storage;
+- `file://` или `https://` origin storage;
 - `localStorage`;
 - `IndexedDB`;
 - `WebCrypto`.

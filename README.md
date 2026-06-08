@@ -41,7 +41,7 @@ English docs:
 
 `localhost` не нужен.
 
-Если браузер не умеет нормально хранить данные для локального HTML-файла, это не проблема Macaroni Messenger. Это несовместимый браузер.
+Если браузер не умеет нормально хранить данные для локального HTML-файла или HTTPS-версии на GitHub Pages, это не проблема Macaroni Messenger. Это несовместимый браузер.
 
 ## Философия
 
@@ -238,7 +238,7 @@ W8LQ
 
 Требуется:
 
-- `file://` origin storage;
+- `file://` или `https://` origin storage;
 - `localStorage`;
 - `IndexedDB`;
 - `WebCrypto`.

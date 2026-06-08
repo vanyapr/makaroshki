@@ -35,7 +35,7 @@ It works.
 
 No `localhost`.
 
-If a browser cannot persist data for a local HTML file, that is not a Macaroni Messenger problem. That browser is unsupported.
+If a browser cannot persist data for a local HTML file or the HTTPS version on GitHub Pages, that is not a Macaroni Messenger problem. That browser is unsupported.
 
 ## Philosophy
 
@@ -232,7 +232,7 @@ On first launch, the client runs feature detection.
 
 Required:
 
-- `file://` origin storage;
+- `file://` or `https://` origin storage;
 - `localStorage`;
 - `IndexedDB`;
 - `WebCrypto`.

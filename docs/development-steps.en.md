@@ -62,7 +62,7 @@ Done when:
 
 Goal: separate supported browsers from unsupported browsers immediately.
 
-Status: implemented in `messenger.html`. The client checks `file://`, `localStorage`, `IndexedDB`, and `WebCrypto`; unsupported browsers get the incompatibility screen.
+Status: implemented in `messenger.html`. The client checks `file://` or `https://`, `localStorage`, `IndexedDB`, and `WebCrypto`; unsupported browsers get the incompatibility screen. `http://localhost` is not a supported fallback.
 
 Steps:
 

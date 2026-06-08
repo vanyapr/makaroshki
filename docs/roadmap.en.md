@@ -31,7 +31,7 @@ Privacy is not promised.
 The base client:
 
 - is distributed as `messenger.html`;
-- opens locally through `file://` in a supported browser;
+- opens locally through `file://` or publicly through GitHub Pages `https://` in a supported browser;
 - contains HTML, CSS, and JavaScript inside one file;
 - does not require installing a server;
 - does not require `localhost`;
@@ -87,7 +87,7 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - MVP runtime: browser.
 - MVP UI: vanilla HTML/CSS/JS, or minimal build output that still becomes one HTML file.
 - MVP storage: `localStorage` for token/settings, `IndexedDB` for index/cache.
-- MVP compatibility: `file://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
+- MVP compatibility: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - MVP transport: browser-compatible HTTPS/API/git adapter. Direct SSH from the browser is not MVP.
 - MVP client identity: four-character `CLIENT_ID` from alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
@@ -191,7 +191,7 @@ Done when:
    - README contains the "four characters, seems to work" FAQ.
 
 5. Browser storage.
-   - Check storage availability on `file://`.
+   - Check storage availability on `file://` and `https://`.
    - `localStorage` for token and settings.
    - `IndexedDB` for message index and outbox.
    - Profile.
@@ -269,12 +269,12 @@ If two users get the same identifier, we recommend they meet each other.
 
 Limits we do not hide:
 
-- Main launch is local `file://`, not `localhost`.
+- Main launch is local `file://` or GitHub Pages `https://`, not `localhost`.
 - Browsers cannot do normal SSH git without helpers.
 - Git hosting APIs may have CORS/permission limits.
 - Personal access tokens in the browser are sensitive, and require explicit warning.
 - GitHub/GitLab/GitVerse may differ in API and auth flow.
-- If a browser does not provide persistent storage on `file://`, it is unsupported.
+- If a browser does not provide persistent storage on `file://` or `https://`, it is unsupported.
 - A large repo will be slow to index.
 
 A practical MVP may start with one supported git-provider adapter or a local test adapter. The main rule is not to lie that "any git" works magically from the browser.
@@ -288,7 +288,7 @@ Minimal check:
 ```js
 async function checkSupport() {
   const checks = {
-    fileProtocol: location.protocol === "file:",
+    supportedOrigin: location.protocol === "file:" || location.protocol === "https:",
     localStorage: !!window.localStorage,
     indexedDB: !!window.indexedDB,
     crypto: !!window.crypto?.subtle
@@ -304,7 +304,7 @@ Screen text:
 
 Required:
 
-- `file://` origin storage;
+- `file://` or `https://` origin storage;
 - `localStorage`;
 - `IndexedDB`;
 - `WebCrypto`.
