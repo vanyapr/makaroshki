@@ -86,6 +86,8 @@ Done when:
 
 Goal: every `messenger.html` instance gets a short identifier.
 
+Status: basically implemented in `messenger.html`. `CLIENT_ID` is declared as a constant, rendered in the UI, and exposed as `window.MacaroniSupport.clientId`; the four-character ID generator remains a simple function.
+
 Steps:
 
 1. Add `const CLIENT_ID = "SA6E";` to HTML.
@@ -107,6 +109,8 @@ Done when:
 ## Stage 4. Local Profile And Settings
 
 Goal: user can save minimal configuration.
+
+Status: basically implemented in `messenger.html`. There is a first-run screen, privacy warning acceptance, display name, provider/repo/token in `localStorage`, settings screen, and profile reset.
 
 Steps:
 

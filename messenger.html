@@ -38,7 +38,8 @@
     }
 
     button,
-    input {
+    input,
+    select {
       font: inherit;
       color: inherit;
       background: var(--paper);
@@ -89,7 +90,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: none;
-      cursor: default;
+      cursor: pointer;
       user-select: none;
       white-space: nowrap;
     }
@@ -282,12 +283,118 @@
       color: var(--ink);
     }
 
+    .setup,
+    .settings-screen {
+      min-height: 100vh;
+      border: var(--line) solid var(--ink);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      background: var(--paper);
+    }
+
+    .setup-panel,
+    .settings-panel {
+      width: min(980px, 100%);
+      border: var(--line) solid var(--ink);
+      padding: 34px 40px 38px;
+    }
+
+    .screen-title {
+      margin: 0 0 26px;
+      font-size: 34px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .screen-copy {
+      margin: 0 0 24px;
+      line-height: 1.35;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 20px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-label,
+    .checkbox-label {
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .text-field,
+    .select-field {
+      width: 100%;
+      min-height: 58px;
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 3px;
+      padding: 0 16px;
+      outline: none;
+    }
+
+    .field-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .checkbox-row {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .checkbox-row input {
+      width: 24px;
+      height: 24px;
+      margin: 2px 0 0;
+      accent-color: var(--ink);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .danger {
+      margin-left: auto;
+    }
+
+    .readonly-value {
+      min-height: 58px;
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: var(--paper);
+    }
+
     body[data-support="pending"] .app,
-    body[data-support="unsupported"] .app {
+    body[data-support="unsupported"] .app,
+    body[data-support="supported"][data-view="setup"] .app,
+    body[data-support="supported"][data-view="settings"] .app {
       display: none;
     }
 
     body[data-support="unsupported"] .unsupported {
+      display: flex;
+    }
+
+    body[data-support="supported"][data-view="setup"] .setup,
+    body[data-support="supported"][data-view="settings"] .settings-screen {
       display: flex;
     }
 
@@ -441,10 +548,23 @@
       .unsupported-title {
         font-size: 24px;
       }
+
+      .setup-panel,
+      .settings-panel {
+        padding: 26px 22px;
+      }
+
+      .screen-title {
+        font-size: 24px;
+      }
+
+      .field-note {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
-<body data-support="pending">
+<body data-support="pending" data-view="app">
   <section class="unsupported" aria-label="Браузер не поддерживается">
     <div class="unsupported-panel">
       <h1 class="unsupported-title">Ваш браузер недостаточно смешной для запуска Macaroni Messenger.</h1>
@@ -460,12 +580,112 @@
     </div>
   </section>
 
+  <section class="setup" aria-label="Первый запуск">
+    <div class="setup-panel">
+      <h1 class="screen-title">Первый запуск</h1>
+      <p class="screen-copy">Macaroni Messenger не является приватным мессенджером. Сообщения будут лежать в git-репозитории. Если репозиторий публичный, переписка публичная. Сюрпризов не будет.</p>
+
+      <form class="profile-form" id="setup-form">
+        <div class="field">
+          <label class="field-label" for="setup-client-id">CLIENT_ID</label>
+          <div class="readonly-value" id="setup-client-id" data-client-id>SA6E</div>
+          <p class="field-note">Четыре символа, вроде работает. Коллизии возможны.</p>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="setup-display-name">Имя</label>
+          <input class="text-field" id="setup-display-name" name="displayName" type="text" value="Я" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="setup-provider">Git provider</label>
+          <select class="select-field" id="setup-provider" name="provider">
+            <option value="github">GitHub</option>
+            <option value="gitlab">GitLab</option>
+            <option value="gitverse">GitVerse</option>
+            <option value="other">Другой</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="setup-repo">Репозиторий</label>
+          <input class="text-field" id="setup-repo" name="repo" type="text" value="https://github.com/vanyapr/makaroshki" autocomplete="off" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="setup-token">Токен доступа</label>
+          <input class="text-field" id="setup-token" name="token" type="password" autocomplete="off">
+          <p class="field-note">Токен сохраняется в localStorage. Это не банковский сейф. Это HTML-файл, который честно предупреждает.</p>
+        </div>
+
+        <label class="checkbox-row">
+          <input id="setup-privacy" name="privacyAccepted" type="checkbox" required>
+          <span class="checkbox-label">Я понимаю, что Macaroni Messenger не обещает приватность.</span>
+        </label>
+
+        <div class="form-actions">
+          <button class="button" type="submit">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="settings-screen" aria-label="Настройки">
+    <div class="settings-panel">
+      <h1 class="screen-title">Настройки</h1>
+
+      <form class="profile-form" id="settings-form">
+        <div class="field">
+          <label class="field-label" for="settings-client-id">CLIENT_ID</label>
+          <div class="readonly-value" id="settings-client-id" data-client-id>SA6E</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-display-name">Имя</label>
+          <input class="text-field" id="settings-display-name" name="displayName" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-provider">Git provider</label>
+          <select class="select-field" id="settings-provider" name="provider">
+            <option value="github">GitHub</option>
+            <option value="gitlab">GitLab</option>
+            <option value="gitverse">GitVerse</option>
+            <option value="other">Другой</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-repo">Репозиторий</label>
+          <input class="text-field" id="settings-repo" name="repo" type="text" autocomplete="off" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-token">Токен доступа</label>
+          <input class="text-field" id="settings-token" name="token" type="password" autocomplete="off">
+          <p class="field-note">Токен хранится локально в этом браузере. Секретность уровня "ну мы предупреждали".</p>
+        </div>
+
+        <label class="checkbox-row">
+          <input id="settings-privacy" name="privacyAccepted" type="checkbox" required>
+          <span class="checkbox-label">Я понимаю, что сообщения не приватны по умолчанию.</span>
+        </label>
+
+        <div class="form-actions">
+          <button class="button" type="submit">Сохранить</button>
+          <button class="button" id="settings-back" type="button">Назад</button>
+          <button class="button danger" id="settings-reset" type="button">Сбросить</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
   <main class="app" aria-label="Macaroni Messenger">
     <header class="topbar">
       <div class="brand">Macaroni Messenger</div>
       <div class="top-actions">
-        <div class="client-id">ID: SA6E</div>
-        <button class="button settings" type="button">Настройки</button>
+        <div class="client-id">ID: <span data-client-id>SA6E</span></div>
+        <button class="button settings" id="open-settings" type="button">Настройки</button>
       </div>
     </header>
 
@@ -528,8 +748,150 @@
 
   <script>
     (function () {
+      const CLIENT_ID = "SA6E";
+      const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
+      var PROFILE_KEY = "macaroni.profile.v1";
+
+      function get(id) {
+        return document.getElementById(id);
+      }
+
+      function setView(view) {
+        document.body.dataset.view = view;
+      }
+
+      function setClientIdText() {
+        var nodes = document.querySelectorAll("[data-client-id]");
+        nodes.forEach(function (node) {
+          node.textContent = CLIENT_ID;
+        });
+      }
+
+      function createClientId() {
+        function rand() {
+          return Math.floor(Math.random() * CLIENT_ID_ALPHABET.length);
+        }
+
+        return (
+          CLIENT_ID_ALPHABET[rand()] +
+          CLIENT_ID_ALPHABET[rand()] +
+          CLIENT_ID_ALPHABET[rand()] +
+          CLIENT_ID_ALPHABET[rand()]
+        );
+      }
+
+      function loadProfile() {
+        try {
+          var raw = window.localStorage.getItem(PROFILE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function saveProfile(profile) {
+        window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      }
+
+      function resetProfile() {
+        window.localStorage.removeItem(PROFILE_KEY);
+      }
+
+      function isReadyProfile(profile) {
+        return !!(
+          profile &&
+          profile.clientId === CLIENT_ID &&
+          profile.displayName &&
+          profile.repo &&
+          profile.privacyAccepted
+        );
+      }
+
+      function readProfileForm(form) {
+        return {
+          clientId: CLIENT_ID,
+          displayName: form.elements.displayName.value.trim(),
+          provider: form.elements.provider.value,
+          repo: form.elements.repo.value.trim(),
+          token: form.elements.token.value,
+          privacyAccepted: form.elements.privacyAccepted.checked,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      function fillSettingsForm(profile) {
+        var fallback = {
+          displayName: "Я",
+          provider: "github",
+          repo: "https://github.com/vanyapr/makaroshki",
+          token: "",
+          privacyAccepted: false
+        };
+        var value = profile || fallback;
+
+        get("settings-display-name").value = value.displayName || fallback.displayName;
+        get("settings-provider").value = value.provider || fallback.provider;
+        get("settings-repo").value = value.repo || fallback.repo;
+        get("settings-token").value = value.token || "";
+        get("settings-privacy").checked = !!value.privacyAccepted;
+      }
+
+      function showAppOrSetup() {
+        var profile = loadProfile();
+        if (isReadyProfile(profile)) {
+          fillSettingsForm(profile);
+          setView("app");
+          return;
+        }
+
+        setView("setup");
+      }
+
+      function bindProfileForms() {
+        var setupForm = get("setup-form");
+        var settingsForm = get("settings-form");
+        var openSettings = get("open-settings");
+        var settingsBack = get("settings-back");
+        var settingsReset = get("settings-reset");
+
+        setupForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var profile = readProfileForm(setupForm);
+          saveProfile(profile);
+          fillSettingsForm(profile);
+          setView("app");
+        });
+
+        settingsForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var profile = readProfileForm(settingsForm);
+          saveProfile(profile);
+          fillSettingsForm(profile);
+          setView("app");
+        });
+
+        openSettings.addEventListener("click", function () {
+          fillSettingsForm(loadProfile());
+          setView("settings");
+        });
+
+        settingsBack.addEventListener("click", function () {
+          showAppOrSetup();
+        });
+
+        settingsReset.addEventListener("click", function () {
+          resetProfile();
+          get("setup-display-name").value = "Я";
+          get("setup-provider").value = "github";
+          get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
+          get("setup-token").value = "";
+          get("setup-privacy").checked = false;
+          setView("setup");
+        });
+      }
 
       function checkLocalStorage() {
         try {
@@ -605,11 +967,19 @@
       }
 
       window.MacaroniSupport = {
-        checkSupport: checkSupport
+        checkSupport: checkSupport,
+        createClientId: createClientId,
+        clientId: CLIENT_ID
       };
+
+      setClientIdText();
+      bindProfileForms();
 
       checkSupport().then(function (result) {
         document.body.dataset.support = result.ok ? "supported" : "unsupported";
+        if (result.ok) {
+          showAppOrSetup();
+        }
       }).catch(function () {
         document.body.dataset.support = "unsupported";
       });
