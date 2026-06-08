@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Macaroni Messenger</title>
+  <style>
+    :root {
+      --line: 3px;
+      --thin-line: 2px;
+      --ink: #050505;
+      --paper: #ffffff;
+      --muted: #8a8a8a;
+      --sidebar: 360px;
+      --topbar: 104px;
+      --chatbar: 102px;
+      --compose: 124px;
+      --font: "Courier New", Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    body {
+      min-width: 320px;
+    }
+
+    button,
+    input {
+      font: inherit;
+      color: inherit;
+      background: var(--paper);
+    }
+
+    .app {
+      min-height: 100vh;
+      border: var(--line) solid var(--ink);
+      display: grid;
+      grid-template-rows: var(--topbar) 1fr;
+      background: var(--paper);
+    }
+
+    .topbar {
+      border-bottom: var(--line) solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 0 40px 0 30px;
+      min-width: 0;
+    }
+
+    .brand {
+      font-size: 40px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 54px;
+      white-space: nowrap;
+    }
+
+    .client-id {
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .button {
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 3px;
+      min-height: 48px;
+      padding: 0 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+      cursor: default;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .settings {
+      min-width: 180px;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: 0;
+    }
+
+    .sidebar {
+      border-right: var(--line) solid var(--ink);
+      display: grid;
+      grid-template-rows: var(--chatbar) 1fr var(--compose);
+      min-width: 0;
+    }
+
+    .sidebar-header {
+      border-bottom: var(--line) solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 26px 0 38px;
+    }
+
+    .section-title,
+    .chat-title {
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .add-button {
+      width: 58px;
+      min-width: 58px;
+      height: 48px;
+      padding: 0;
+      font-size: 26px;
+    }
+
+    .chat-list {
+      padding: 14px 16px 0 18px;
+      overflow: hidden;
+    }
+
+    .chat-item {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      margin-bottom: 4px;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .chat-item.active {
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .emoji {
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    }
+
+    .sidebar-footer {
+      display: flex;
+      align-items: center;
+      padding: 0 26px;
+    }
+
+    .refresh {
+      width: 100%;
+      min-height: 62px;
+    }
+
+    .conversation {
+      display: grid;
+      grid-template-rows: var(--chatbar) 1fr var(--compose);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .conversation-header {
+      border-bottom: var(--line) solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 42px 0 38px;
+    }
+
+    .chat-info {
+      min-width: 190px;
+    }
+
+    .messages {
+      padding: 30px 70px 0 38px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .message-row {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr) 90px;
+      gap: 28px;
+      align-items: baseline;
+      margin-bottom: 35px;
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    .author {
+      white-space: nowrap;
+    }
+
+    .text {
+      min-width: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .time {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr 214px;
+      gap: 24px;
+      align-items: center;
+      padding: 0 42px 38px 32px;
+    }
+
+    .message-input {
+      width: 100%;
+      height: 86px;
+      border: var(--line) solid var(--ink);
+      padding: 0 18px;
+      color: var(--muted);
+      font-size: 24px;
+      outline: none;
+    }
+
+    .send {
+      min-height: 70px;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --sidebar: 250px;
+        --topbar: 86px;
+        --chatbar: 82px;
+        --compose: 112px;
+      }
+
+      body {
+        font-size: 19px;
+      }
+
+      .topbar {
+        padding: 0 18px;
+        gap: 16px;
+      }
+
+      .brand {
+        font-size: 28px;
+      }
+
+      .top-actions {
+        gap: 18px;
+      }
+
+      .button {
+        min-height: 44px;
+        padding: 0 16px;
+      }
+
+      .settings {
+        min-width: 140px;
+      }
+
+      .client-id {
+        font-size: 19px;
+      }
+
+      .sidebar-header,
+      .conversation-header {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .chat-list {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .chat-item {
+        padding: 0 14px;
+      }
+
+      .messages {
+        padding: 28px 32px 0 24px;
+      }
+
+      .message-row {
+        grid-template-columns: 76px minmax(0, 1fr) 68px;
+        gap: 14px;
+        font-size: 19px;
+        margin-bottom: 28px;
+      }
+
+      .composer {
+        grid-template-columns: 1fr 160px;
+        gap: 16px;
+        padding: 0 22px 26px 22px;
+      }
+
+      .message-input {
+        height: 70px;
+        font-size: 19px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        min-height: 100vh;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: 0;
+        border-bottom: var(--line) solid var(--ink);
+        grid-template-rows: 74px auto 86px;
+      }
+
+      .chat-list {
+        display: flex;
+        gap: 8px;
+        overflow: hidden;
+        padding: 12px;
+      }
+
+      .chat-item {
+        height: 46px;
+        margin: 0;
+        flex: 0 0 auto;
+      }
+
+      .conversation {
+        min-height: 520px;
+      }
+
+      .conversation-header {
+        min-height: 76px;
+      }
+
+      .messages {
+        padding: 22px 18px 0;
+      }
+
+      .message-row {
+        grid-template-columns: 62px minmax(0, 1fr) 54px;
+        gap: 10px;
+        font-size: 16px;
+        margin-bottom: 24px;
+      }
+
+      .composer {
+        grid-template-columns: 1fr;
+        padding: 0 18px 18px;
+      }
+
+      .send {
+        min-height: 56px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="Macaroni Messenger">
+    <header class="topbar">
+      <div class="brand">Macaroni Messenger</div>
+      <div class="top-actions">
+        <div class="client-id">ID: SA6E</div>
+        <button class="button settings" type="button">Настройки</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside class="sidebar" aria-label="Чаты">
+        <div class="sidebar-header">
+          <div class="section-title">Чаты</div>
+          <button class="button add-button" type="button">+</button>
+        </div>
+
+        <nav class="chat-list" aria-label="Список чатов">
+          <div class="chat-item active">МАМА</div>
+          <div class="chat-item">ПАПА</div>
+          <div class="chat-item">БОТАНИК</div>
+          <div class="chat-item">РАБОТА</div>
+          <div class="chat-item">ГРУППА_ДОМ</div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="button refresh" type="button">Обновить</button>
+        </div>
+      </aside>
+
+      <section class="conversation" aria-label="Чат МАМА">
+        <div class="conversation-header">
+          <div class="chat-title">Чат: МАМА</div>
+          <button class="button chat-info" type="button">Инфо о чате</button>
+        </div>
+
+        <div class="messages" aria-label="Сообщения">
+          <div class="message-row">
+            <div class="author">Я:</div>
+            <div class="text">Мам, свари макарошки</div>
+            <div class="time">12:41</div>
+          </div>
+          <div class="message-row">
+            <div class="author">МАМА:</div>
+            <div class="text">Уже варю</div>
+            <div class="time">12:42</div>
+          </div>
+          <div class="message-row">
+            <div class="author">Я:</div>
+            <div class="text">Спасибо</div>
+            <div class="time">12:42</div>
+          </div>
+          <div class="message-row">
+            <div class="author">МАМА:</div>
+            <div class="text">Не за что <span class="emoji">❤</span></div>
+            <div class="time">12:43</div>
+          </div>
+        </div>
+
+        <form class="composer" action="#" aria-label="Отправка сообщения">
+          <input class="message-input" type="text" value="Введите сообщение..." aria-label="Введите сообщение" readonly>
+          <button class="button send" type="button">Отправить</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
