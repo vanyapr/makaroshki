@@ -186,8 +186,25 @@
       padding: 0 42px 0 38px;
     }
 
+    .conversation-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
     .chat-info {
       min-width: 190px;
+    }
+
+    .sync-status {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .messages {
@@ -587,6 +604,17 @@
         min-height: 76px;
       }
 
+      .conversation-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .sync-status {
+        max-width: 100%;
+        font-size: 14px;
+      }
+
       .messages {
         padding: 22px 18px 0;
       }
@@ -802,7 +830,10 @@
 
       <section class="conversation" aria-label="Чат МАМА">
         <div class="conversation-header">
-          <div class="chat-title">Чат: МАМА</div>
+          <div class="conversation-meta">
+            <div class="chat-title">Чат: МАМА</div>
+            <div class="sync-status" id="sync-status" aria-live="polite">sync: ждём IndexedDB</div>
+          </div>
           <button class="button chat-info" type="button">Инфо о чате</button>
         </div>
 
@@ -1861,6 +1892,34 @@
         clearStorageError();
       }
 
+      function transportLabel(profile) {
+        if (canUseGitHub(profile)) {
+          return "GitHub";
+        }
+
+        if (profile && profile.provider === "github" && !profile.token) {
+          return "local fallback";
+        }
+
+        return "local test repo";
+      }
+
+      function updateSyncStatus(message) {
+        var node = get("sync-status");
+        if (node) {
+          node.textContent = message;
+        }
+      }
+
+      function updateSyncStatusFromState(profile, action) {
+        return listOutbox().then(function (items) {
+          var label = transportLabel(profile || loadProfile() || {});
+          var prefix = action ? action + " · " : "";
+          updateSyncStatus(prefix + label + " · outbox: " + items.length);
+          return items;
+        });
+      }
+
       function isReadyProfile(profile) {
         return !!(
           profile &&
@@ -2067,11 +2126,14 @@
 
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
+        updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
         return ensureDefaultChat(value).then(function (chat) {
           var reindex = canUseGitHub(value) ? reindexFromGitHub(value, chat.id) : reindexFromTestRepo();
           return reindex.then(function () {
             currentChatId = chat.id;
-            return renderMessages(currentChatId);
+            return renderMessages(currentChatId).then(function () {
+              return updateSyncStatusFromState(value, "sync: ok");
+            });
           });
         });
       }
@@ -2085,9 +2147,14 @@
                 return null;
               }
 
-              var send = canUseGitHub(profile) ? sendGitHubMessage(profile, item.payload) : sendTestMessage(item.payload);
-              return send.then(function () {
-                return deleteOutbox(item.id);
+              return ensureDefaultChat(profile).then(function (chat) {
+                var payload = Object.assign({}, item.payload, {
+                  chat_id: item.payload.chat_id || chat.id
+                });
+                var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+                return send.then(function () {
+                  return deleteOutbox(item.id);
+                });
               });
             });
           });
@@ -2107,9 +2174,12 @@
         };
 
         var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+        updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
         return send.then(function () {
           clearAppError();
-          return renderMessages(currentChatId);
+          return renderMessages(currentChatId).then(function () {
+            return updateSyncStatusFromState(profile, "send: ok");
+          });
         }).catch(function (error) {
           return putOutbox({
             type: "send_message",
@@ -2117,6 +2187,7 @@
             error: error.message
           }).then(function () {
             setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
+            return updateSyncStatusFromState(profile, "send: outbox");
           });
         });
       }
@@ -2142,14 +2213,28 @@
           }).then(function () {
             input.value = "";
           }).catch(function (error) {
-            setAppError("Не удалось отправить сообщение: " + error.message);
+            putOutbox({
+              type: "send_message",
+              payload: {
+                chat_id: currentChatId,
+                from: CLIENT_ID,
+                to: ["K2XM"],
+                text: text
+              },
+              error: error.message
+            }).then(function () {
+              setAppError("Сообщение сохранено в outbox. Не удалось отправить сразу: " + error.message);
+              updateSyncStatusFromState(profile, "send: outbox");
+            });
           });
         });
 
         get("sync-refresh").addEventListener("click", function () {
           var profile = loadProfile() || {};
+          updateSyncStatus("sync: " + transportLabel(profile) + " · retry outbox");
           retryOutbox(profile).catch(function (error) {
             setAppError("Обновление не получилось: " + error.message);
+            updateSyncStatusFromState(profile, "sync: error");
           });
         });
       }
@@ -2158,6 +2243,7 @@
         bindComposer();
         refreshFromTestRepo(profile).catch(function (error) {
           setAppError("Локальный test repo не поднялся: " + error.message);
+          updateSyncStatusFromState(profile, "sync: error");
         });
       }
 
