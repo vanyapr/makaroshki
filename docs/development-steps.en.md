@@ -223,7 +223,7 @@ Done when:
 
 Goal: connect first real remote flow.
 
-Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. The composer still uses the local test repo; remote send/refresh is the next step.
+Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token it stays on the local test repo fallback. Sync is still simple: first chat, messages walked by `YYYY/MM/DD`, no Git Trees API.
 
 Steps:
 

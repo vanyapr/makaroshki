@@ -52,8 +52,22 @@ GitHub Contents API не является raw git push.
 - Сообщения пишутся как новые файлы, поэтому обычные message writes почти не конфликтуют.
 - Токен хранится в `localStorage`, как уже честно написано в UI.
 
-## Что Ещё Не Подключено
+## Send/Refresh Flow
 
-`window.MacaroniGitHub` уже умеет read/write, но основной composer пока пишет в local test repo.
+Если в профиле выбран provider `github` и указан token, основной composer использует `window.MacaroniGitHub`.
 
-Следующий шаг - переключить send/refresh flow на GitHub adapter, сохранив outbox при ошибках сети/auth.
+Если token пустой, клиент остаётся на local test repo. Это нужно, чтобы демо работало без реального доступа к GitHub.
+
+При ошибках auth/network draft сохраняется в outbox.
+
+Кнопка "Обновить" делает retry outbox и reindex.
+
+## Что Ещё Не Закрыто
+
+Remote flow уже умеет писать через Contents API, но синхронизация пока простая:
+
+- сканируется первый найденный chat;
+- messages обходятся по `YYYY/MM/DD`;
+- нет умного incremental sync;
+- нет Git Trees API;
+- нет полноценного multi-chat UI.

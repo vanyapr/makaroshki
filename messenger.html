@@ -1276,6 +1276,207 @@
         return githubWriteFile(config, path, JSON.stringify(value, null, 2), message);
       }
 
+      function githubEnsureJson(config, path, value, message) {
+        return githubReadJson(config, path).then(function (existingValue) {
+          if (existingValue) {
+            return existingValue;
+          }
+
+          return githubWriteJson(config, path, value, message);
+        });
+      }
+
+      function canUseGitHub(profile) {
+        return !!(profile && profile.provider === "github" && profile.repo && profile.token);
+      }
+
+      function initGitHubRepo(profile) {
+        var config = createGitHubConfig(profile);
+        var now = new Date().toISOString();
+        return Promise.all([
+          githubEnsureJson(config, "protocol.json", createProtocolDocument(now), "Macaroni: init protocol"),
+          githubEnsureJson(config, "users/" + (profile.clientId || CLIENT_ID) + ".json", createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID))
+        ]);
+      }
+
+      function githubFindFirstChatMeta(profile) {
+        var config = createGitHubConfig(profile);
+        return githubListFiles(config, "chats").then(function (entries) {
+          var dirs = entries.filter(function (entry) {
+            return entry.type === "dir";
+          });
+          var chain = Promise.resolve(null);
+
+          dirs.forEach(function (entry) {
+            chain = chain.then(function (found) {
+              if (found) {
+                return found;
+              }
+
+              return githubReadJson(config, entry.path + "/meta.json").catch(function () {
+                return null;
+              });
+            });
+          });
+
+          return chain;
+        });
+      }
+
+      function createGitHubChat(profile, options) {
+        var config = createGitHubConfig(profile);
+        var value = options || {};
+        var ownerId = value.owner_id || CLIENT_ID;
+        var members = value.members || [
+          { id: ownerId, display_name: value.owner_name || "Я", role: "owner" }
+        ];
+        var chatMeta = createChatMeta({
+          title: value.title || "Новый чат",
+          created_by: ownerId,
+          member_ids: members.map(function (member) {
+            return member.id;
+          }).filter(function (memberId) {
+            return memberId !== ownerId;
+          }),
+          created_at: value.created_at
+        });
+        var chatMembers = createChatMembers(chatMeta.id, members);
+
+        return Promise.all([
+          githubWriteJson(config, "chats/" + chatMeta.id + "/meta.json", chatMeta, "Macaroni: create chat " + chatMeta.title),
+          githubWriteJson(config, "chats/" + chatMeta.id + "/members.json", chatMembers, "Macaroni: update chat members " + chatMeta.id)
+        ]).then(function () {
+          return {
+            meta: chatMeta,
+            members: chatMembers
+          };
+        });
+      }
+
+      function sendGitHubMessage(profile, options) {
+        var config = createGitHubConfig(profile);
+        var value = options || {};
+        var message = createTextMessage({
+          chat_id: value.chat_id,
+          from: value.from || CLIENT_ID,
+          to: value.to || [],
+          text: value.text,
+          created_at: value.created_at,
+          reply_to: value.reply_to,
+          attachments: value.attachments
+        });
+        var writes = [
+          githubWriteJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id),
+          putMessage(message)
+        ];
+
+        message.to.forEach(function (recipientId) {
+          writes.push(githubWriteJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id));
+        });
+
+        return Promise.all(writes).then(function () {
+          return message;
+        });
+      }
+
+      function readGitHubJsonSafe(config, path) {
+        return githubReadJson(config, path).catch(function () {
+          return null;
+        });
+      }
+
+      function listGitHubMessageFiles(config, chatId) {
+        return githubListFiles(config, "chats/" + chatId + "/messages").then(function (years) {
+          var chain = Promise.resolve([]);
+          years.filter(function (entry) {
+            return entry.type === "dir";
+          }).forEach(function (yearEntry) {
+            chain = chain.then(function (files) {
+              return githubListFiles(config, yearEntry.path).then(function (months) {
+                var monthChain = Promise.resolve(files);
+                months.filter(function (entry) {
+                  return entry.type === "dir";
+                }).forEach(function (monthEntry) {
+                  monthChain = monthChain.then(function (monthFiles) {
+                    return githubListFiles(config, monthEntry.path).then(function (days) {
+                      var dayChain = Promise.resolve(monthFiles);
+                      days.filter(function (entry) {
+                        return entry.type === "dir";
+                      }).forEach(function (dayEntry) {
+                        dayChain = dayChain.then(function (dayFiles) {
+                          return githubListFiles(config, dayEntry.path).then(function (entries) {
+                            return dayFiles.concat(entries.filter(function (entry) {
+                              return entry.type === "file" && /\.json$/.test(entry.path);
+                            }));
+                          });
+                        });
+                      });
+                      return dayChain;
+                    });
+                  });
+                });
+                return monthChain;
+              });
+            });
+          });
+          return chain;
+        });
+      }
+
+      function reindexFromGitHub(profile, chatId) {
+        var config = createGitHubConfig(profile);
+        return resetIndex().then(function () {
+          return githubFindFirstChatMeta(profile);
+        }).then(function (chatMeta) {
+          if (!chatMeta) {
+            return {
+              chat: null,
+              indexed: 0,
+              skipped: []
+            };
+          }
+
+          var writes = [
+            putRecord("meta", { key: "protocol", value: null }),
+            putRecord("chats", chatMeta)
+          ];
+          var skipped = [];
+          return readGitHubJsonSafe(config, "protocol.json").then(function (protocol) {
+            writes[0] = putRecord("meta", { key: "protocol", value: protocol });
+            return listGitHubMessageFiles(config, chatId || chatMeta.id);
+          }).then(function (files) {
+            var chain = Promise.resolve();
+            files.forEach(function (file) {
+              chain = chain.then(function () {
+                return readGitHubJsonSafe(config, file.path).then(function (message) {
+                  if (!message) {
+                    return null;
+                  }
+
+                  try {
+                    validateMessage(message);
+                    writes.push(putMessage(Object.assign({}, message, { raw_json_path: file.path })));
+                  } catch (error) {
+                    skipped.push({ path: file.path, reason: error.message });
+                  }
+                  return null;
+                });
+              });
+            });
+
+            return chain.then(function () {
+              return Promise.all(writes);
+            });
+          }).then(function () {
+            return {
+              chat: chatMeta,
+              indexed: writes.length,
+              skipped: skipped
+            };
+          });
+        });
+      }
+
       function loadProfile() {
         try {
           var raw = window.localStorage.getItem(PROFILE_KEY);
@@ -1817,6 +2018,30 @@
       }
 
       function ensureDefaultChat(profile) {
+        if (canUseGitHub(profile)) {
+          return initGitHubRepo(profile).then(function () {
+            return githubFindFirstChatMeta(profile);
+          }).then(function (existingChat) {
+            if (existingChat) {
+              currentChatId = existingChat.id;
+              return existingChat;
+            }
+
+            return createGitHubChat(profile, {
+              title: "МАМА",
+              owner_id: CLIENT_ID,
+              owner_name: profile.displayName || "Я",
+              members: [
+                { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
+                { id: "K2XM", display_name: "МАМА", role: "member" }
+              ]
+            }).then(function (chat) {
+              currentChatId = chat.meta.id;
+              return chat.meta;
+            });
+          });
+        }
+
         return initTestRepo(profile).then(function () {
           return findFirstChatMeta();
         }).then(function (existingChat) {
@@ -1841,8 +2066,10 @@
       }
 
       function refreshFromTestRepo(profile) {
-        return ensureDefaultChat(profile || loadProfile() || {}).then(function (chat) {
-          return reindexFromTestRepo().then(function () {
+        var value = profile || loadProfile() || {};
+        return ensureDefaultChat(value).then(function (chat) {
+          var reindex = canUseGitHub(value) ? reindexFromGitHub(value, chat.id) : reindexFromTestRepo();
+          return reindex.then(function () {
             currentChatId = chat.id;
             return renderMessages(currentChatId);
           });
@@ -1858,7 +2085,8 @@
                 return null;
               }
 
-              return sendTestMessage(item.payload).then(function () {
+              var send = canUseGitHub(profile) ? sendGitHubMessage(profile, item.payload) : sendTestMessage(item.payload);
+              return send.then(function () {
                 return deleteOutbox(item.id);
               });
             });
@@ -1878,7 +2106,8 @@
           text: text
         };
 
-        return sendTestMessage(payload).then(function () {
+        var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+        return send.then(function () {
           clearAppError();
           return renderMessages(currentChatId);
         }).catch(function (error) {

@@ -52,8 +52,22 @@ This is the provider API equivalent for commit/push.
 - Messages are written as new files, so normal message writes rarely conflict.
 - The token is stored in `localStorage`, as the UI already says.
 
-## Not Connected Yet
+## Send/Refresh Flow
 
-`window.MacaroniGitHub` can already read/write, but the main composer still writes to the local test repo.
+If the profile uses provider `github` and has a token, the main composer uses `window.MacaroniGitHub`.
 
-The next step is to switch send/refresh flow to the GitHub adapter while preserving outbox on network/auth errors.
+If the token is empty, the client stays on the local test repo. This keeps the demo usable without real GitHub access.
+
+On auth/network errors, the draft is saved to outbox.
+
+The "Refresh" button retries outbox and reindexes.
+
+## Still Not Done
+
+Remote flow can write through the Contents API, but sync is still simple:
+
+- it scans the first found chat;
+- messages are walked by `YYYY/MM/DD`;
+- no smart incremental sync yet;
+- no Git Trees API yet;
+- no full multi-chat UI yet.
