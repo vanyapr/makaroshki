@@ -1050,6 +1050,7 @@
       var incomingSound = null;
       var incomingSoundReady = false;
       var knownIncomingMessages = {};
+      var composerDraftsByChat = {};
       var I18N = {
         en: {
           browserUnsupportedLabel: "Browser is not supported",
@@ -3665,10 +3666,34 @@
         get("conversation").setAttribute("aria-label", t("chatAria") + title);
       }
 
+      function saveComposerDraft(chatId) {
+        var input = get("message-input");
+        if (chatId && input) {
+          composerDraftsByChat[chatId] = input.value;
+        }
+      }
+
+      function restoreComposerDraft(chatId) {
+        var input = get("message-input");
+        if (input) {
+          input.value = chatId && Object.prototype.hasOwnProperty.call(composerDraftsByChat, chatId)
+            ? composerDraftsByChat[chatId]
+            : "";
+        }
+      }
+
+      function clearComposerDraft(chatId) {
+        if (chatId) {
+          delete composerDraftsByChat[chatId];
+        }
+      }
+
       function selectChat(chat) {
+        saveComposerDraft(currentChatId);
         currentChatId = chat.id;
         updateChatTitle(chat);
         get("search-input").value = "";
+        restoreComposerDraft(currentChatId);
         return renderMessages(currentChatId);
       }
 
@@ -4314,6 +4339,7 @@
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
         var reindexResult = null;
+        saveComposerDraft(previousChatId);
         if (isUnsupportedRemoteProvider(value)) {
           return Promise.reject(unsupportedProviderError(value));
         }
@@ -4332,6 +4358,7 @@
             if (!activeChat) {
               currentChatId = null;
               updateChatTitle({ title: t("noChatsTitle"), id: "none" });
+              restoreComposerDraft(currentChatId);
               drawMessages([], t("repoSilent"));
               return renderChatList().then(function () {
                 return notifyIncomingMessagesFromIndex();
@@ -4342,6 +4369,7 @@
 
             currentChatId = activeChat.id;
             updateChatTitle(activeChat);
+            restoreComposerDraft(currentChatId);
             return renderMessages(currentChatId).then(function () {
               return renderChatList();
             }).then(function () {
@@ -4513,6 +4541,10 @@
         }
 
         composerBound = true;
+        get("message-input").addEventListener("input", function () {
+          saveComposerDraft(currentChatId);
+        });
+
         get("message-input").addEventListener("keydown", function (event) {
           if (event.key !== "Enter" || event.isComposing) {
             return;
@@ -4535,6 +4567,7 @@
           input.value = "";
           ensureActiveChat(profile).then(function (chat) {
             var targetChatId = chat && chat.id ? chat.id : currentChatId;
+            clearComposerDraft(targetChatId);
             return sendComposerMessage(profile, text, targetChatId);
           }).catch(function (error) {
             putOutbox({

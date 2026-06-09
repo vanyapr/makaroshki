@@ -424,8 +424,17 @@ async function testLocalMvpFlow(browser) {
   assert(texts.some((text) => text.includes("author from members")), "search did not match member display name");
   await page.locator("#search-input").fill("");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: off"));
+  await page.locator("#message-input").fill("Draft for WORK only");
   await page.locator("#chat-list .chat-item", { hasText: "MOM" }).click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("MOM"));
+  assert(await page.locator("#message-input").inputValue() === "", "new chat inherited previous chat draft");
+  await page.locator("#message-input").fill("Draft for MOM only");
+  await page.locator("#chat-list .chat-item", { hasText: "WORK" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("WORK"));
+  assert(await page.locator("#message-input").inputValue() === "Draft for WORK only", "chat switch did not restore WORK draft");
+  await page.locator("#chat-list .chat-item", { hasText: "MOM" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("MOM"));
+  assert(await page.locator("#message-input").inputValue() === "Draft for MOM only", "chat switch did not restore MOM draft");
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
   assert((await page.locator("#chat-title").textContent()).includes("MOM"), "sync did not preserve selected chat");
