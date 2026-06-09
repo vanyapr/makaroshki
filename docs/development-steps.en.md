@@ -131,12 +131,12 @@ Done when:
 
 Goal: store message index and outbox locally.
 
-Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `2`, stores `messages`, `chats`, `outbox`, `meta`, `repoFiles`, and operations for messages, search, outbox, index reset, and the local test repo. Until the Send/Receive Loop, this is infrastructure, not a full user-facing send flow.
+Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `3`, stores `messages`, `chats`, `users`, `members`, `outbox`, `meta`, `repoFiles`, and operations for messages, search, outbox, index reset, and the local test repo. Until the Send/Receive Loop, this is infrastructure, not a full user-facing send flow.
 
 Steps:
 
 1. Create minimal IndexedDB wrapper.
-2. Stores: `messages`, `chats`, `outbox`, `meta`.
+2. Stores: `messages`, `chats`, `users`, `members`, `outbox`, `meta`.
 3. Add schema version.
 4. Add operations `putMessage`, `listMessages`, `searchMessages`, `putOutbox`, `listOutbox`, `deleteOutbox`.
 5. Add rebuild/reset index action.
@@ -223,7 +223,7 @@ Done when:
 
 Goal: connect first real remote flow.
 
-Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token the GitHub repo works as a read-only public repo. UI shows current transport, sync state, and outbox count. Sync is still simple: all chat meta, messages walked by `YYYY/MM/DD`, plus `.macaroni/inbox/<CLIENT_ID>` as a receive hint, no Git Trees API.
+Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token the GitHub repo works as a read-only public repo. UI shows current transport, sync state, and outbox count. Sync is still simple: all chat meta, messages walked by `YYYY/MM/DD`, plus `.macaroni/inbox/<CLIENT_ID>` as a receive hint, no Git Trees API. GitHub profiles now poll in the background: every 30 seconds with a token, every 60 seconds in read-only mode; hidden tabs do not run network sync until they become active again.
 
 Steps:
 

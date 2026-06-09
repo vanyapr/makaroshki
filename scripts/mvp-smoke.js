@@ -89,6 +89,35 @@ async function testGeneratedClientIdPersists(browser) {
   await context.close();
 }
 
+async function testPollingContract(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+
+  await page.waitForFunction(() => document.body.dataset.support === "supported");
+  const intervals = await page.evaluate(() => {
+    const baseProfile = {
+      clientId: "SA6E",
+      displayName: "Я",
+      provider: "github",
+      repo: "https://github.com/vanyapr/makaroshki",
+      privacyAccepted: true
+    };
+
+    window.MacaroniPolling.start(baseProfile);
+    window.MacaroniPolling.stop();
+
+    return {
+      withToken: window.MacaroniPolling.intervalForProfile(Object.assign({}, baseProfile, { token: "token" })),
+      readOnly: window.MacaroniPolling.intervalForProfile(Object.assign({}, baseProfile, { token: "" }))
+    };
+  });
+
+  assert(intervals.withToken === 30000, "GitHub polling interval with token is wrong");
+  assert(intervals.readOnly === 60000, "GitHub read-only polling interval is wrong");
+
+  await context.close();
+}
+
 async function testLocalMvpFlow(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
@@ -811,6 +840,7 @@ async function testTwoClientRecipients(browser) {
   try {
     await testUnsupportedScreen(browser);
     await testGeneratedClientIdPersists(browser);
+    await testPollingContract(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubInboxReindex(browser);

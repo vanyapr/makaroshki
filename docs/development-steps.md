@@ -131,12 +131,12 @@
 
 Цель: хранить индекс сообщений и outbox локально.
 
-Статус: базово реализовано в `messenger.html`. Есть маленький IndexedDB wrapper, schema version `2`, stores `messages`, `chats`, `outbox`, `meta`, `repoFiles`, операции для сообщений, поиска, outbox, сброса индекса и локального test repo. До Send/Receive Loop это инфраструктурный слой, а не полноценный пользовательский поток отправки.
+Статус: базово реализовано в `messenger.html`. Есть маленький IndexedDB wrapper, schema version `3`, stores `messages`, `chats`, `users`, `members`, `outbox`, `meta`, `repoFiles`, операции для сообщений, поиска, outbox, сброса индекса и локального test repo. До Send/Receive Loop это инфраструктурный слой, а не полноценный пользовательский поток отправки.
 
 Шаги:
 
 1. Создать минимальный IndexedDB wrapper.
-2. Stores: `messages`, `chats`, `outbox`, `meta`.
+2. Stores: `messages`, `chats`, `users`, `members`, `outbox`, `meta`.
 3. Добавить schema version.
 4. Добавить операции `putMessage`, `listMessages`, `searchMessages`, `putOutbox`, `listOutbox`, `deleteOutbox`.
 5. Добавить rebuild/reset index action.
@@ -223,7 +223,7 @@
 
 Цель: подключить первый реальный remote flow.
 
-Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token GitHub repo работает как read-only public repo. UI показывает текущий transport, sync state и outbox count. Sync пока простой: все chat meta, обход messages по `YYYY/MM/DD`, плюс чтение `.macaroni/inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
+Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token GitHub repo работает как read-only public repo. UI показывает текущий transport, sync state и outbox count. Sync пока простой: все chat meta, обход messages по `YYYY/MM/DD`, плюс чтение `.macaroni/inbox/<CLIENT_ID>` как receive hint, без Git Trees API. Для GitHub-профиля включён polling: 30 секунд с token, 60 секунд read-only; скрытая вкладка не делает сетевой sync до возвращения в активное состояние.
 
 Шаги:
 

@@ -90,3 +90,16 @@ Remote flow can write through the Contents API, but sync is still simple:
 - no smart incremental sync yet;
 - no Git Trees API yet;
 - no full multi-chat UI yet.
+
+## Polling
+
+MVP polling is intentionally dumb:
+
+- GitHub profile with a token: sync every 30 seconds.
+- GitHub read-only profile without a token: sync every 60 seconds.
+- A hidden tab does not run network sync and waits until it becomes active again.
+- If sync is already running, the next polling/manual refresh does not start in parallel.
+
+This is not real-time and not presence. This is "Mom will see the message soon enough".
+
+GitHub rate limits remain a provider limitation. Without a token, the limit is shared by IP and can run out faster; with a token, the limit is higher, so authenticated mode is preferred for an active chat.

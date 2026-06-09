@@ -931,6 +931,8 @@
       const PROTOCOL_VERSION = 1;
       const MACARONI_ROOT = ".macaroni";
       const DEFAULT_CLIENT_ID = "SA6E";
+      const POLL_WITH_TOKEN_MS = 30000;
+      const POLL_READ_ONLY_MS = 60000;
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
@@ -942,6 +944,8 @@
       var dbPromise = null;
       var currentChatId = null;
       var composerBound = false;
+      var pollTimer = null;
+      var syncInFlight = false;
 
       function get(id) {
         return document.getElementById(id);
@@ -2850,6 +2854,65 @@
         });
       }
 
+      function pollingInterval(profile) {
+        return canWriteGitHub(profile) ? POLL_WITH_TOKEN_MS : POLL_READ_ONLY_MS;
+      }
+
+      function stopMessagePolling() {
+        if (pollTimer) {
+          window.clearTimeout(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      function scheduleMessagePoll(profile) {
+        var value = profile || loadProfile() || {};
+        if (!canReadGitHub(value)) {
+          stopMessagePolling();
+          return;
+        }
+
+        pollTimer = window.setTimeout(function () {
+          var latestProfile = loadProfile() || value;
+          if (!isReadyProfile(latestProfile) || !canReadGitHub(latestProfile)) {
+            stopMessagePolling();
+            return;
+          }
+
+          if (document.hidden) {
+            updateSyncStatusFromState(latestProfile, "poll: paused").then(function () {
+              scheduleMessagePoll(latestProfile);
+            });
+            return;
+          }
+
+          if (syncInFlight) {
+            scheduleMessagePoll(latestProfile);
+            return;
+          }
+
+          syncInFlight = true;
+          refreshFromTestRepo(latestProfile).then(function () {
+            syncInFlight = false;
+            scheduleMessagePoll(latestProfile);
+          }, function (error) {
+            setAppError("Polling не смог обновить сообщения: " + error.message);
+            return updateSyncStatusFromState(latestProfile, "poll: error").then(function () {
+              syncInFlight = false;
+              scheduleMessagePoll(latestProfile);
+            }, function () {
+              syncInFlight = false;
+              scheduleMessagePoll(latestProfile);
+            });
+          });
+        }, pollingInterval(value));
+      }
+
+      function startMessagePolling(profile) {
+        stopMessagePolling();
+        scheduleMessagePoll(profile);
+      }
+
       function retryOutbox(profile) {
         return listOutbox().then(function (items) {
           var chain = Promise.resolve();
@@ -2972,10 +3035,22 @@
 
         get("sync-refresh").addEventListener("click", function () {
           var profile = loadProfile() || {};
+          if (syncInFlight) {
+            updateSyncStatusFromState(profile, "sync: busy");
+            return;
+          }
+
+          syncInFlight = true;
           updateSyncStatus("sync: " + transportLabel(profile) + " · retry outbox");
-          retryOutbox(profile).catch(function (error) {
+          retryOutbox(profile).then(function () {
+            syncInFlight = false;
+          }, function (error) {
             setAppError("Обновление не получилось: " + error.message);
-            updateSyncStatusFromState(profile, "sync: error");
+            return updateSyncStatusFromState(profile, "sync: error").then(function () {
+              syncInFlight = false;
+            }, function () {
+              syncInFlight = false;
+            });
           });
         });
 
@@ -3003,7 +3078,11 @@
 
       function initMessengerApp(profile) {
         bindComposer();
-        return refreshFromTestRepo(profile).catch(function (error) {
+        stopMessagePolling();
+        return refreshFromTestRepo(profile).then(function (result) {
+          startMessagePolling(profile);
+          return result;
+        }).catch(function (error) {
           setAppError("Локальный test repo не поднялся: " + error.message);
           updateSyncStatusFromState(profile, "sync: error");
         });
@@ -3149,6 +3228,12 @@
         listFiles: githubListFiles,
         writeFile: githubWriteFile,
         writeJson: githubWriteJson
+      };
+
+      window.MacaroniPolling = {
+        intervalForProfile: pollingInterval,
+        start: startMessagePolling,
+        stop: stopMessagePolling
       };
 
       setClientIdText();
