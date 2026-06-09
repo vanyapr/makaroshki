@@ -129,6 +129,19 @@ async function testLocalMvpFlow(browser) {
   const chats = await page.evaluate(() => window.MacaroniStorage.listChats());
   assert(chats.some((chat) => chat.title === "НОВЫЙ_ЧАТ"), "created chat was not stored");
 
+  const infoTextPromise = page.waitForEvent("dialog").then(async (dialog) => {
+    const message = dialog.message();
+    await dialog.accept();
+    return message;
+  });
+  await page.locator("#chat-info").click();
+  const infoText = await infoTextPromise;
+  assert(infoText.includes("Чат: НОВЫЙ_ЧАТ"), "chat info title is missing");
+  assert(infoText.includes("chat_id:"), "chat info id is missing");
+  assert(infoText.includes("участники:"), "chat info members are missing");
+  assert(infoText.includes("transport:"), "chat info transport is missing");
+  assert(infoText.includes("outbox:"), "chat info outbox is missing");
+
   await context.close();
 }
 

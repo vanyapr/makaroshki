@@ -274,6 +274,8 @@ The sidebar is rendered from the local `chats` store after init/reindex. Clickin
 
 The `+` button creates a new chat through a simple title prompt, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
 
+`Chat info` shows a short current-chat summary: title, `chat_id`, members from `members.json`, transport, and outbox size. This is the minimal debug UI before the real remote roundtrip.
+
 Done when:
 
 - main actions are visible without instructions;

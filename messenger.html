@@ -888,7 +888,7 @@
           </div>
           <div class="conversation-actions">
             <input class="search-input" id="search-input" type="search" placeholder="Поиск" aria-label="Поиск по текущему чату" autocomplete="off">
-            <button class="button chat-info" type="button">Инфо о чате</button>
+            <button class="button chat-info" id="chat-info" type="button">Инфо о чате</button>
           </div>
         </div>
 
@@ -2316,6 +2316,52 @@
         });
       }
 
+      function getCurrentChat() {
+        return listChats().then(function (chats) {
+          return chats.find(function (chat) {
+            return chat.id === currentChatId;
+          }) || null;
+        });
+      }
+
+      function formatChatMembers(membersDocument) {
+        var members = membersDocument && Array.isArray(membersDocument.members) ? membersDocument.members : [];
+        if (!members.length) {
+          return "участники: неизвестно";
+        }
+
+        return "участники: " + members.map(function (member) {
+          return (member.display_name || member.id) + " (" + member.id + ")";
+        }).join(", ");
+      }
+
+      function showChatInfo(profile) {
+        var value = profile || loadProfile() || {};
+        var chat;
+
+        if (!currentChatId) {
+          window.alert("Чат не выбран. Даже git не знает, куда смотреть.");
+          return Promise.resolve(null);
+        }
+
+        return getCurrentChat().then(function (currentChat) {
+          chat = currentChat || { id: currentChatId, title: currentChatId };
+          return readChatMembers(value, currentChatId);
+        }).then(function (membersDocument) {
+          return listOutbox().then(function (outboxItems) {
+            var lines = [
+              "Чат: " + (chat.title || chat.id),
+              "chat_id: " + chat.id,
+              formatChatMembers(membersDocument),
+              "transport: " + transportLabel(value),
+              "outbox: " + outboxItems.length
+            ];
+            window.alert(lines.join("\\n"));
+            return chat;
+          });
+        });
+      }
+
       function applySearch() {
         var input = get("search-input");
         var query = input ? input.value.trim() : "";
@@ -2575,6 +2621,13 @@
           createChatFromUi(profile).catch(function (error) {
             setAppError("Чат не создался: " + error.message);
             updateSyncStatusFromState(profile, "chat: error");
+          });
+        });
+
+        get("chat-info").addEventListener("click", function () {
+          var profile = loadProfile() || {};
+          showChatInfo(profile).catch(function (error) {
+            setAppError("Инфо о чате не открылось: " + error.message);
           });
         });
 
