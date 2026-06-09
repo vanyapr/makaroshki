@@ -214,6 +214,64 @@ async function testLocalMvpFlow(browser) {
     return members;
   });
   assert(joinedMembers, "join did not add current client to members.json");
+  page.removeAllListeners("dialog");
+
+  await page.evaluate(async () => {
+    const chat = await window.MacaroniTestRepo.createChat({
+      title: "БЕЗ_MEMBERS",
+      owner_id: "K2XM",
+      owner_name: "K2XM",
+      members: [
+        { id: "K2XM", display_name: "K2XM", role: "owner" }
+      ]
+    });
+    const path = ".macaroni/chats/" + chat.meta.id + "/members.json";
+    const request = indexedDB.open("macaroni-messenger", 2);
+    await new Promise((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction("repoFiles", "readwrite");
+        tx.objectStore("repoFiles").delete(path);
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+    await window.MacaroniTestRepo.sendMessage({
+      chat_id: chat.meta.id,
+      from: "K2XM",
+      to: [],
+      text: "MVP smoke: missing members"
+    });
+  });
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("БЕЗ_MEMBERS")));
+  await page.locator("#chat-list .chat-item", { hasText: "БЕЗ_MEMBERS" }).click();
+  dialogIndex = 0;
+  page.on("dialog", async (dialog) => {
+    dialogIndex += 1;
+    if (dialogIndex === 1) {
+      assert(dialog.message().includes("K2XM (K2XM)"), "missing members fallback did not show creator");
+      await dialog.accept();
+      return;
+    }
+    if (dialogIndex === 2) {
+      await dialog.accept();
+      return;
+    }
+    await dialog.accept();
+  });
+  await page.locator("#chat-info").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
+  const repairedMembers = await page.evaluate(async () => {
+    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "БЕЗ_MEMBERS");
+    return window.MacaroniTestRepo.readJson(".macaroni/chats/" + chat.id + "/members.json");
+  });
+  assert(repairedMembers.members.some((member) => member.id === "K2XM"), "missing members repair lost creator");
+  assert(repairedMembers.members.some((member) => member.id === "SA6E"), "missing members repair did not add current client");
 
   await context.close();
 }

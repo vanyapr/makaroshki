@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "chat_id": "chat_20260609_f6wt_k2xm_i71u",
+  "members": [
+    {
+      "id": "F6WT",
+      "display_name": "F6WT",
+      "role": "owner"
+    },
+    {
+      "id": "K2XM",
+      "display_name": "K2XM",
+      "role": "member"
+    }
+  ]
+}

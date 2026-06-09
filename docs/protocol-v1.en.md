@@ -86,6 +86,8 @@ It is four characters. We tried.
 
 A user is considered a chat member if their `client_id` is present in this file. Joining a chat is an update to `members.json`, not a separate registration flow.
 
+If `members.json` is missing in an old or partially written chat, the client may repair a minimal file: `created_by` from `meta.json` becomes the `owner`, and the current user is added when joining.
+
 ```json
 {
   "version": 1,

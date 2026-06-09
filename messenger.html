@@ -2457,6 +2457,18 @@
         }).join(", ");
       }
 
+      function fallbackChatMembers(chat) {
+        if (!chat || !chat.created_by) {
+          return null;
+        }
+
+        return createChatMembers(chat.id, [{
+          id: chat.created_by,
+          display_name: chat.created_by,
+          role: "owner"
+        }]);
+      }
+
       function chatHasCurrentClient(membersDocument) {
         return !!(membersDocument && Array.isArray(membersDocument.members) && membersDocument.members.some(function (member) {
           return member && member.id === CLIENT_ID;
@@ -2522,7 +2534,7 @@
           chat = currentChat || { id: currentChatId, title: currentChatId };
           return readChatMembers(value, currentChatId);
         }).then(function (document) {
-          membersDocument = document;
+          membersDocument = document || fallbackChatMembers(chat);
           return listOutbox().then(function (outboxItems) {
             var lines = [
               "Чат: " + (chat.title || chat.id),
