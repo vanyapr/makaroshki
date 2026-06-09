@@ -1148,6 +1148,7 @@
           githubReadOnlyRetry: "GitHub repo is read-only. Retry waits for a token.",
           githubReadOnlySend: "GitHub repo is read-only. Add a token to send messages.",
           sendingBackground: "sending background",
+          sendingQueued: "queued for 30s git flush",
           messageOutboxGit: "Message saved in outbox. Git will not run away, we will try again: {message}",
           messageOutboxImmediate: "Message saved in outbox. Could not send immediately: {message}",
           refreshFailed: "Refresh failed: {message}",
@@ -1253,6 +1254,7 @@
           githubReadOnlyRetry: "GitHub repo read-only. Retry ждет token.",
           githubReadOnlySend: "GitHub repo read-only. Добавьте token, чтобы отправлять сообщения.",
           sendingBackground: "отправляем в фоне",
+          sendingQueued: "в очереди до 30-секундной git-отправки",
           messageOutboxGit: "Сообщение сохранено в outbox. Git не убежит, попробуем еще раз: {message}",
           messageOutboxImmediate: "Сообщение сохранено в outbox. Не удалось отправить сразу: {message}",
           refreshFailed: "Обновление не удалось: {message}",
@@ -2850,7 +2852,13 @@
             message_created_at: message.created_at
           });
 
-          return writeReadReceipt(value, receipt).then(function () {
+          return putOutbox({
+            type: "read_receipt",
+            payload: {
+              receipt: receipt
+            },
+            error: null
+          }).then(function () {
             return putMeta(chatReceiptMetaKey(chatId), marker);
           }).catch(function (error) {
             return putMeta(chatReceiptMetaKey(chatId), marker);
@@ -2920,6 +2928,17 @@
 
       function deleteOutbox(id) {
         return deleteRecord("outbox", id);
+      }
+
+      function indexPendingOutboxMessages(items) {
+        var writes = [];
+        (items || []).forEach(function (item) {
+          if (item && item.type === "send_message" && item.payload && item.payload.message) {
+            writes.push(putMessage(item.payload.message));
+          }
+        });
+
+        return Promise.all(writes);
       }
 
       function resetIndex() {
@@ -3292,6 +3311,12 @@
         updateSyncStatus("reindex: " + transportLabel(value) + " · rebuilding");
 
         return reindex.then(function (result) {
+          return listOutbox().then(function (items) {
+            return indexPendingOutboxMessages(items);
+          }).then(function () {
+            return result;
+          });
+        }).then(function (result) {
           return findFirstChatMeta().then(function (chat) {
             if (chat) {
               currentChatId = chat.id;
@@ -4350,6 +4375,10 @@
           var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
           return reindex.then(function (result) {
             reindexResult = result;
+            return listOutbox();
+          }).then(function (items) {
+            return indexPendingOutboxMessages(items);
+          }).then(function () {
             return listChats();
           }).then(function (chats) {
             var activeChat = chooseActiveChatAfterSync(chats, chat, previousChatId);
@@ -4412,7 +4441,7 @@
           }
 
           syncInFlight = true;
-          refreshFromTestRepo(latestProfile).then(function () {
+          retryOutbox(latestProfile).then(function () {
             syncInFlight = false;
             scheduleMessagePoll(latestProfile);
           }, function (error) {
@@ -4438,7 +4467,18 @@
           return Promise.reject(unsupportedProviderError(profile));
         }
 
-        return listOutbox().then(function (items) {
+        updateSyncStatus("sync: " + transportLabel(profile) + " · pull before push");
+        return refreshFromTestRepo(profile).then(function () {
+          return listOutbox();
+        }).then(function (items) {
+          if (!items.length) {
+            return items;
+          }
+
+          if (items.length && canReadGitHub(profile) && !canWriteGitHub(profile)) {
+            return updateSyncStatusFromState(profile, "send: outbox");
+          }
+
           var chain = Promise.resolve();
           items.forEach(function (item) {
             chain = chain.then(function () {
@@ -4449,6 +4489,10 @@
               if (item.type === "read_receipt" && item.payload.receipt) {
                 return writeReadReceipt(profile, item.payload.receipt).then(function () {
                   return deleteOutbox(item.id);
+                }).catch(function (error) {
+                  return putOutbox(Object.assign({}, item, {
+                    error: error.message
+                  }));
                 });
               }
 
@@ -4467,6 +4511,12 @@
                 var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
                 return send.then(function () {
                   return deleteOutbox(item.id);
+                }).catch(function (error) {
+                  return putOutbox(Object.assign({}, item, {
+                    error: error.message
+                  })).then(function () {
+                    throw error;
+                  });
                 });
               });
             });
@@ -4504,33 +4554,19 @@
             message: message
           };
 
-          if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-            return Promise.reject(new Error(t("githubReadOnlySend")));
-          }
-
-          var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
-          updateSyncStatus("send: " + transportLabel(profile) + " · " + t("sendingBackground"));
-
           return putMessage(message).then(function () {
+            return putOutbox({
+              type: "send_message",
+              payload: payload,
+              error: null
+            });
+          }).then(function () {
             return targetChatId === currentChatId ? renderMessages(targetChatId) : null;
           }).then(function () {
             clearAppError();
-            send.then(function () {
-              return updateLastSyncStatus(profile, "send: ok");
-            }).catch(function (error) {
-              return putOutbox({
-                type: "send_message",
-                payload: payload,
-                error: error.message
-              }).then(function () {
-                setAppError(t("messageOutboxGit", { message: error.message }));
-                return renderChatList().then(function () {
-                  return updateSyncStatusFromState(profile, "send: outbox");
-                });
-              });
+            return renderChatList().then(function () {
+              return updateSyncStatusFromState(profile, "send: " + t("sendingQueued"));
             });
-
-            return updateSyncStatusFromState(profile, "send: background");
           });
         });
       }

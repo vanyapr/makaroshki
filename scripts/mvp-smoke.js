@@ -387,6 +387,14 @@ async function testLocalMvpFlow(browser) {
   });
   assert(workUnreadAfterOpen === null, "opening a chat did not clear unread indicator");
   assert(await page.title() === "Macaroni Messenger", "opening a chat did not clear document title unread count");
+  const queuedReceiptAfterOpen = await page.evaluate(async () => {
+    const outbox = await window.MacaroniStorage.listOutbox();
+    return outbox.some((item) => item.type === "read_receipt" && item.payload && item.payload.receipt && item.payload.receipt.chat_id);
+  });
+  assert(queuedReceiptAfterOpen, "opening a chat did not queue one append-only read receipt");
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("last:"));
   const receiptFilesAfterOpen = await page.evaluate(async () => {
     const chats = await window.MacaroniStorage.listChats();
     const work = chats.find((chat) => chat.title === "WORK");
@@ -398,9 +406,6 @@ async function testLocalMvpFlow(browser) {
   assert(receiptDocument.user_id === "SA6E", "read receipt user is wrong");
   assert(receiptDocument.chat_id, "read receipt chat id is missing");
   assert(receiptDocument.message_id, "read receipt message id is missing");
-  await page.locator("#sync-refresh").click();
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("last:"));
   const lastSyncAt = await page.evaluate(() => window.MacaroniStorage.getMeta("sync:last_success_at"));
   assert(lastSyncAt && !Number.isNaN(new Date(lastSyncAt).getTime()), "successful sync did not store last sync timestamp");
   const workUnreadAfterReindex = await page.evaluate(() => {
@@ -597,6 +602,7 @@ async function testOutboxAndRetry(browser) {
   await page.locator("#message-input").fill("MVP smoke: create local chat before outbox");
   await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("create local chat before outbox")));
+  await page.waitForFunction(() => window.MacaroniStorage.listOutbox().then((items) => items.length >= 1));
 
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("macaroni.profile.v1"));
@@ -610,12 +616,12 @@ async function testOutboxAndRetry(browser) {
   });
   await page.locator("#message-input").fill("MVP smoke: outbox retry");
   await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 1"));
+  await page.waitForFunction(() => window.MacaroniStorage.listOutbox().then((items) => items.filter((item) => item.type === "send_message").length >= 2));
 
   let outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
-  assert(outbox.length === 1, "failed send was not stored in outbox");
+  assert(outbox.filter((item) => item.type === "send_message").length === 2, "queued sends were not stored in outbox");
   const outboxBadge = await page.locator("#chat-list .outbox-badge").textContent();
-  assert(outboxBadge === ">1", "failed send did not create chat outbox indicator");
+  assert(outboxBadge === ">2", "queued sends did not create chat outbox indicator");
 
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("macaroni.profile.v1"));
@@ -976,6 +982,10 @@ async function testGitHubSkipsUnchangedReindex(browser) {
     }));
     throw new Error("GitHub unchanged-head smoke did not render message: " + JSON.stringify(debug));
   }
+  await page.evaluate(async () => {
+    const outbox = await window.MacaroniStorage.listOutbox();
+    await Promise.all(outbox.map((item) => window.MacaroniStorage.deleteOutbox(item.id)));
+  });
 
   const before = await page.evaluate(() => ({
     commits: window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length,
@@ -1228,6 +1238,7 @@ async function testGitHubSendWrites(browser) {
     }
 
     window.__macaroniWrites = [];
+    window.__macaroniRequests = [];
     window.__macaroniActivePut = false;
     window.__macaroniConflictOnce = true;
     window.__macaroniConflictCount = 0;
@@ -1235,6 +1246,10 @@ async function testGitHubSendWrites(browser) {
       const marker = "/contents/";
       const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
       const repoPath = decodeURIComponent(rawPath);
+      window.__macaroniRequests.push({
+        method: options.method || "GET",
+        path: repoPath
+      });
 
       if (options.method === "PUT") {
         if (window.__macaroniConflictOnce) {
@@ -1292,24 +1307,39 @@ async function testGitHubSendWrites(browser) {
 
   const page = await openMessenger(context);
   await installProfile(page, { provider: "github", token: "fake-token-for-send-smoke" });
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("MOM"));
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync:"));
+  await page.evaluate(() => {
+    window.__macaroniWrites = [];
+    window.__macaroniRequests = [];
+  });
   await page.locator("#message-input").fill("Remote send hello");
   await page.locator("#message-input").press("Enter");
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Remote send hello")));
-  const optimistic = await page.evaluate(() => ({
+  await page.waitForFunction(() => window.MacaroniStorage.listOutbox().then((items) => items.some((item) => item.type === "send_message")));
+  const optimistic = await page.evaluate(async () => ({
     input: document.querySelector("#message-input").value,
     writes: window.__macaroniWrites.length,
+    outbox: await window.MacaroniStorage.listOutbox(),
     status: document.querySelector("#sync-status").textContent
   }));
   assert(optimistic.input === "", "GitHub optimistic send did not clear composer immediately");
-  assert(optimistic.writes === 0, "GitHub optimistic send waited for remote write before rendering");
-  assert(optimistic.status.includes("background"), "GitHub optimistic send status did not show background send");
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
+  assert(optimistic.writes === 0, "GitHub queued send wrote to remote before scheduled flush: " + JSON.stringify(optimistic));
+  assert(optimistic.outbox.some((item) => item.type === "send_message"), "GitHub queued send did not store outbox item");
+  assert(optimistic.status.includes("queued") || optimistic.status.includes("очеред"), "GitHub optimistic send status did not show queued send");
+
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 0"));
 
   const writes = await page.evaluate(() => window.__macaroniWrites);
+  const requests = await page.evaluate(() => window.__macaroniRequests);
   const conflictCount = await page.evaluate(() => window.__macaroniConflictCount);
   const messageWrite = writes.find((write) => /^\.macaroni\/chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
   const inboxWrite = writes.find((write) => /^\.macaroni\/inbox\/K2XM\/.+\.json$/.test(write.path));
+  const firstPutIndex = requests.findIndex((request) => request.method === "PUT");
+  const firstGetIndex = requests.findIndex((request) => request.method === "GET");
 
+  assert(firstGetIndex !== -1 && firstPutIndex !== -1 && firstGetIndex < firstPutIndex, "GitHub flush did not pull before first push");
   assert(conflictCount === 1, "GitHub conflict retry smoke did not trigger one conflict");
   assert(messageWrite, "GitHub send did not write message file");
   assert(inboxWrite, "GitHub send did not write recipient inbox");
@@ -1339,6 +1369,8 @@ async function testTwoClientRecipients(browser) {
   await page.locator("#message-input").fill("MVP smoke: K2XM to SA6E");
   await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("K2XM to SA6E")));
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 0"));
 
   const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/inbox/").then((files) => files.map((file) => file.path)));
   assert(inboxFiles.some((file) => file.startsWith(".macaroni/inbox/SA6E/")), "K2XM did not write SA6E inbox");

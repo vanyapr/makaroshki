@@ -282,7 +282,11 @@ Reindex/reset controls live in settings. `Reset` deletes the profile, token, ind
 
 Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
 
-The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, while the git write runs in the background. If the git write fails, the prepared message is saved to outbox for retry.
+The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, and the prepared write is stored in outbox. Git write does not start directly from submit: every 30 seconds the sender does a fresh pull/reindex, then drains outbox sequentially, and refreshes the index again after writing. The `Refresh` button runs the same cycle manually.
+
+Before any GitHub push/write, the client first does pull/reindex. This reduces 409 conflicts and matches the real project model: local IndexedDB is cache, git is the source of truth, and outbox is the outgoing operation queue.
+
+Read receipts also go through outbox and do not write to git directly when a chat is opened. If a receipt fails to send, it stays queued, but it does not block text messages.
 
 The composer draft is stored separately for each `chat_id` in the current tab memory. When switching chats, the input restores the selected chat draft and does not carry text from another chat; git does not store drafts.
 
