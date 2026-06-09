@@ -12,6 +12,12 @@ If the local index breaks, it is rebuilt from these files.
 
 Any git repository with this layout can be a Macaroni repository. The repository that serves `messenger.html` and the repository that stores messages may be the same repository or different repositories.
 
+Chats can be attached to any git repository as long as the client can read and write Macaroni Protocol files there and the user has the required repository permissions.
+
+For a public repository without a token, read-only mode is supported: the client can read chats and messages, but it cannot send new messages. With a token, the same repository becomes read/write.
+
+The token is not the user. The token is the access right to the repository.
+
 ```text
 protocol.json
 users/<client_id>.json
