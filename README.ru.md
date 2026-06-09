@@ -55,11 +55,14 @@ Demo открывает публичный репозиторий `vanyapr/makar
 
 ## Честные ограничения
 
-- Macaroni Messenger не является приватным. Публичный repository означает публичные сообщения.
-- Рабочий write provider сейчас GitHub. Остальные provider - цели протокола, а не готовые write adapters.
-- Сообщения приходят через polling, не realtime.
-- GitHub API rate limits существуют. Git не убежит, но GitHub иногда просит всех успокоиться.
-- Токены хранятся в browser `localStorage`. Это удобно, а не криптография военного уровня.
+- Macaroni Messenger не является приватным. Публичный repository означает публичные сообщения. Приватный repository означает, что сообщения читают все, у кого есть доступ к repository.
+- GitHub сейчас единственный рабочий write provider.
+- GitLab, GitVerse, Gitea, Forgejo и другие git-хостинги - цели протокола для будущих adapters. Сегодня это не готовые write adapters.
+- Browser support намеренно жёсткий: нужны persistent storage для `file://` или `https://`, `localStorage`, `IndexedDB` и WebCrypto. Рекомендуются Chrome, Chromium, Edge.
+- Realtime transport нет. Новые сообщения приходят через polling, исходящие записи проходят через локальный outbox.
+- GitHub API rate limits существуют. Публичный read-only demo traffic может в них упереться. Git не убежит, но GitHub иногда просит всех успокоиться.
+- Токены хранятся в browser `localStorage`. Это удобно, но это не secure storage.
+- Никогда не вставляйте настоящий token в публичный чат, screenshots, issues, README examples или Hacker News comments. Если вставили - отзовите его.
 - Большие репозитории будут медленными. Если чат стал слишком большим, создайте новый repository. Это называется масштабирование.
 
 Документы:

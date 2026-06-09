@@ -49,11 +49,14 @@ Detailed guide: [How to get an access token](docs/access-token.en.md).
 
 ## Honest Limitations
 
-- Macaroni Messenger is not private. Public repository means public messages.
-- The working write provider is GitHub. Other providers are protocol targets, not finished write adapters yet.
-- Messages are polled, not realtime.
-- GitHub API rate limits exist. Git will not run away, but GitHub sometimes asks everyone to calm down.
-- Tokens are stored in browser `localStorage`. This is convenient, not military-grade anything.
+- Macaroni Messenger is not private. Public repository means public messages. Private repository means readable by everyone with repository access.
+- GitHub is the only working write provider right now.
+- GitLab, GitVerse, Gitea, Forgejo, and other git hosts are protocol targets for future adapters. Today they are not finished write adapters.
+- Browser support is intentionally strict: persistent storage for `file://` or `https://`, `localStorage`, `IndexedDB`, and WebCrypto are required. Recommended browsers: Chrome, Chromium, Edge.
+- There is no realtime transport. New messages arrive through polling, and outgoing writes go through a local outbox.
+- GitHub API rate limits exist. Public read-only demo traffic can hit them. Git will not run away, but GitHub sometimes asks everyone to calm down.
+- Tokens are stored in browser `localStorage`. This is convenient, not secure storage.
+- Never paste a real token into public chat, screenshots, issues, README examples, or Hacker News comments. If you did, revoke it.
 - Large repositories will be slow. If a chat gets too large, create another repository. This is called scaling.
 
 Documents:
