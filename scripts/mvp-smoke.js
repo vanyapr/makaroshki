@@ -260,6 +260,137 @@ async function testGitHubInboxReindex(browser) {
   await context.close();
 }
 
+async function testGitHubSendWrites(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    const chatId = "chat_remote_send";
+    const files = {
+      "protocol.json": {
+        name: "Macaroni Protocol",
+        version: 1,
+        created_at: "2026-06-09T04:30:00.000Z",
+        message_format: "json",
+        privacy: "public_by_design",
+        features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
+      },
+      "users/SA6E.json": {
+        version: 1,
+        id: "SA6E",
+        display_name: "Я",
+        created_at: "2026-06-09T04:30:00.000Z",
+        meta: { client: "Macaroni Messenger JS 0.1.0" }
+      },
+      ["chats/" + chatId + "/meta.json"]: {
+        version: 1,
+        id: chatId,
+        title: "МАМА",
+        created_at: "2026-06-09T04:30:00.000Z",
+        created_by: "SA6E",
+        visibility: "repo",
+        privacy: "public_by_design"
+      },
+      ["chats/" + chatId + "/members.json"]: {
+        version: 1,
+        chat_id: chatId,
+        members: [
+          { id: "SA6E", display_name: "SA6E", role: "owner" },
+          { id: "K2XM", display_name: "K2XM", role: "member" }
+        ]
+      }
+    };
+
+    function encodeJson(value) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(value))));
+    }
+
+    function decodeJson(value) {
+      return JSON.parse(decodeURIComponent(escape(atob(value))));
+    }
+
+    function fileResponse(repoPath) {
+      const value = files[repoPath];
+      if (!value) {
+        return null;
+      }
+
+      return {
+        path: repoPath,
+        type: "file",
+        sha: "sha-" + repoPath,
+        content: encodeJson(value)
+      };
+    }
+
+    function listResponse(repoPath) {
+      if (repoPath === "chats") {
+        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      }
+
+      if (repoPath === "chats/" + chatId + "/messages") {
+        return [];
+      }
+
+      if (repoPath === "inbox/SA6E") {
+        return [];
+      }
+
+      return null;
+    }
+
+    window.__macaroniWrites = [];
+    window.fetch = (url, options = {}) => {
+      const marker = "/contents/";
+      const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
+      const repoPath = decodeURIComponent(rawPath);
+
+      if (options.method === "PUT") {
+        const body = JSON.parse(options.body);
+        const value = decodeJson(body.content);
+        files[repoPath] = value;
+        window.__macaroniWrites.push({
+          path: repoPath,
+          message: body.message,
+          value
+        });
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(JSON.stringify({ content: { path: repoPath, sha: "sha-written-" + repoPath } }))
+        });
+      }
+
+      const data = listResponse(repoPath) || fileResponse(repoPath);
+      const ok = !!data;
+      return Promise.resolve({
+        ok,
+        status: ok ? 200 : 404,
+        statusText: ok ? "OK" : "Not Found",
+        text: () => Promise.resolve(JSON.stringify(ok ? data : { message: "Not Found" }))
+      });
+    };
+  });
+
+  const page = await openMessenger(context);
+  await installProfile(page, { token: "fake-token-for-send-smoke" });
+  await page.locator("#message-input").fill("Remote send hello");
+  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
+
+  const writes = await page.evaluate(() => window.__macaroniWrites);
+  const messageWrite = writes.find((write) => /^chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
+  const inboxWrite = writes.find((write) => /^inbox\/K2XM\/.+\.json$/.test(write.path));
+
+  assert(messageWrite, "GitHub send did not write message file");
+  assert(inboxWrite, "GitHub send did not write recipient inbox");
+  assert(messageWrite.value.text === "Remote send hello", "GitHub message text is wrong");
+  assert(messageWrite.value.from === "SA6E", "GitHub message author is wrong");
+  assert(messageWrite.value.to.includes("K2XM"), "GitHub message recipient is wrong");
+  assert(inboxWrite.value.message_path === messageWrite.path, "GitHub inbox notification does not point to message");
+
+  await context.close();
+}
+
 async function testTwoClientRecipients(browser) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "macaroni-mvp-smoke-"));
   const k2xmPath = path.join(tempDir, "messenger-k2xm.html");
@@ -295,6 +426,7 @@ async function testTwoClientRecipients(browser) {
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubInboxReindex(browser);
+    await testGitHubSendWrites(browser);
     await testTwoClientRecipients(browser);
     console.log("MVP smoke passed");
   } finally {

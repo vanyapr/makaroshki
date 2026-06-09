@@ -13,6 +13,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - write a file through the Contents API;
 - write a JSON file;
 - refresh/reindex reads the first chat and `inbox/<CLIENT_ID>` as a receive hint;
+- the smoke harness checks GitHub send and reindex through a fake Contents API without a real token;
 - human-readable errors for auth, permissions, missing repo/file, and conflict.
 
 ## Required Token Permission

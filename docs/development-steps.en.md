@@ -301,7 +301,7 @@ Done when:
 
 Goal: prove this is a full application, not a funny HTML mockup.
 
-Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID`, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub inbox reindex through a fake Contents API, and two-client recipient addressing through a temporary HTML copy with `CLIENT_ID = "K2XM"`.
+Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID`, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex through a fake Contents API, and two-client recipient addressing through a temporary HTML copy with `CLIENT_ID = "K2XM"`.
 
 Local command:
 

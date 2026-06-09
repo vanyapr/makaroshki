@@ -301,7 +301,7 @@ Composer отправляет сообщение участникам текущ
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
-Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub inbox reindex через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
+Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
 
 Локальная команда:
 

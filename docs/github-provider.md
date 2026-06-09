@@ -13,6 +13,7 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - запись файла через Contents API;
 - запись JSON-файла;
 - refresh/reindex читает первый chat и `inbox/<CLIENT_ID>` как receive hint;
+- smoke harness проверяет GitHub send и reindex через fake Contents API без реального token;
 - human-readable ошибки для auth, permissions, missing repo/file и conflict.
 
 ## Что Нужное Для Токена
