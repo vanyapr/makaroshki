@@ -108,6 +108,45 @@ async function testGeneratedClientIdPersists(browser) {
   await context.close();
 }
 
+async function testDemoReadOnlyAutoprofile(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    window.fetch = (url) => {
+      const value = String(url);
+      if (value.includes("/contents/.macaroni%2Fchats") || value.includes("/contents/.macaroni/chats")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(JSON.stringify([]))
+        });
+      }
+
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        text: () => Promise.resolve(JSON.stringify({ message: "Not Found" }))
+      });
+    };
+  });
+
+  const page = await openMessenger(context, messengerUrl + "?demo=1", null);
+  await page.waitForFunction(() => document.body.dataset.view === "app");
+
+  const profile = await page.evaluate(() => JSON.parse(localStorage.getItem("macaroni.profile.v1")));
+  assert(profile.demo === true, "demo launch did not mark the profile as demo");
+  assert(profile.provider === "github", "demo launch should use GitHub");
+  assert(profile.repo === "https://github.com/vanyapr/makaroshki", "demo launch used the wrong repo");
+  assert(profile.token === "", "demo launch must not create a token");
+  assert(profile.privacyAccepted === true, "demo launch should be ready without setup form");
+
+  const status = await page.locator("#sync-status").textContent();
+  assert(status.includes("GitHub read-only") || status.includes("public read-only"), "demo launch did not show read-only status");
+
+  await context.close();
+}
+
 async function testPollingContract(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
@@ -1425,6 +1464,7 @@ async function testPluginBoundary(browser) {
   try {
     await testUnsupportedScreen(browser);
     await testGeneratedClientIdPersists(browser);
+    await testDemoReadOnlyAutoprofile(browser);
     await testPollingContract(browser);
     await testLanguageSettings(browser);
     await testSettingsExportImport(browser);

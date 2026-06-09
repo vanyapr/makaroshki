@@ -1200,6 +1200,7 @@
       const DEFAULT_CLIENT_ID = "SA6E";
       const POLL_WITH_TOKEN_MS = 30000;
       const POLL_READ_ONLY_MS = 60000;
+      const DEMO_REPO_URL = "https://github.com/vanyapr/makaroshki";
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
@@ -1249,6 +1250,8 @@
           accessToken: "Access Token",
           setupTokenNote: "The token is saved in localStorage. This is not a bank vault. This is an HTML file that warned you honestly.",
           settingsTokenNote: "The token is stored locally in this browser. Security level: we did warn you.",
+          demoProfileName: "HN DEMO",
+          demoBootStatus: "demo: public read-only repo",
           tokenHelp: "How to get an access token",
           privacySetup: "I understand that Macaroni Messenger does not promise privacy.",
           privacySettings: "I understand that messages are not private by default.",
@@ -1375,6 +1378,8 @@
           accessToken: "Токен доступа",
           setupTokenNote: "Токен сохраняется в localStorage. Это не банковская ячейка. Это HTML-файл, который честно предупредил.",
           settingsTokenNote: "Токен хранится локально в этом браузере. Уровень безопасности: мы предупреждали.",
+          demoProfileName: "HN DEMO",
+          demoBootStatus: "demo: публичный read-only repo",
           tokenHelp: "Как получить токен доступа",
           privacySetup: "Я понимаю, что Macaroni Messenger не обещает приватность.",
           privacySettings: "Я понимаю, что сообщения по умолчанию не приватны.",
@@ -2690,6 +2695,57 @@
         }
       }
 
+      function isExplicitDemoLaunch() {
+        try {
+          return new URLSearchParams(window.location.search).get("demo") === "1";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isDemoHostLaunch() {
+        return window.location.protocol === "https:"
+          && window.location.hostname === "vanyapr.github.io"
+          && /^\/makaroshki\//.test(window.location.pathname);
+      }
+
+      function shouldCreateDemoProfile() {
+        try {
+          if (new URLSearchParams(window.location.search).get("setup") === "1") {
+            return false;
+          }
+        } catch (error) {
+          return false;
+        }
+
+        return isExplicitDemoLaunch() || isDemoHostLaunch();
+      }
+
+      function createDemoProfile() {
+        return {
+          clientId: CLIENT_ID,
+          displayName: t("demoProfileName"),
+          language: currentLanguage(),
+          provider: "github",
+          repo: DEMO_REPO_URL,
+          token: "",
+          privacyAccepted: true,
+          demo: true,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      function loadOrCreateDemoProfile() {
+        var profile = loadProfile();
+        if (profile || !shouldCreateDemoProfile()) {
+          return profile;
+        }
+
+        profile = createDemoProfile();
+        saveProfile(profile);
+        return profile;
+      }
+
       function saveProfile(profile) {
         var value = Object.assign({}, profile, {
           language: normalizeLanguage(profile && profile.language)
@@ -2789,7 +2845,7 @@
         get("setup-display-name").value = "Me";
         get("setup-language").value = currentLanguage();
         get("setup-provider").value = "github";
-        get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
+        get("setup-repo").value = DEMO_REPO_URL;
         get("setup-token").value = "";
         get("setup-privacy").checked = false;
         setView("setup");
@@ -3520,7 +3576,7 @@
           displayName: "Me",
           language: currentLanguage(),
           provider: "github",
-          repo: "https://github.com/vanyapr/makaroshki",
+          repo: DEMO_REPO_URL,
           token: "",
           privacyAccepted: false
         };
@@ -3536,11 +3592,14 @@
       }
 
       function showAppOrSetup() {
-        var profile = loadProfile();
+        var profile = loadOrCreateDemoProfile();
         applyLanguage(profile && profile.language);
         if (isReadyProfile(profile)) {
           fillSettingsForm(profile);
           setView("app");
+          if (profile.demo) {
+            updateSyncStatus(t("demoBootStatus"));
+          }
           initMessengerApp(profile);
           return;
         }
