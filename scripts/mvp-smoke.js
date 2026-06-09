@@ -229,18 +229,17 @@ async function testSettingsExportImport(browser) {
   });
   assert(invalidRejected, "settings import accepted invalid profile");
 
-  page.once("dialog", async (dialog) => {
-    assert(/profile|профиль/.test(dialog.message()), "settings reset confirm copy is wrong");
-    await dialog.dismiss();
-  });
   await page.locator("#settings-reset").click();
+  await page.waitForFunction(() => document.querySelector("#reset-dialog").open);
+  assert(/profile|профиль/.test(await page.locator("#reset-copy").textContent()), "settings reset confirm copy is wrong");
+  await page.locator("#reset-cancel").click();
+  await page.waitForFunction(() => !document.querySelector("#reset-dialog").open);
   assert(await page.evaluate(() => JSON.parse(localStorage.getItem("macaroni.profile.v1")).displayName) === "Imported Me", "cancelled settings reset still deleted profile");
   assert(await page.evaluate(() => document.body.dataset.view) === "settings", "cancelled settings reset changed view");
 
-  page.once("dialog", async (dialog) => {
-    await dialog.accept();
-  });
   await page.locator("#settings-reset").click();
+  await page.waitForFunction(() => document.querySelector("#reset-dialog").open);
+  await page.locator("#reset-confirm").click();
   await page.waitForFunction(() => document.body.dataset.view === "setup");
   assert(await page.evaluate(() => localStorage.getItem("macaroni.profile.v1")) === null, "confirmed settings reset did not delete profile");
 

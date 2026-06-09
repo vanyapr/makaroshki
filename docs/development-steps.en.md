@@ -280,6 +280,8 @@ Search input lives in the current chat header and filters the local index for th
 
 Reindex/reset controls live in settings. `Reset` deletes the profile, token, index, and local test repo after confirmation; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.
 
+Destructive reset is confirmed through an in-app dialog instead of browser `confirm`, so the main UI does not fall back to native modals.
+
 Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
 
 The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, and the prepared write is stored in outbox. Git write does not start directly from submit: every 30 seconds the sender does a fresh pull/reindex, then drains outbox sequentially, and refreshes the index again after writing. The `Refresh` button runs the same cycle manually.

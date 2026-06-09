@@ -1175,6 +1175,22 @@
     </form>
   </dialog>
 
+  <dialog class="app-dialog reset-dialog" id="reset-dialog" aria-labelledby="reset-title">
+    <div class="app-dialog-panel">
+      <div class="app-dialog-header">
+        <div class="app-dialog-title" id="reset-title">Reset</div>
+        <button class="button dialog-close" id="reset-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="app-dialog-body">
+        <p class="field-note" id="reset-copy">Reset local profile, token, index, and local test repo? Git will remember remote messages, but this browser will forget its local state.</p>
+      </div>
+      <div class="app-dialog-actions">
+        <button class="button" id="reset-cancel" type="button">Cancel</button>
+        <button class="button danger" id="reset-confirm" type="button">Reset</button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     (function () {
       const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1252,6 +1268,8 @@
           rebuildIndex: "Rebuild Index",
           back: "Back",
           reset: "Reset",
+          resetTitle: "Reset",
+          resetAction: "Reset",
           resetConfirm: "Reset local profile, token, index, and local test repo? Git will remember remote messages, but this browser will forget its local state.",
           chats: "Chats",
           chatList: "Chat list",
@@ -1376,6 +1394,8 @@
           rebuildIndex: "Пересобрать индекс",
           back: "Назад",
           reset: "Сбросить",
+          resetTitle: "Сброс",
+          resetAction: "Сбросить",
           resetConfirm: "Сбросить локальный профиль, token, индекс и local test repo? Git запомнит remote-сообщения, но этот браузер забудет локальное состояние.",
           chats: "Чаты",
           chatList: "Список чатов",
@@ -1571,6 +1591,11 @@
         setText("#settings-reindex", t("rebuildIndex"));
         setText("#settings-back", t("back"));
         setText("#settings-reset", t("reset"));
+        setText("#reset-title", t("resetTitle"));
+        setText("#reset-copy", t("resetConfirm"));
+        setText("#reset-cancel", t("cancel"));
+        setText("#reset-confirm", t("resetAction"));
+        setAttribute("#reset-close", "aria-label", t("chatInfoClose"));
 
         setText("#open-settings", t("settings"));
         setAttribute(".sidebar", "aria-label", t("chats"));
@@ -2756,6 +2781,20 @@
         });
       }
 
+      function performSettingsReset() {
+        resetProfile();
+        Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
+          setStorageError(t("localIndexResetFailed", { message: error.message }));
+        });
+        get("setup-display-name").value = "Me";
+        get("setup-language").value = currentLanguage();
+        get("setup-provider").value = "github";
+        get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
+        get("setup-token").value = "";
+        get("setup-privacy").checked = false;
+        setView("setup");
+      }
+
       function downloadSettingsExport() {
         var profile = loadProfile();
         var exported = createSettingsExport(profile);
@@ -3689,21 +3728,7 @@
         });
 
         settingsReset.addEventListener("click", function () {
-          if (!window.confirm(t("resetConfirm"))) {
-            return;
-          }
-
-          resetProfile();
-          Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
-            setStorageError(t("localIndexResetFailed", { message: error.message }));
-          });
-          get("setup-display-name").value = "Me";
-          get("setup-language").value = currentLanguage();
-          get("setup-provider").value = "github";
-          get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
-          get("setup-token").value = "";
-          get("setup-privacy").checked = false;
-          setView("setup");
+          openDialog(get("reset-dialog"));
         });
       }
 
@@ -5025,6 +5050,17 @@
             setAppError(t("chatCreateFailed", { message: error.message }));
             updateSyncStatusFromState(profile, "chat: error");
           });
+        });
+
+        get("reset-close").addEventListener("click", function () {
+          closeDialog(get("reset-dialog"));
+        });
+        get("reset-cancel").addEventListener("click", function () {
+          closeDialog(get("reset-dialog"));
+        });
+        get("reset-confirm").addEventListener("click", function () {
+          closeDialog(get("reset-dialog"));
+          performSettingsReset();
         });
 
         get("chat-info").addEventListener("click", function () {
