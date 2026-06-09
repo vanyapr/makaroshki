@@ -749,25 +749,64 @@
     }
 
     @media (max-width: 680px) {
+      :root {
+        --topbar: auto;
+        --chatbar: auto;
+        --compose: auto;
+      }
+
+      body {
+        font-size: 17px;
+        overflow-x: hidden;
+      }
+
       .app {
         min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
       }
 
       .topbar {
         align-items: flex-start;
         flex-direction: column;
         justify-content: center;
+        gap: 10px;
+        padding: 10px 16px;
       }
 
       .top-actions {
         width: 100%;
-        gap: 8px;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 10px;
+        white-space: normal;
       }
 
       .top-actions .button {
         min-width: 0;
-        padding: 0 10px;
+        min-height: 42px;
+        padding: 0 12px;
+      }
+
+      .brand {
+        width: 100%;
+        font-size: 24px;
+        line-height: 1.05;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .client-id {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        font-size: 17px;
+      }
+
+      .repo-link,
+      .settings {
+        min-width: 0;
+        width: auto;
       }
 
       .main {
@@ -780,7 +819,8 @@
         align-self: start;
         border-right: 0;
         border-bottom: var(--line) solid var(--ink);
-        grid-template-rows: 64px 58px 64px;
+        grid-template-rows: 72px auto 64px;
+        min-width: 0;
       }
 
       .chat-list {
@@ -788,7 +828,7 @@
         gap: 8px;
         overflow-x: auto;
         overflow-y: hidden;
-        padding: 8px 12px;
+        padding: 10px 12px;
         scrollbar-width: none;
       }
 
@@ -798,9 +838,19 @@
 
       .chat-item {
         width: auto;
-        height: 42px;
+        max-width: 230px;
+        height: 48px;
         margin: 0;
         flex: 0 0 auto;
+        padding: 0 14px;
+      }
+
+      .chat-item.active {
+        order: -1;
+      }
+
+      .chat-name {
+        max-width: 160px;
       }
 
       .sidebar-footer {
@@ -815,54 +865,95 @@
       .conversation {
         grid-template-rows: auto minmax(0, 1fr) auto;
         min-height: 0;
+        min-width: 0;
       }
 
       .conversation-header {
         align-items: stretch;
         flex-direction: column;
         justify-content: center;
-        gap: 10px;
-        min-height: 76px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        gap: 12px;
+        min-height: 0;
+        padding: 14px 16px;
       }
 
       .conversation-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 10px;
         width: 100%;
       }
 
       .search-input {
-        flex: 1 1 auto;
         width: auto;
         min-width: 0;
+        height: 44px;
+        font-size: 16px;
+      }
+
+      .chat-info,
+      .chat-export {
+        min-width: 0;
+        padding: 0 12px;
       }
 
       .conversation-meta {
         align-items: flex-start;
         flex-direction: column;
-        gap: 8px;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      .chat-title {
+        max-width: 100%;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
       }
 
       .sync-status {
         max-width: 100%;
         font-size: 14px;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
       }
 
       .messages {
-        padding: 22px 18px 0;
+        padding: 20px 18px 0;
       }
 
       .message-row {
-        grid-template-columns: 62px minmax(0, 1fr) 54px;
-        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 7px 12px;
         font-size: 16px;
-        margin-bottom: 24px;
+        margin-bottom: 26px;
+        align-items: start;
+      }
+
+      .author {
+        grid-column: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 700;
+      }
+
+      .time {
+        grid-column: 2;
+        font-size: 14px;
+      }
+
+      .text {
+        grid-column: 1 / -1;
+        padding-left: 0;
+        overflow-wrap: anywhere;
       }
 
       .composer {
         grid-template-columns: 1fr;
         gap: 10px;
-        padding: 0 18px calc(22px + env(safe-area-inset-bottom));
+        padding: 14px 18px calc(22px + env(safe-area-inset-bottom));
+        border-top: var(--line) solid var(--ink);
       }
 
       .message-input {
