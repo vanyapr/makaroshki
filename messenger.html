@@ -2705,6 +2705,14 @@
         });
       }
 
+      function ensureActiveChat(profile) {
+        if (currentChatId) {
+          return Promise.resolve({ id: currentChatId });
+        }
+
+        return ensureDefaultChat(profile);
+      }
+
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
@@ -2765,10 +2773,11 @@
         });
       }
 
-      function sendComposerMessage(profile, text) {
-        return getChatRecipientIds(profile, currentChatId).then(function (recipients) {
+      function sendComposerMessage(profile, text, chatId) {
+        var targetChatId = chatId || currentChatId;
+        return getChatRecipientIds(profile, targetChatId).then(function (recipients) {
           var message = createTextMessage({
-            chat_id: currentChatId,
+            chat_id: targetChatId,
             from: CLIENT_ID,
             to: recipients,
             text: text
@@ -2785,7 +2794,7 @@
           updateSyncStatus("send: " + transportLabel(profile) + " · sending background");
 
           return putMessage(message).then(function () {
-            return renderMessages(currentChatId);
+            return targetChatId === currentChatId ? renderMessages(targetChatId) : null;
           }).then(function () {
             clearAppError();
             send.then(function () {
@@ -2832,8 +2841,9 @@
           }
 
           input.value = "";
-          ensureDefaultChat(profile).then(function () {
-            return sendComposerMessage(profile, text);
+          ensureActiveChat(profile).then(function (chat) {
+            var targetChatId = chat && chat.id ? chat.id : currentChatId;
+            return sendComposerMessage(profile, text, targetChatId);
           }).catch(function (error) {
             putOutbox({
               type: "send_message",

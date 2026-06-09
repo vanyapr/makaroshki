@@ -282,6 +282,8 @@ The sidebar is rendered from the local `chats` store after init/reindex. Clickin
 
 Sync/reindex preserves the selected chat if that `chat_id` still exists in the index. The client must not jump to another chat before sending a message.
 
+Message sending uses the selected `chat_id` captured at submit time. If a chat is already selected, the composer does not call the default-chat fallback and does not change the active chat before writing.
+
 The `+` button creates a new chat through a simple title prompt, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
 
 `Chat info` shows a short current-chat summary: title, `chat_id`, members from `members.json`, transport, and outbox size. This is the minimal debug UI before the real remote roundtrip.

@@ -152,6 +152,22 @@ async function testLocalMvpFlow(browser) {
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
   assert((await page.locator("#chat-title").textContent()).includes("МАМА"), "sync did not preserve selected chat");
+  await page.locator("#message-input").fill("MVP smoke: сообщение в маму после переключения");
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("сообщение в маму")));
+  const switchedSend = await page.evaluate(async () => {
+    const chats = await window.MacaroniStorage.listChats();
+    const mama = chats.find((chat) => chat.title === "МАМА");
+    const work = chats.find((chat) => chat.title === "РАБОТА");
+    const mamaMessages = await window.MacaroniStorage.listMessages(mama.id);
+    const workMessages = await window.MacaroniStorage.listMessages(work.id);
+    return {
+      inMama: mamaMessages.some((message) => message.text.includes("сообщение в маму")),
+      inWork: workMessages.some((message) => message.text.includes("сообщение в маму"))
+    };
+  });
+  assert(switchedSend.inMama, "message after switching chats was not stored in selected chat");
+  assert(!switchedSend.inWork, "message after switching chats leaked into previous/default chat");
 
   page.once("dialog", async (dialog) => {
     assert(dialog.message() === "Название чата", "unexpected create chat prompt");
