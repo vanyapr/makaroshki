@@ -1033,6 +1033,7 @@
       var PROFILE_KEY = "macaroni.profile.v1";
       var LANGUAGE_KEY = "macaroni.language.v1";
       var LAST_SYNC_META_KEY = "sync:last_success_at";
+      var GITHUB_RATE_META_KEY = "github:rate_limit";
       var DEFAULT_LANGUAGE = "en";
       var TOKEN_DOC_URLS = {
         en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
@@ -1099,6 +1100,7 @@
           send: "Send",
           syncWaiting: "sync: waiting for IndexedDB",
           lastSyncPrefix: "last: ",
+          githubRatePrefix: "api: ",
           chatPrefix: "Chat: ",
           chatAria: "Chat ",
           chatFallback: "Chat",
@@ -1202,6 +1204,7 @@
           send: "Отправить",
           syncWaiting: "sync: ждем IndexedDB",
           lastSyncPrefix: "обновлено: ",
+          githubRatePrefix: "api: ",
           chatPrefix: "Чат: ",
           chatAria: "Чат ",
           chatFallback: "Чат",
@@ -1871,6 +1874,33 @@
         return new Error(message);
       }
 
+      function responseHeader(response, name) {
+        if (!response || !response.headers || typeof response.headers.get !== "function") {
+          return null;
+        }
+
+        return response.headers.get(name) || response.headers.get(name.toLowerCase());
+      }
+
+      function storeGitHubRateLimit(response) {
+        var limit = responseHeader(response, "x-ratelimit-limit");
+        var remaining = responseHeader(response, "x-ratelimit-remaining");
+        var reset = responseHeader(response, "x-ratelimit-reset");
+
+        if (!limit || !remaining) {
+          return Promise.resolve(null);
+        }
+
+        return putMeta(GITHUB_RATE_META_KEY, {
+          limit: Number(limit),
+          remaining: Number(remaining),
+          reset_at: reset ? new Date(Number(reset) * 1000).toISOString() : null,
+          updated_at: new Date().toISOString()
+        }).catch(function () {
+          return null;
+        });
+      }
+
       function githubRequest(config, path, options) {
         return githubApiRequest(config, githubContentUrl(config, path), options, true);
       }
@@ -1882,7 +1912,9 @@
         }, options || {});
 
         return config.transport(url, requestOptions).then(function (response) {
-          return response.text().then(function (text) {
+          return storeGitHubRateLimit(response).then(function () {
+            return response.text();
+          }).then(function (text) {
             var data = text ? JSON.parse(text) : null;
             if (!response.ok) {
               if (allowMissing && response.status === 404 && requestOptions.method === "GET") {
@@ -3144,16 +3176,22 @@
       }
 
       function updateSyncStatusFromState(profile, action) {
+        var value = profile || loadProfile() || {};
         return Promise.all([
           listOutbox(),
-          getMeta(LAST_SYNC_META_KEY)
+          getMeta(LAST_SYNC_META_KEY),
+          canReadGitHub(value) ? getMeta(GITHUB_RATE_META_KEY) : Promise.resolve(null)
         ]).then(function (result) {
           var items = result[0];
           var lastSync = formatSyncTime(result[1]);
-          var label = transportLabel(profile || loadProfile() || {});
+          var rate = result[2];
+          var label = transportLabel(value);
           var prefix = action ? action + " · " : "";
           var suffix = lastSync ? " · " + t("lastSyncPrefix") + lastSync : "";
-          updateSyncStatus(prefix + label + " · outbox: " + items.length + suffix);
+          var rateSuffix = rate && Number.isFinite(rate.remaining) && Number.isFinite(rate.limit)
+            ? " · " + t("githubRatePrefix") + rate.remaining + "/" + rate.limit
+            : "";
+          updateSyncStatus(prefix + label + " · outbox: " + items.length + suffix + rateSuffix);
           return items;
         });
       }

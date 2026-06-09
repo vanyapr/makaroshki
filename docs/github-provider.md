@@ -16,6 +16,7 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - перед полным reindex клиент проверяет последний commit SHA branch и пропускает обход Contents API, если repo не изменился;
 - GitHub repo без token работает в read-only режиме для публичных repo;
 - smoke harness проверяет GitHub send, reindex и read-only через fake Contents API без реального token;
+- клиент сохраняет локальный snapshot `x-ratelimit-*` headers и показывает `api: remaining/limit` в status line;
 - human-readable ошибки для auth, permissions, rate limit, missing repo/file и conflict.
 
 ## Что Нужное Для Токена
@@ -107,5 +108,7 @@ MVP polling намеренно тупой:
 Это не real-time и не presence. Это "мама увидит сообщение достаточно скоро".
 
 GitHub rate limits остаются ограничением provider. Без token лимит общий для IP и может закончиться быстрее; с token лимит выше, поэтому authenticated режим предпочтительнее для живого чата.
+
+Если GitHub отдаёт `x-ratelimit-limit`, `x-ratelimit-remaining` и `x-ratelimit-reset`, клиент сохраняет их локально в IndexedDB `meta` как `github:rate_limit`. Status line показывает компактный snapshot вида `api: 4999/5000`. Это диагностический индикатор, а не scheduling engine.
 
 Если GitHub возвращает `API rate limit exceeded`, клиент показывает это как rate limit, а не как ошибку `Contents: Read and write`. Перевыпускать токен в таком случае не надо; нужно подождать сброса лимита или использовать authenticated requests.

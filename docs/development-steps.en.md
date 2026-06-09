@@ -272,6 +272,8 @@ The sidebar also shows a local per-chat outbox indicator: if `outbox` contains o
 
 Successful sync/send/reindex operations update local `sync:last_success_at` in the IndexedDB `meta` store; the status line shows the last successful operation time. This is diagnostic UI, not a delivery guarantee.
 
+For GitHub transport, the status line also shows the last known API rate-limit snapshot `api: remaining/limit` if the provider returned `x-ratelimit-*` headers.
+
 Search input lives in the current chat header and filters the local index for the current chat.
 
 Reindex/reset controls live in settings. `Reset` deletes the profile, index, and local test repo; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.

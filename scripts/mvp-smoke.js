@@ -886,6 +886,14 @@ async function testGitHubSkipsUnchangedReindex(browser) {
     }
 
     window.__macaroniRequestLog = [];
+    function rateHeaders(remaining) {
+      return new Headers({
+        "x-ratelimit-limit": "5000",
+        "x-ratelimit-remaining": String(remaining),
+        "x-ratelimit-reset": "1781028000"
+      });
+    }
+
     window.fetch = (url) => {
       const textUrl = String(url);
       window.__macaroniRequestLog.push(textUrl);
@@ -895,6 +903,7 @@ async function testGitHubSkipsUnchangedReindex(browser) {
           ok: true,
           status: 200,
           statusText: "OK",
+          headers: rateHeaders(4998),
           text: () => Promise.resolve(JSON.stringify({ sha: "remote-head-1" }))
         });
       }
@@ -908,6 +917,7 @@ async function testGitHubSkipsUnchangedReindex(browser) {
         ok,
         status: ok ? 200 : 404,
         statusText: ok ? "OK" : "Not Found",
+        headers: rateHeaders(ok ? 4997 : 4996),
         text: () => Promise.resolve(JSON.stringify(ok ? data : { message: "Not Found" }))
       });
     };
@@ -935,14 +945,17 @@ async function testGitHubSkipsUnchangedReindex(browser) {
   await page.locator("#sync-refresh").click();
   await page.waitForFunction((count) => window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length > count, before.commits);
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("api: 4998/5000"));
 
-  const after = await page.evaluate(() => ({
+  const after = await page.evaluate(async () => ({
     commits: window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length,
-    contents: window.__macaroniRequestLog.filter((url) => url.includes("/contents/")).length
+    contents: window.__macaroniRequestLog.filter((url) => url.includes("/contents/")).length,
+    rate: await window.MacaroniStorage.getMeta("github:rate_limit")
   }));
 
   assert(after.commits > before.commits, "unchanged sync did not check remote head");
   assert(after.contents === before.contents, "unchanged sync still walked contents API");
+  assert(after.rate.remaining === 4998 && after.rate.limit === 5000, "GitHub rate limit snapshot was not stored");
 
   await context.close();
 }

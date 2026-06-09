@@ -272,6 +272,8 @@ Sidebar дополнительно показывает локальный per-c
 
 Успешные sync/send/reindex обновляют локальный `sync:last_success_at` в IndexedDB `meta`; status line показывает время последней успешной операции. Это диагностический UI, а не delivery guarantee.
 
+Для GitHub transport status line также показывает последний известный API rate-limit snapshot `api: remaining/limit`, если provider вернул `x-ratelimit-*` headers.
+
 Search input находится в header текущего чата и фильтрует локальный индекс текущего чата.
 
 Reindex/reset controls находятся в настройках. `Сбросить` удаляет профиль, индекс и local test repo; `Пересобрать индекс` пересобирает только локальный кеш из выбранного provider/repo и не создаёт новые remote-файлы.
