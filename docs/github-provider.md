@@ -12,6 +12,7 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - listing директории;
 - запись файла через Contents API;
 - запись JSON-файла;
+- refresh/reindex читает первый chat и `inbox/<CLIENT_ID>` как receive hint;
 - human-readable ошибки для auth, permissions, missing repo/file и conflict.
 
 ## Что Нужное Для Токена
@@ -62,12 +63,22 @@ GitHub Contents API не является raw git push.
 
 Кнопка "Обновить" делает retry outbox и reindex.
 
+Reindex читает:
+
+1. первый найденный chat;
+2. сообщения этого chat по `YYYY/MM/DD`;
+3. `inbox/<CLIENT_ID>/*.json`;
+4. `message_path` из inbox notifications.
+
+Это нужно, чтобы второй экземпляр видел адресованные ему сообщения даже если они пришли через inbox notification.
+
 ## Что Ещё Не Закрыто
 
 Remote flow уже умеет писать через Contents API, но синхронизация пока простая:
 
 - сканируется первый найденный chat;
 - messages обходятся по `YYYY/MM/DD`;
+- inbox используется только как список ссылок на message files;
 - нет умного incremental sync;
 - нет Git Trees API;
 - нет полноценного multi-chat UI.

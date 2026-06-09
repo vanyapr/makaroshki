@@ -129,6 +129,137 @@ async function testOutboxAndRetry(browser) {
   await context.close();
 }
 
+async function testGitHubInboxReindex(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    const chatId = "chat_remote_inbox";
+    const messageId = "2026-06-09T04-00-00.000Z_K2XM_remote1";
+    const messagePath = "chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
+    const files = {
+      "protocol.json": {
+        name: "Macaroni Protocol",
+        version: 1,
+        created_at: "2026-06-09T04:00:00.000Z",
+        message_format: "json",
+        privacy: "public_by_design",
+        features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
+      },
+      "users/SA6E.json": {
+        version: 1,
+        id: "SA6E",
+        display_name: "Я",
+        created_at: "2026-06-09T04:00:00.000Z",
+        meta: { client: "Macaroni Messenger JS 0.1.0" }
+      },
+      ["chats/" + chatId + "/meta.json"]: {
+        version: 1,
+        id: chatId,
+        title: "МАМА",
+        created_at: "2026-06-09T04:00:00.000Z",
+        created_by: "K2XM",
+        visibility: "repo",
+        privacy: "public_by_design"
+      },
+      ["chats/" + chatId + "/members.json"]: {
+        version: 1,
+        chat_id: chatId,
+        members: [
+          { id: "SA6E", display_name: "SA6E", role: "member" },
+          { id: "K2XM", display_name: "K2XM", role: "owner" }
+        ]
+      },
+      ["inbox/SA6E/" + messageId + ".json"]: {
+        version: 1,
+        recipient: "SA6E",
+        message_id: messageId,
+        chat_id: chatId,
+        message_path: messagePath,
+        created_at: "2026-06-09T04:00:00.000Z"
+      }
+    };
+    files[messagePath] = {
+      version: 1,
+      id: messageId,
+      chat_id: chatId,
+      type: "text",
+      from: "K2XM",
+      to: ["SA6E"],
+      created_at: "2026-06-09T04:00:00.000Z",
+      text: "Remote inbox hello",
+      reply_to: null,
+      attachments: [],
+      meta: { client: "Macaroni Messenger JS 0.1.0" },
+      signature: null
+    };
+
+    function fileResponse(repoPath) {
+      const value = files[repoPath];
+      if (!value) {
+        return null;
+      }
+
+      return {
+        path: repoPath,
+        type: "file",
+        sha: "sha-" + repoPath,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(value))))
+      };
+    }
+
+    function listResponse(repoPath) {
+      if (repoPath === "chats") {
+        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      }
+
+      if (repoPath === "chats/" + chatId + "/messages") {
+        return [];
+      }
+
+      if (repoPath === "inbox/SA6E") {
+        return [{ path: "inbox/SA6E/" + messageId + ".json", type: "file", sha: "sha-inbox" }];
+      }
+
+      return null;
+    }
+
+    window.__macaroniFetchPaths = [];
+    window.fetch = (url) => {
+      const marker = "/contents/";
+      const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
+      const repoPath = decodeURIComponent(rawPath);
+      window.__macaroniFetchPaths.push(repoPath);
+      const data = listResponse(repoPath) || fileResponse(repoPath);
+      const ok = !!data;
+      return Promise.resolve({
+        ok,
+        status: ok ? 200 : 404,
+        statusText: ok ? "OK" : "Not Found",
+        text: () => Promise.resolve(JSON.stringify(ok ? data : { message: "Not Found" }))
+      });
+    };
+  });
+
+  const page = await openMessenger(context);
+  await installProfile(page, { token: "fake-token-for-inbox-smoke" });
+  await page.locator("#sync-refresh").click();
+  try {
+    await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Remote inbox hello")));
+  } catch (error) {
+    const debug = await page.evaluate(() => ({
+      sync: document.querySelector("#sync-status").textContent,
+      storage: document.querySelector("[data-storage-status]").textContent,
+      fetchPaths: window.__macaroniFetchPaths,
+      texts: [...document.querySelectorAll(".message-row .text")].map((node) => node.textContent)
+    }));
+    throw new Error("GitHub inbox reindex did not render message: " + JSON.stringify(debug));
+  }
+
+  const texts = await messageTexts(page);
+  assert(texts.some((text) => text.includes("Remote inbox hello")), "GitHub inbox message was not indexed");
+
+  await context.close();
+}
+
 async function testTwoClientRecipients(browser) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "macaroni-mvp-smoke-"));
   const k2xmPath = path.join(tempDir, "messenger-k2xm.html");
@@ -163,6 +294,7 @@ async function testTwoClientRecipients(browser) {
     await testUnsupportedScreen(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
+    await testGitHubInboxReindex(browser);
     await testTwoClientRecipients(browser);
     console.log("MVP smoke passed");
   } finally {

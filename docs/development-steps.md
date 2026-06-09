@@ -223,7 +223,7 @@
 
 Цель: подключить первый реальный remote flow.
 
-Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token остаётся local test repo fallback. UI показывает текущий transport, sync state и outbox count. Sync пока простой: первый chat, обход messages по `YYYY/MM/DD`, без Git Trees API.
+Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token остаётся local test repo fallback. UI показывает текущий transport, sync state и outbox count. Sync пока простой: первый chat, обход messages по `YYYY/MM/DD`, плюс чтение `inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
 
 Шаги:
 
@@ -301,7 +301,7 @@ Composer отправляет сообщение участникам текущ
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
-Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
+Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub inbox reindex через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
 
 Локальная команда:
 

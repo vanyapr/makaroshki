@@ -1503,8 +1503,43 @@
         });
       }
 
+      function uniqueRepoFiles(files) {
+        var seen = {};
+        return files.filter(function (file) {
+          if (!file || !file.path || seen[file.path]) {
+            return false;
+          }
+
+          seen[file.path] = true;
+          return true;
+        });
+      }
+
+      function listGitHubInboxMessageFiles(config, clientId) {
+        return githubListFiles(config, "inbox/" + clientId).then(function (entries) {
+          var chain = Promise.resolve([]);
+
+          entries.filter(function (entry) {
+            return entry.type === "file" && /\.json$/.test(entry.path);
+          }).forEach(function (entry) {
+            chain = chain.then(function (files) {
+              return readGitHubJsonSafe(config, entry.path).then(function (notification) {
+                if (!notification || !notification.message_path) {
+                  return files;
+                }
+
+                return files.concat([{ path: notification.message_path, type: "file" }]);
+              });
+            });
+          });
+
+          return chain;
+        });
+      }
+
       function reindexFromGitHub(profile, chatId) {
         var config = createGitHubConfig(profile);
+        var clientId = profile.clientId || CLIENT_ID;
         return resetIndex().then(function () {
           return githubFindFirstChatMeta(profile);
         }).then(function (chatMeta) {
@@ -1523,7 +1558,12 @@
           var skipped = [];
           return readGitHubJsonSafe(config, "protocol.json").then(function (protocol) {
             writes[0] = putRecord("meta", { key: "protocol", value: protocol });
-            return listGitHubMessageFiles(config, chatId || chatMeta.id);
+            return Promise.all([
+              listGitHubMessageFiles(config, chatId || chatMeta.id),
+              listGitHubInboxMessageFiles(config, clientId)
+            ]);
+          }).then(function (sources) {
+            return uniqueRepoFiles(sources[0].concat(sources[1]));
           }).then(function (files) {
             var chain = Promise.resolve();
             files.forEach(function (file) {
