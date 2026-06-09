@@ -13,7 +13,8 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - запись файла через Contents API;
 - запись JSON-файла;
 - refresh/reindex читает первый chat и `inbox/<CLIENT_ID>` как receive hint;
-- smoke harness проверяет GitHub send и reindex через fake Contents API без реального token;
+- GitHub repo без token работает в read-only режиме для публичных repo;
+- smoke harness проверяет GitHub send, reindex и read-only через fake Contents API без реального token;
 - human-readable ошибки для auth, permissions, missing repo/file и conflict.
 
 ## Что Нужное Для Токена
@@ -58,7 +59,9 @@ GitHub Contents API не является raw git push.
 
 Если в профиле выбран provider `github` и указан token, основной composer использует `window.MacaroniGitHub`.
 
-Если token пустой, клиент остаётся на local test repo. Это нужно, чтобы демо работало без реального доступа к GitHub.
+Если token пустой, GitHub repo работает как read-only public repo: клиент может читать публичную историю, но не может создавать чаты и отправлять сообщения.
+
+Попытка отправки без token сохраняет draft в outbox. Retry ждёт token.
 
 При ошибках auth/network draft сохраняется в outbox.
 

@@ -33,7 +33,7 @@ async function installProfile(page, options = {}) {
   const profile = Object.assign({
     clientId: await page.evaluate(() => window.MacaroniSupport.clientId),
     displayName: "Я",
-    provider: "github",
+    provider: "other",
     repo: "https://github.com/vanyapr/makaroshki",
     token: "",
     privacyAccepted: true,
@@ -148,7 +148,7 @@ async function testLocalMvpFlow(browser) {
 async function testOutboxAndRetry(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
-  await installProfile(page, { token: "bad-token-for-smoke" });
+  await installProfile(page, { provider: "github", token: "bad-token-for-smoke" });
 
   await page.evaluate(() => {
     window.fetch = () => Promise.reject(new Error("smoke network fail"));
@@ -163,6 +163,7 @@ async function testOutboxAndRetry(browser) {
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("macaroni.profile.v1"));
     profile.token = "";
+    profile.provider = "other";
     localStorage.setItem("macaroni.profile.v1", JSON.stringify(profile));
     window.fetch = window.fetch;
   });
@@ -288,7 +289,7 @@ async function testGitHubInboxReindex(browser) {
   });
 
   const page = await openMessenger(context);
-  await installProfile(page, { token: "fake-token-for-inbox-smoke" });
+  await installProfile(page, { provider: "github", token: "fake-token-for-inbox-smoke" });
   await page.locator("#sync-refresh").click();
   try {
     await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Remote inbox hello")));
@@ -304,6 +305,123 @@ async function testGitHubInboxReindex(browser) {
 
   const texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("Remote inbox hello")), "GitHub inbox message was not indexed");
+
+  await context.close();
+}
+
+async function testGitHubReadOnlyMode(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    const chatId = "chat_readonly";
+    const messageId = "2026-06-09T06-30-00.000Z_K2XM_readonly";
+    const messagePath = "chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
+    const files = {
+      "protocol.json": {
+        name: "Macaroni Protocol",
+        version: 1,
+        created_at: "2026-06-09T06:30:00.000Z",
+        message_format: "json",
+        privacy: "public_by_design",
+        features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
+      },
+      ["chats/" + chatId + "/meta.json"]: {
+        version: 1,
+        id: chatId,
+        title: "PUBLIC_READONLY",
+        created_at: "2026-06-09T06:30:00.000Z",
+        created_by: "K2XM",
+        visibility: "repo",
+        privacy: "public_by_design"
+      },
+      ["chats/" + chatId + "/members.json"]: {
+        version: 1,
+        chat_id: chatId,
+        members: [
+          { id: "SA6E", display_name: "SA6E", role: "member" },
+          { id: "K2XM", display_name: "K2XM", role: "owner" }
+        ]
+      }
+    };
+    files[messagePath] = {
+      version: 1,
+      id: messageId,
+      chat_id: chatId,
+      type: "text",
+      from: "K2XM",
+      to: ["SA6E"],
+      created_at: "2026-06-09T06:30:00.000Z",
+      text: "Read-only public hello",
+      reply_to: null,
+      attachments: [],
+      meta: { client: "Macaroni Messenger JS 0.1.0" },
+      signature: null
+    };
+
+    function encodeJson(value) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(value))));
+    }
+
+    function fileResponse(repoPath) {
+      const value = files[repoPath];
+      return value ? { path: repoPath, type: "file", sha: "sha-" + repoPath, content: encodeJson(value) } : null;
+    }
+
+    function listResponse(repoPath) {
+      if (repoPath === "chats") {
+        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      }
+      if (repoPath === "chats/" + chatId + "/messages") {
+        return [{ path: "chats/" + chatId + "/messages/2026", type: "dir", sha: "sha-y" }];
+      }
+      if (repoPath === "chats/" + chatId + "/messages/2026") {
+        return [{ path: "chats/" + chatId + "/messages/2026/06", type: "dir", sha: "sha-m" }];
+      }
+      if (repoPath === "chats/" + chatId + "/messages/2026/06") {
+        return [{ path: "chats/" + chatId + "/messages/2026/06/09", type: "dir", sha: "sha-d" }];
+      }
+      if (repoPath === "chats/" + chatId + "/messages/2026/06/09") {
+        return [{ path: messagePath, type: "file", sha: "sha-message" }];
+      }
+      if (repoPath === "inbox/SA6E") {
+        return [];
+      }
+      return null;
+    }
+
+    window.fetch = (url, options = {}) => {
+      const marker = "/contents/";
+      const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
+      const repoPath = decodeURIComponent(rawPath);
+      if (options.method === "PUT") {
+        return Promise.resolve({
+          ok: false,
+          status: 403,
+          statusText: "Forbidden",
+          text: () => Promise.resolve(JSON.stringify({ message: "read only" }))
+        });
+      }
+      const data = listResponse(repoPath) || fileResponse(repoPath);
+      const ok = !!data;
+      return Promise.resolve({
+        ok,
+        status: ok ? 200 : 404,
+        statusText: ok ? "OK" : "Not Found",
+        text: () => Promise.resolve(JSON.stringify(ok ? data : { message: "Not Found" }))
+      });
+    };
+  });
+
+  const page = await openMessenger(context);
+  await installProfile(page, { provider: "github", token: "" });
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Read-only public hello")));
+  assert((await page.locator("#sync-status").textContent()).includes("GitHub read-only"), "read-only transport label is missing");
+
+  await page.locator("#message-input").fill("Read-only write attempt");
+  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 1"));
+  const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
+  assert(outbox.length === 1, "read-only send was not kept in outbox");
 
   await context.close();
 }
@@ -420,7 +538,7 @@ async function testGitHubSendWrites(browser) {
   });
 
   const page = await openMessenger(context);
-  await installProfile(page, { token: "fake-token-for-send-smoke" });
+  await installProfile(page, { provider: "github", token: "fake-token-for-send-smoke" });
   await page.locator("#message-input").fill("Remote send hello");
   await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
@@ -474,6 +592,7 @@ async function testTwoClientRecipients(browser) {
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubInboxReindex(browser);
+    await testGitHubReadOnlyMode(browser);
     await testGitHubSendWrites(browser);
     await testTwoClientRecipients(browser);
     console.log("MVP smoke passed");

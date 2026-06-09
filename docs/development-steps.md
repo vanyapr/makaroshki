@@ -223,7 +223,7 @@
 
 Цель: подключить первый реальный remote flow.
 
-Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token остаётся local test repo fallback. UI показывает текущий transport, sync state и outbox count. Sync пока простой: первый chat, обход messages по `YYYY/MM/DD`, плюс чтение `inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
+Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token GitHub repo работает как read-only public repo. UI показывает текущий transport, sync state и outbox count. Sync пока простой: первый chat, обход messages по `YYYY/MM/DD`, плюс чтение `inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
 
 Шаги:
 
@@ -262,7 +262,7 @@
 
 Текущая UI-договорённость для мобильной версии: sidebar не растягивает список чатов пустотой, чаты идут компактной горизонтальной лентой, composer полностью помещается в экран и не прилипает к нижнему краю.
 
-Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `local fallback`, `local test repo`), действие и размер outbox.
+Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `GitHub read-only`, `local test repo`), действие и размер outbox.
 
 Search input находится в header текущего чата и фильтрует локальный индекс текущего чата.
 
@@ -307,7 +307,7 @@ Sidebar строится из локального `chats` store после init
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
-Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
+Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex/read-only через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
 
 Локальная команда:
 

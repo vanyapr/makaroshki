@@ -223,7 +223,7 @@ Done when:
 
 Goal: connect first real remote flow.
 
-Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token it stays on the local test repo fallback. UI shows current transport, sync state, and outbox count. Sync is still simple: first chat, messages walked by `YYYY/MM/DD`, plus `inbox/<CLIENT_ID>` as a receive hint, no Git Trees API.
+Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token the GitHub repo works as a read-only public repo. UI shows current transport, sync state, and outbox count. Sync is still simple: first chat, messages walked by `YYYY/MM/DD`, plus `inbox/<CLIENT_ID>` as a receive hint, no Git Trees API.
 
 Steps:
 
@@ -262,7 +262,7 @@ Steps:
 
 Current mobile UI contract: the sidebar does not stretch the chat list with empty space, chats use a compact horizontal strip, and the composer fits fully inside the viewport without sticking to the bottom edge.
 
-Sync/outbox status is shown in the current chat header: transport (`GitHub`, `local fallback`, `local test repo`), action, and outbox size.
+Sync/outbox status is shown in the current chat header: transport (`GitHub`, `GitHub read-only`, `local test repo`), action, and outbox size.
 
 Search input lives in the current chat header and filters the local index for the current chat.
 
@@ -307,7 +307,7 @@ Done when:
 
 Goal: prove this is a full application, not a funny HTML mockup.
 
-Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID`, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex through a fake Contents API, and two-client recipient addressing through a temporary HTML copy with `CLIENT_ID = "K2XM"`.
+Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID`, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex/read-only through a fake Contents API, and two-client recipient addressing through a temporary HTML copy with `CLIENT_ID = "K2XM"`.
 
 Local command:
 

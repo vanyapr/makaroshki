@@ -13,7 +13,8 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - write a file through the Contents API;
 - write a JSON file;
 - refresh/reindex reads the first chat and `inbox/<CLIENT_ID>` as a receive hint;
-- the smoke harness checks GitHub send and reindex through a fake Contents API without a real token;
+- GitHub repo without a token works in read-only mode for public repos;
+- the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
 - human-readable errors for auth, permissions, missing repo/file, and conflict.
 
 ## Required Token Permission
@@ -58,7 +59,9 @@ This is the provider API equivalent for commit/push.
 
 If the profile uses provider `github` and has a token, the main composer uses `window.MacaroniGitHub`.
 
-If the token is empty, the client stays on the local test repo. This keeps the demo usable without real GitHub access.
+If the token is empty, the GitHub repo works as a read-only public repo: the client can read public history, but cannot create chats or send messages.
+
+Sending without a token keeps the draft in outbox. Retry waits for a token.
 
 On auth/network errors, the draft is saved to outbox.
 

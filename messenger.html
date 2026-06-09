@@ -1372,8 +1372,12 @@
         });
       }
 
-      function canUseGitHub(profile) {
-        return !!(profile && profile.provider === "github" && profile.repo && profile.token);
+      function canReadGitHub(profile) {
+        return !!(profile && profile.provider === "github" && profile.repo);
+      }
+
+      function canWriteGitHub(profile) {
+        return !!(canReadGitHub(profile) && profile.token);
       }
 
       function initGitHubRepo(profile) {
@@ -1996,12 +2000,12 @@
       }
 
       function transportLabel(profile) {
-        if (canUseGitHub(profile)) {
+        if (canWriteGitHub(profile)) {
           return "GitHub";
         }
 
-        if (profile && profile.provider === "github" && !profile.token) {
-          return "local fallback";
+        if (canReadGitHub(profile)) {
+          return "GitHub read-only";
         }
 
         return "local test repo";
@@ -2076,7 +2080,7 @@
 
       function rebuildIndex(profile) {
         var value = profile || loadProfile() || {};
-        var reindex = canUseGitHub(value) ? reindexFromGitHub(value, currentChatId) : reindexFromTestRepo();
+        var reindex = canReadGitHub(value) ? reindexFromGitHub(value, currentChatId) : reindexFromTestRepo();
         updateSyncStatus("reindex: " + transportLabel(value) + " · пересборка");
 
         return reindex.then(function (result) {
@@ -2293,7 +2297,11 @@
           ]
         };
 
-        var create = canUseGitHub(value)
+        if (canReadGitHub(value) && !canWriteGitHub(value)) {
+          return Promise.reject(new Error("Для создания чата нужен GitHub token. Без token это read-only repo."));
+        }
+
+        var create = canWriteGitHub(value)
           ? initGitHubRepo(value).then(function () {
             return createGitHubChat(value, options);
           })
@@ -2411,7 +2419,7 @@
         }
 
         var path = "chats/" + chatId + "/members.json";
-        if (canUseGitHub(profile)) {
+        if (canReadGitHub(profile)) {
           return readGitHubJsonSafe(createGitHubConfig(profile), path);
         }
 
@@ -2439,7 +2447,7 @@
 
       function ensureDefaultChat(profile) {
         var peerId = defaultRecipientIds()[0];
-        if (canUseGitHub(profile)) {
+        if (canWriteGitHub(profile)) {
           return initGitHubRepo(profile).then(function () {
             return githubFindFirstChatMeta(profile);
           }).then(function (existingChat) {
@@ -2460,6 +2468,17 @@
               currentChatId = chat.meta.id;
               return chat.meta;
             });
+          });
+        }
+
+        if (canReadGitHub(profile)) {
+          return githubFindFirstChatMeta(profile).then(function (existingChat) {
+            if (existingChat) {
+              currentChatId = existingChat.id;
+              return existingChat;
+            }
+
+            return null;
           });
         }
 
@@ -2490,13 +2509,20 @@
         var value = profile || loadProfile() || {};
         updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
         return ensureDefaultChat(value).then(function (chat) {
-          var reindex = canUseGitHub(value) ? reindexFromGitHub(value, chat.id) : reindexFromTestRepo();
+          var reindex = canReadGitHub(value) ? reindexFromGitHub(value, chat && chat.id) : reindexFromTestRepo();
           return reindex.then(function () {
             return renderChatList();
           }).then(function (chats) {
             var activeChat = chats.find(function (item) {
-              return item.id === chat.id;
+              return chat && item.id === chat.id;
             }) || chats[0] || chat;
+
+            if (!activeChat) {
+              currentChatId = null;
+              updateChatTitle({ title: "Нет чатов", id: "none" });
+              drawMessages([], "В repo пока нет чатов. Git молчит.");
+              return updateSyncStatusFromState(value, "sync: ok");
+            }
 
             currentChatId = activeChat.id;
             updateChatTitle(activeChat);
@@ -2522,7 +2548,11 @@
                 var payload = Object.assign({}, item.payload, {
                   chat_id: item.payload.chat_id || chat.id
                 });
-                var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+                if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+                  return Promise.reject(new Error("GitHub repo открыт read-only. Retry ждёт token."));
+                }
+
+                var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
                 return send.then(function () {
                   return deleteOutbox(item.id);
                 });
@@ -2545,7 +2575,11 @@
             text: text
           };
 
-          var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+          if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+            return Promise.reject(new Error("GitHub repo открыт read-only. Добавьте token, чтобы отправлять сообщения."));
+          }
+
+          var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
           updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
           return send.then(function () {
             var searchInput = get("search-input");
