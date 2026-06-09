@@ -120,6 +120,8 @@ Git является источником истины.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/electron-wrapper.md` - контракт optional Electron/WebView wrapper.
 - `docs/electron-wrapper.en.md` - Electron/WebView wrapper contract на английском.
+- `docs/settings-export-import.md` - ручной export/import настроек.
+- `docs/settings-export-import.en.md` - settings export/import на английском.
 - `docs/access-token.md` - основная инструкция получения токена доступа, GitHub по умолчанию.
 - `docs/access-token.en.md` - основная инструкция получения токена доступа на английском.
 - `docs/gitverse-token.md` - инструкция получения токена GitVerse.
@@ -342,7 +344,7 @@ async function checkSupport() {
 - импорт существующего repo;
 - read-only public repo mode;
 - нормальный onboarding;
-- ручной export/import настроек;
+- ручной export/import настроек: частично сделано как JSON export/import локального profile settings, включая `CLIENT_ID` и token, но без сообщений и IndexedDB cache;
 - reindex/repair tools.
 
 0.3:

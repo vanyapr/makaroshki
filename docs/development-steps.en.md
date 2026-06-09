@@ -110,7 +110,7 @@ Done when:
 
 Goal: user can save minimal configuration.
 
-Status: basically implemented in `messenger.html`. There is a first-run screen, privacy warning acceptance, display name, provider/repo/token in `localStorage`, settings screen, and profile reset.
+Status: basically implemented in `messenger.html`. There is a first-run screen, privacy warning acceptance, display name, provider/repo/token in `localStorage`, settings screen, JSON settings export/import, and profile reset.
 
 Steps:
 

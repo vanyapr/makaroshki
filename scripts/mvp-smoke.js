@@ -166,6 +166,66 @@ async function testLanguageSettings(browser) {
   await context.close();
 }
 
+async function testSettingsExportImport(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+  await installProfile(page, {
+    displayName: "Export Me",
+    provider: "github",
+    repo: "https://github.com/vanyapr/makaroshki",
+    token: "settings-token-smoke"
+  });
+
+  await page.locator("#open-settings").click();
+  await page.waitForFunction(() => document.body.dataset.view === "settings");
+  assert(await page.locator("#settings-export-profile").textContent() === "Export Settings", "settings export button is missing");
+  assert(await page.locator("#settings-import-profile").textContent() === "Import Settings", "settings import button is missing");
+  assert((await page.locator("#settings-file-status").textContent()).includes("access token"), "settings export warning is missing");
+
+  const exported = await page.evaluate(() => window.MacaroniSettings.exportProfile());
+  assert(exported.type === "macaroni.settings", "settings export type is wrong");
+  assert(exported.profile.clientId === "SA6E", "settings export client id is wrong");
+  assert(exported.profile.token === "settings-token-smoke", "settings export did not include token explicitly");
+  assert(!Object.prototype.hasOwnProperty.call(exported, "messages"), "settings export must not include messages");
+
+  const imported = await page.evaluate((document) => window.MacaroniSettings.importProfile({
+    type: document.type,
+    version: document.version,
+    profile: Object.assign({}, document.profile, {
+      displayName: "Imported Me",
+      language: "ru",
+      provider: "other",
+      repo: "local-imported-repo",
+      token: "imported-token"
+    })
+  }), exported);
+
+  assert(imported.reloadRequired === false, "same CLIENT_ID settings import should not reload");
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem("macaroni.profile.v1")).displayName === "Imported Me");
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("macaroni.profile.v1")));
+  assert(stored.language === "ru", "settings import did not save language");
+  assert(stored.provider === "other", "settings import did not save provider");
+  assert(stored.repo === "local-imported-repo", "settings import did not save repo");
+  assert(stored.token === "imported-token", "settings import did not save token");
+
+  await page.locator("#open-settings").click();
+  await page.waitForFunction(() => document.body.dataset.view === "settings");
+  assert(await page.locator("#settings-display-name").inputValue() === "Imported Me", "settings import did not update settings form");
+  assert(await page.locator("#settings-file-label").textContent() === "Файл настроек", "settings import did not apply imported language");
+
+  const invalidRejected = await page.evaluate(async () => {
+    try {
+      await window.MacaroniSettings.importProfile({ profile: { displayName: "Broken" } });
+      return false;
+    } catch (error) {
+      return error.message.includes("profile.clientId is required");
+    }
+  });
+  assert(invalidRejected, "settings import accepted invalid profile");
+
+  await context.close();
+}
+
 async function testLocalMvpFlow(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
@@ -1262,6 +1322,7 @@ async function testPluginBoundary(browser) {
     await testGeneratedClientIdPersists(browser);
     await testPollingContract(browser);
     await testLanguageSettings(browser);
+    await testSettingsExportImport(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubRateLimitMessage(browser);

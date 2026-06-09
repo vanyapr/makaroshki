@@ -120,6 +120,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
 - `docs/electron-wrapper.md` - optional Electron/WebView wrapper contract in Russian.
 - `docs/electron-wrapper.en.md` - optional Electron/WebView wrapper contract in English.
+- `docs/settings-export-import.md` - manual settings export/import in Russian.
+- `docs/settings-export-import.en.md` - manual settings export/import in English.
 - `docs/access-token.md` - default access token guide in Russian, with GitHub first.
 - `docs/access-token.en.md` - default access token guide in English.
 - `docs/gitverse-token.md` - GitVerse token guide in Russian.
@@ -342,7 +344,7 @@ Recommended:
 - import existing repo;
 - read-only public repo mode;
 - normal onboarding;
-- manual settings export/import;
+- manual settings export/import: partially done as JSON export/import for local profile settings, including `CLIENT_ID` and token, but not messages or IndexedDB cache;
 - reindex/repair tools.
 
 0.3:

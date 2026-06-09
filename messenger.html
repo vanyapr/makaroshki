@@ -899,7 +899,15 @@
         </div>
 
         <div class="field">
-          <span class="field-label">Local Index</span>
+          <span class="field-label" id="settings-file-label">Settings File</span>
+          <p class="field-note" id="settings-file-status">Settings export includes your access token. This is still not a bank vault.</p>
+          <button class="button" id="settings-export-profile" type="button">Export Settings</button>
+          <button class="button" id="settings-import-profile" type="button">Import Settings</button>
+          <input id="settings-import-file" type="file" accept="application/json,.json" hidden>
+        </div>
+
+        <div class="field">
+          <span class="field-label" id="settings-index-label">Local Index</span>
           <p class="field-note" id="settings-index-status">IndexedDB is a cache. If it breaks, rebuild it from the git repository.</p>
           <button class="button" id="settings-import" type="button">Import Repo</button>
           <button class="button" id="settings-reindex" type="button">Rebuild Index</button>
@@ -1048,6 +1056,14 @@
           privacySettings: "I understand that messages are not private by default.",
           save: "Save",
           settings: "Settings",
+          settingsFile: "Settings File",
+          settingsFileStatus: "Settings export includes your access token. This is still not a bank vault.",
+          exportSettings: "Export Settings",
+          importSettings: "Import Settings",
+          settingsExported: "Settings exported.",
+          settingsImported: "Settings imported.",
+          settingsImportedReloading: "Settings imported. Reloading to use imported CLIENT_ID.",
+          settingsImportFailed: "Settings import failed: {message}",
           localIndex: "Local Index",
           indexStatusDefault: "IndexedDB is a cache. If it breaks, rebuild it from the git repository.",
           importRepo: "Import Repo",
@@ -1141,6 +1157,14 @@
           privacySettings: "Я понимаю, что сообщения по умолчанию не приватны.",
           save: "Сохранить",
           settings: "Настройки",
+          settingsFile: "Файл настроек",
+          settingsFileStatus: "Экспорт настроек включает токен доступа. Это всё ещё не банковская ячейка.",
+          exportSettings: "Экспорт настроек",
+          importSettings: "Импорт настроек",
+          settingsExported: "Настройки экспортированы.",
+          settingsImported: "Настройки импортированы.",
+          settingsImportedReloading: "Настройки импортированы. Перезагружаемся, чтобы применить импортированный CLIENT_ID.",
+          settingsImportFailed: "Не удалось импортировать настройки: {message}",
           localIndex: "Локальный индекс",
           indexStatusDefault: "IndexedDB - это кеш. Если он сломался, пересоберите его из git-репозитория.",
           importRepo: "Импорт repo",
@@ -1305,7 +1329,13 @@
 
         setAttribute(".settings-screen", "aria-label", t("settings"));
         setText(".settings-screen .screen-title", t("settings"));
-        setText(".field > .field-label:not(label)", t("localIndex"));
+        setText("#settings-file-label", t("settingsFile"));
+        if (get("settings-file-status") && !get("settings-file-status").dataset.state) {
+          get("settings-file-status").textContent = t("settingsFileStatus");
+        }
+        setText("#settings-export-profile", t("exportSettings"));
+        setText("#settings-import-profile", t("importSettings"));
+        setText("#settings-index-label", t("localIndex"));
         if (get("settings-index-status") && !get("settings-index-status").dataset.state) {
           get("settings-index-status").textContent = t("indexStatusDefault");
         }
@@ -2360,6 +2390,123 @@
         window.localStorage.setItem(PROFILE_KEY, JSON.stringify(value));
       }
 
+      function createSettingsExport(profile) {
+        var value = profile || loadProfile();
+        if (!value) {
+          throw new Error(t("saveProfileFirst"));
+        }
+
+        return {
+          type: "macaroni.settings",
+          version: 1,
+          exported_at: new Date().toISOString(),
+          profile: {
+            clientId: value.clientId || CLIENT_ID,
+            displayName: value.displayName || "Me",
+            language: normalizeLanguage(value.language || currentLanguage()),
+            provider: value.provider || "github",
+            repo: value.repo || "",
+            token: value.token || "",
+            privacyAccepted: !!value.privacyAccepted
+          }
+        };
+      }
+
+      function settingsExportFilename(profile) {
+        var clientId = (profile && profile.clientId) || CLIENT_ID;
+        return "macaroni-settings-" + String(clientId || "client").toLowerCase() + ".json";
+      }
+
+      function normalizeImportedProfile(document) {
+        var source = document && document.profile ? document.profile : document;
+        if (!source || typeof source !== "object") {
+          throw new Error("settings JSON must contain a profile object");
+        }
+
+        var clientId = String(source.clientId || source.client_id || "").trim();
+        var displayName = String(source.displayName || source.display_name || "").trim();
+        var repo = String(source.repo || "").trim();
+        var provider = String(source.provider || "github").trim();
+
+        if (!clientId) {
+          throw new Error("profile.clientId is required");
+        }
+
+        if (!displayName) {
+          throw new Error("profile.displayName is required");
+        }
+
+        if (!repo) {
+          throw new Error("profile.repo is required");
+        }
+
+        return {
+          clientId: clientId,
+          displayName: displayName,
+          language: normalizeLanguage(source.language || DEFAULT_LANGUAGE),
+          provider: provider,
+          repo: repo,
+          token: String(source.token || ""),
+          privacyAccepted: !!source.privacyAccepted,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      function importSettingsDocument(document) {
+        var previousProfile = loadProfile();
+        var profile = normalizeImportedProfile(document);
+        var reloadRequired = profile.clientId !== CLIENT_ID;
+        window.localStorage.setItem(CLIENT_ID_KEY, profile.clientId);
+        saveProfile(profile);
+
+        if (reloadRequired) {
+          return Promise.resolve({
+            profile: profile,
+            reloadRequired: true
+          });
+        }
+
+        saveProfileAndOpenApp(profile, previousProfile);
+        return Promise.resolve({
+          profile: profile,
+          reloadRequired: false
+        });
+      }
+
+      function downloadSettingsExport() {
+        var profile = loadProfile();
+        var exported = createSettingsExport(profile);
+        var blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = settingsExportFilename(exported.profile);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 1000);
+        return exported;
+      }
+
+      function readJsonFile(file) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onerror = function () {
+            reject(reader.error || new Error("Could not read file"));
+          };
+          reader.onload = function () {
+            try {
+              resolve(JSON.parse(String(reader.result || "")));
+            } catch (error) {
+              reject(error);
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+
       function resetProfile() {
         window.localStorage.removeItem(PROFILE_KEY);
       }
@@ -3091,6 +3238,10 @@
         var settingsReset = get("settings-reset");
         var settingsImport = get("settings-import");
         var settingsReindex = get("settings-reindex");
+        var settingsExportProfile = get("settings-export-profile");
+        var settingsImportProfile = get("settings-import-profile");
+        var settingsImportFile = get("settings-import-file");
+        var settingsFileStatus = get("settings-file-status");
         var settingsIndexStatus = get("settings-index-status");
         var setupLanguage = get("setup-language");
         var settingsLanguage = get("settings-language");
@@ -3153,6 +3304,44 @@
 
         settingsImport.addEventListener("click", runSettingsImport);
         settingsReindex.addEventListener("click", runSettingsImport);
+
+        settingsExportProfile.addEventListener("click", function () {
+          try {
+            downloadSettingsExport();
+            settingsFileStatus.dataset.state = "done";
+            settingsFileStatus.textContent = t("settingsExported");
+          } catch (error) {
+            settingsFileStatus.dataset.state = "error";
+            settingsFileStatus.textContent = t("settingsImportFailed", { message: error.message });
+          }
+        });
+
+        settingsImportProfile.addEventListener("click", function () {
+          settingsImportFile.value = "";
+          settingsImportFile.click();
+        });
+
+        settingsImportFile.addEventListener("change", function () {
+          var file = settingsImportFile.files && settingsImportFile.files[0];
+          if (!file) {
+            return;
+          }
+
+          readJsonFile(file).then(function (document) {
+            return importSettingsDocument(document);
+          }).then(function (result) {
+            settingsFileStatus.dataset.state = "done";
+            settingsFileStatus.textContent = result.reloadRequired ? t("settingsImportedReloading") : t("settingsImported");
+            if (result.reloadRequired) {
+              window.setTimeout(function () {
+                window.location.reload();
+              }, 250);
+            }
+          }).catch(function (error) {
+            settingsFileStatus.dataset.state = "error";
+            settingsFileStatus.textContent = t("settingsImportFailed", { message: error.message });
+          });
+        });
 
         settingsBack.addEventListener("click", function () {
           showAppOrSetup();
@@ -4367,6 +4556,13 @@
         applyIncomingMessage: function (message, context) {
           return applyMessagePlugins("incoming", message, context);
         }
+      };
+
+      window.MacaroniSettings = {
+        exportProfile: function () {
+          return createSettingsExport(loadProfile());
+        },
+        importProfile: importSettingsDocument
       };
 
       window.MacaroniI18n = {

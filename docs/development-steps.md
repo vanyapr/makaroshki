@@ -110,7 +110,7 @@
 
 Цель: пользователь может сохранить минимальную конфигурацию.
 
-Статус: базово реализовано в `messenger.html`. Есть first-run экран, acceptance privacy warning, display name, provider/repo/token в `localStorage`, экран настроек и сброс профиля.
+Статус: базово реализовано в `messenger.html`. Есть first-run экран, acceptance privacy warning, display name, provider/repo/token в `localStorage`, экран настроек, export/import настроек JSON и сброс профиля.
 
 Шаги:
 

@@ -20,6 +20,7 @@ Documents:
 - [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
+- [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
 - [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
 
@@ -34,6 +35,7 @@ Russian documents:
 - [docs/github-provider.md](docs/github-provider.md)
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
+- [docs/settings-export-import.md](docs/settings-export-import.md)
 - [docs/access-token.md](docs/access-token.md)
 - [docs/gitverse-token.md](docs/gitverse-token.md)
 
