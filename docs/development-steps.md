@@ -371,7 +371,7 @@ node scripts/mvp-smoke.js
 5. Markdown rendering.
 6. Basic notifications: частично сделано как unread count в `document.title`, без Browser Notification API и permission prompts.
 7. Receipts как append-only события.
-8. HTML export of chat history.
+8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML.
 10. Plugin boundary.
 

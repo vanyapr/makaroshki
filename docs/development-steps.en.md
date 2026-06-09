@@ -371,7 +371,7 @@ Only after working `messenger.html`:
 5. Markdown rendering.
 6. Basic notifications: partially done as unread count in `document.title`, without Browser Notification API or permission prompts.
 7. Receipts as append-only events.
-8. HTML export of chat history.
+8. HTML export of chat history: partially done as local export of the current chat from IndexedDB into a standalone HTML file, without writing to git.
 9. Electron/WebView wrapper around the same HTML.
 10. Plugin boundary.
 

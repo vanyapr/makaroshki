@@ -294,6 +294,13 @@ async function testLocalMvpFlow(browser) {
   assert(switchedSend.inMama, "message after switching chats was not stored in selected chat");
   assert(!switchedSend.inWork, "message after switching chats leaked into previous/default chat");
 
+  const exported = await page.evaluate(() => window.MacaroniExport.buildCurrentChat());
+  assert(exported.filename === "macaroni-mom.html", "chat export filename is wrong");
+  assert(exported.html.includes("<!doctype html>"), "chat export is not a standalone HTML document");
+  assert(exported.html.includes("chat_id:"), "chat export does not include chat id");
+  assert(exported.html.includes("MVP smoke: message to mom after switch"), "chat export missed current chat messages");
+  assert(!exported.html.includes("<script"), "chat export should be static HTML without scripts");
+
   page.once("dialog", async (dialog) => {
     assert(dialog.message() === "Chat title", "unexpected create chat prompt");
     await dialog.accept("NEW_CHAT");

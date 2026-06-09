@@ -225,6 +225,10 @@
       min-width: 190px;
     }
 
+    .chat-export {
+      min-width: 120px;
+    }
+
     .conversation-actions {
       display: flex;
       align-items: center;
@@ -944,6 +948,7 @@
           <div class="conversation-actions">
             <input class="search-input" id="search-input" type="search" placeholder="Search" aria-label="Search current chat" autocomplete="off">
             <button class="button chat-info" id="chat-info" type="button">Chat Info</button>
+            <button class="button chat-export" id="chat-export" type="button">Export</button>
           </div>
         </div>
 
@@ -1043,6 +1048,7 @@
           chatList: "Chat list",
           refresh: "Refresh",
           chatInfo: "Chat Info",
+          exportChat: "Export",
           messages: "Messages",
           selfLabel: "Me",
           sendMessage: "Send message",
@@ -1073,6 +1079,9 @@
           tokenSavedOutboxFailed: "Token saved, but outbox was not sent yet: {message}",
           chatOpenFailed: "Chat did not open: {message}",
           noChatSelected: "No chat selected. Even git does not know where to look.",
+          exportTitle: "Macaroni chat export",
+          exportedAt: "Exported at",
+          exportFailed: "Chat export failed: {message}",
           membersUnknown: "members: unknown",
           membersPrefix: "members: ",
           transportPrefix: "transport: ",
@@ -1129,6 +1138,7 @@
           chatList: "Список чатов",
           refresh: "Обновить",
           chatInfo: "Инфо о чате",
+          exportChat: "Экспорт",
           messages: "Сообщения",
           selfLabel: "Я",
           sendMessage: "Отправить сообщение",
@@ -1159,6 +1169,9 @@
           tokenSavedOutboxFailed: "Токен сохранен, но outbox пока не отправился: {message}",
           chatOpenFailed: "Чат не открылся: {message}",
           noChatSelected: "Чат не выбран. Даже git не знает, куда смотреть.",
+          exportTitle: "Экспорт чата Macaroni",
+          exportedAt: "Экспортировано",
+          exportFailed: "Экспорт чата не удался: {message}",
           membersUnknown: "участники: неизвестно",
           membersPrefix: "участники: ",
           transportPrefix: "transport: ",
@@ -1291,6 +1304,7 @@
         setAttribute("#chat-list", "aria-label", t("chatList"));
         setText("#sync-refresh", t("refresh"));
         setText("#chat-info", t("chatInfo"));
+        setText("#chat-export", t("exportChat"));
         setAttribute("#message-list", "aria-label", t("messages"));
         setAttribute("#composer-form", "aria-label", t("sendMessage"));
         setAttribute("#search-input", "placeholder", t("search"));
@@ -3344,6 +3358,102 @@
         });
       }
 
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function exportFileName(chat) {
+        var title = String((chat && (chat.title || chat.id)) || "chat")
+          .toLowerCase()
+          .replace(/[^a-z0-9а-яё]+/gi, "-")
+          .replace(/^-+|-+$/g, "");
+        return "macaroni-" + (title || "chat") + ".html";
+      }
+
+      function buildChatExportHtml(chat, messages, users, members) {
+        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : t("chatFallback");
+        var exportedAt = new Date().toISOString();
+        var rows = (messages || []).map(function (message) {
+          return [
+            "<article class=\"message\">",
+            "<div class=\"meta\">",
+            "<strong>" + escapeHtml(authorLabel(message, users, members)) + "</strong>",
+            "<time>" + escapeHtml(message.created_at || "") + "</time>",
+            "</div>",
+            "<p>" + escapeHtml(message.text).replace(/\n/g, "<br>") + "</p>",
+            "</article>"
+          ].join("");
+        }).join("\n");
+
+        return [
+          "<!doctype html>",
+          "<html lang=\"" + escapeHtml(currentLanguage()) + "\">",
+          "<head>",
+          "<meta charset=\"utf-8\">",
+          "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+          "<title>" + escapeHtml(t("exportTitle") + ": " + title) + "</title>",
+          "<style>",
+          "body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-width:920px;margin:32px auto;padding:0 18px;color:#111;background:#fff}",
+          "h1{font-size:28px;margin:0 0 12px}.summary{border:2px solid #111;padding:14px;margin:0 0 24px}.message{border-top:1px solid #111;padding:14px 0}.meta{display:flex;justify-content:space-between;gap:16px;color:#555}p{white-space:pre-wrap;font-size:18px;line-height:1.45}",
+          "</style>",
+          "</head>",
+          "<body>",
+          "<h1>" + escapeHtml(title) + "</h1>",
+          "<section class=\"summary\">",
+          "<div>chat_id: " + escapeHtml((chat && chat.id) || "") + "</div>",
+          "<div>" + escapeHtml(t("exportedAt")) + ": " + escapeHtml(exportedAt) + "</div>",
+          "<div>messages: " + String((messages || []).length) + "</div>",
+          "</section>",
+          rows || "<p>" + escapeHtml(t("noMessagesYet")) + "</p>",
+          "</body>",
+          "</html>"
+        ].join("\n");
+      }
+
+      function buildCurrentChatExport() {
+        if (!currentChatId) {
+          return Promise.reject(new Error(t("noChatSelected")));
+        }
+
+        return Promise.all([
+          getCurrentChat(),
+          listMessages(currentChatId),
+          listUsers(),
+          getMembers(currentChatId)
+        ]).then(function (result) {
+          var chat = result[0] || { id: currentChatId, title: currentChatId };
+          var users = usersById(result[2]);
+          var members = membersById(result[3]);
+          return {
+            chat: chat,
+            filename: exportFileName(chat),
+            html: buildChatExportHtml(chat, result[1], users, members)
+          };
+        });
+      }
+
+      function downloadCurrentChatExport() {
+        return buildCurrentChatExport().then(function (exported) {
+          var blob = new Blob([exported.html], { type: "text/html;charset=utf-8" });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = exported.filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(function () {
+            URL.revokeObjectURL(url);
+          }, 1000);
+          return exported;
+        });
+      }
+
       function applySearch() {
         var input = get("search-input");
         var query = input ? input.value.trim() : "";
@@ -3736,6 +3846,12 @@
           });
         });
 
+        get("chat-export").addEventListener("click", function () {
+          downloadCurrentChatExport().catch(function (error) {
+            setAppError(t("exportFailed", { message: error.message }));
+          });
+        });
+
         get("search-input").addEventListener("input", function () {
           applySearch().catch(function (error) {
             setAppError(t("searchFailed", { message: error.message }));
@@ -3901,6 +4017,11 @@
         intervalForProfile: pollingInterval,
         start: startMessagePolling,
         stop: stopMessagePolling
+      };
+
+      window.MacaroniExport = {
+        buildCurrentChat: buildCurrentChatExport,
+        downloadCurrentChat: downloadCurrentChatExport
       };
 
       window.MacaroniI18n = {
