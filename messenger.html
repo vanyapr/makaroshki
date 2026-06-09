@@ -1516,7 +1516,7 @@
       function sendGitHubMessage(profile, options) {
         var config = createGitHubConfig(profile);
         var value = options || {};
-        var message = createTextMessage({
+        var message = value.message || createTextMessage({
           chat_id: value.chat_id,
           from: value.from || CLIENT_ID,
           to: value.to || [],
@@ -1981,7 +1981,7 @@
 
       function sendTestMessage(options) {
         var value = options || {};
-        var message = createTextMessage({
+        var message = value.message || createTextMessage({
           chat_id: value.chat_id,
           from: value.from || CLIENT_ID,
           to: value.to || [],
@@ -2767,11 +2767,14 @@
 
       function sendComposerMessage(profile, text) {
         return getChatRecipientIds(profile, currentChatId).then(function (recipients) {
-          var payload = {
+          var message = createTextMessage({
             chat_id: currentChatId,
             from: CLIENT_ID,
             to: recipients,
             text: text
+          });
+          var payload = {
+            message: message
           };
 
           if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
@@ -2779,26 +2782,26 @@
           }
 
           var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
-          updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
-          return send.then(function () {
-            var searchInput = get("search-input");
-            var refreshMessages = searchInput && searchInput.value.trim() ? applySearch : function () {
-              return renderMessages(currentChatId);
-            };
+          updateSyncStatus("send: " + transportLabel(profile) + " · sending background");
 
+          return putMessage(message).then(function () {
+            return renderMessages(currentChatId);
+          }).then(function () {
             clearAppError();
-            return refreshMessages().then(function () {
+            send.then(function () {
               return updateSyncStatusFromState(profile, "send: ok");
+            }).catch(function (error) {
+              return putOutbox({
+                type: "send_message",
+                payload: payload,
+                error: error.message
+              }).then(function () {
+                setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
+                return updateSyncStatusFromState(profile, "send: outbox");
+              });
             });
-          }).catch(function (error) {
-            return putOutbox({
-              type: "send_message",
-              payload: payload,
-              error: error.message
-            }).then(function () {
-              setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
-              return updateSyncStatusFromState(profile, "send: outbox");
-            });
+
+            return updateSyncStatusFromState(profile, "send: background");
           });
         });
       }
@@ -2828,10 +2831,9 @@
             return;
           }
 
+          input.value = "";
           ensureDefaultChat(profile).then(function () {
             return sendComposerMessage(profile, text);
-          }).then(function () {
-            input.value = "";
           }).catch(function (error) {
             putOutbox({
               type: "send_message",

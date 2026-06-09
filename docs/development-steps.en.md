@@ -270,6 +270,8 @@ Reindex/reset controls live in settings. `Reset` deletes the profile, index, and
 
 Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
 
+The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, while the git write runs in the background. If the git write fails, the prepared message is saved to outbox for retry.
+
 Joining a chat means the current `CLIENT_ID` is added to `members.json`. If the user opens a chat but their ID is not there, `Chat info` offers to join and writes the current user to `members.json`.
 
 If `members.json` is missing, `Chat info` shows a fallback member from `meta.created_by`; when joining, the client creates `members.json` and adds the current `CLIENT_ID`.

@@ -705,7 +705,7 @@ async function testGitHubSendWrites(browser) {
               statusText: "OK",
               text: () => Promise.resolve(JSON.stringify({ content: { path: repoPath, sha: "sha-written-" + repoPath } }))
             });
-          }, 20);
+          }, 1000);
         });
       }
 
@@ -723,7 +723,16 @@ async function testGitHubSendWrites(browser) {
   const page = await openMessenger(context);
   await installProfile(page, { provider: "github", token: "fake-token-for-send-smoke" });
   await page.locator("#message-input").fill("Remote send hello");
-  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Remote send hello")));
+  const optimistic = await page.evaluate(() => ({
+    input: document.querySelector("#message-input").value,
+    writes: window.__macaroniWrites.length,
+    status: document.querySelector("#sync-status").textContent
+  }));
+  assert(optimistic.input === "", "GitHub optimistic send did not clear composer immediately");
+  assert(optimistic.writes === 0, "GitHub optimistic send waited for remote write before rendering");
+  assert(optimistic.status.includes("background"), "GitHub optimistic send status did not show background send");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
 
   const writes = await page.evaluate(() => window.__macaroniWrites);
