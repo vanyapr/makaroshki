@@ -991,6 +991,7 @@
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
+      var APP_TITLE = "Macaroni Messenger";
       var DB_NAME = "macaroni-messenger";
       var DB_VERSION = 3;
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
@@ -3093,8 +3094,18 @@
         return counts;
       }
 
+      function updateDocumentTitle(unreadByChat) {
+        var total = Object.keys(unreadByChat || {}).reduce(function (sum, chatId) {
+          return sum + (unreadByChat[chatId] || 0);
+        }, 0);
+
+        document.title = total > 0 ? "(" + total + ") " + APP_TITLE : APP_TITLE;
+        return total;
+      }
+
       function drawChatList(chats, unreadByChat) {
         var list = get("chat-list");
+        updateDocumentTitle(unreadByChat || {});
         list.innerHTML = "";
 
         if (!chats.length) {

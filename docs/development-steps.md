@@ -369,7 +369,7 @@ node scripts/mvp-smoke.js
 3. Read-only public repo mode.
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
 5. Markdown rendering.
-6. Basic notifications.
+6. Basic notifications: частично сделано как unread count в `document.title`, без Browser Notification API и permission prompts.
 7. Receipts как append-only события.
 8. HTML export of chat history.
 9. Electron/WebView wrapper над тем же HTML.

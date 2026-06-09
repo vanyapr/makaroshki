@@ -245,6 +245,7 @@ async function testLocalMvpFlow(browser) {
     return badge ? badge.textContent : null;
   });
   assert(workUnreadBeforeOpen === "1", "new incoming message did not create unread chat indicator");
+  assert(await page.title() === "(1) Macaroni Messenger", "unread message did not update document title");
   await page.locator("#chat-list .chat-item", { hasText: "WORK" }).click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("WORK"));
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("work chat")));
@@ -254,6 +255,7 @@ async function testLocalMvpFlow(browser) {
     return badge ? badge.textContent : null;
   });
   assert(workUnreadAfterOpen === null, "opening a chat did not clear unread indicator");
+  assert(await page.title() === "Macaroni Messenger", "opening a chat did not clear document title unread count");
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
   const workUnreadAfterReindex = await page.evaluate(() => {
