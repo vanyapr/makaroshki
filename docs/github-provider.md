@@ -45,6 +45,8 @@ GitHub Contents API не является raw git push.
 
 Фактически это provider API equivalent для commit/push.
 
+Если одно действие создаёт несколько файлов, клиент пишет их последовательно. GitHub Contents API создаёт отдельный commit на каждый `PUT`, поэтому параллельные записи в одну ветку могут получить conflict.
+
 ## Ограничения
 
 - Первый adapter нацелен на маленькие repo.

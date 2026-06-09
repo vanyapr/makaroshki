@@ -1389,6 +1389,22 @@
         return githubWriteFile(config, path, JSON.stringify(value, null, 2), message);
       }
 
+      function runSequentially(tasks) {
+        var chain = Promise.resolve();
+        var results = [];
+        tasks.forEach(function (task) {
+          chain = chain.then(function () {
+            return task();
+          }).then(function (result) {
+            results.push(result);
+            return results;
+          });
+        });
+        return chain.then(function () {
+          return results;
+        });
+      }
+
       function githubEnsureJson(config, path, value, message) {
         return githubReadJson(config, path).then(function (existingValue) {
           if (existingValue) {
@@ -1410,9 +1426,13 @@
       function initGitHubRepo(profile) {
         var config = createGitHubConfig(profile);
         var now = new Date().toISOString();
-        return Promise.all([
-          githubEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol"),
-          githubEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID))
+        return runSequentially([
+          function () {
+            return githubEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol");
+          },
+          function () {
+            return githubEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID));
+          }
         ]);
       }
 
@@ -1478,9 +1498,13 @@
         });
         var chatMembers = createChatMembers(chatMeta.id, members);
 
-        return Promise.all([
-          githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title),
-          githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id)
+        return runSequentially([
+          function () {
+            return githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title);
+          },
+          function () {
+            return githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id);
+          }
         ]).then(function () {
           return {
             meta: chatMeta,
@@ -1502,15 +1526,20 @@
           attachments: value.attachments
         });
         var writes = [
-          githubWriteJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id),
-          putMessage(message)
+          function () {
+            return githubWriteJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id);
+          }
         ];
 
         message.to.forEach(function (recipientId) {
-          writes.push(githubWriteJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id));
+          writes.push(function () {
+            return githubWriteJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id);
+          });
         });
 
-        return Promise.all(writes).then(function () {
+        return runSequentially(writes).then(function () {
+          return putMessage(message);
+        }).then(function () {
           return message;
         });
       }

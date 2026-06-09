@@ -563,25 +563,41 @@ async function testGitHubSendWrites(browser) {
     }
 
     window.__macaroniWrites = [];
+    window.__macaroniActivePut = false;
     window.fetch = (url, options = {}) => {
       const marker = "/contents/";
       const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
       const repoPath = decodeURIComponent(rawPath);
 
       if (options.method === "PUT") {
+        if (window.__macaroniActivePut) {
+          return Promise.resolve({
+            ok: false,
+            status: 409,
+            statusText: "Conflict",
+            text: () => Promise.resolve(JSON.stringify({ message: "parallel write conflict" }))
+          });
+        }
+
+        window.__macaroniActivePut = true;
         const body = JSON.parse(options.body);
         const value = decodeJson(body.content);
-        files[repoPath] = value;
-        window.__macaroniWrites.push({
-          path: repoPath,
-          message: body.message,
-          value
-        });
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          text: () => Promise.resolve(JSON.stringify({ content: { path: repoPath, sha: "sha-written-" + repoPath } }))
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            files[repoPath] = value;
+            window.__macaroniWrites.push({
+              path: repoPath,
+              message: body.message,
+              value
+            });
+            window.__macaroniActivePut = false;
+            resolve({
+              ok: true,
+              status: 200,
+              statusText: "OK",
+              text: () => Promise.resolve(JSON.stringify({ content: { path: repoPath, sha: "sha-written-" + repoPath } }))
+            });
+          }, 20);
         });
       }
 

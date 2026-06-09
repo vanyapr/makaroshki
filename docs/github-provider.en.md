@@ -45,6 +45,8 @@ File write flow:
 
 This is the provider API equivalent for commit/push.
 
+If one action creates several files, the client writes them sequentially. The GitHub Contents API creates a separate commit for every `PUT`, so parallel writes to the same branch may conflict.
+
 ## Limits
 
 - The first adapter targets small repositories.
