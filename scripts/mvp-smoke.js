@@ -42,6 +42,7 @@ async function installProfile(page, options = {}) {
     provider: "other",
     repo: "https://github.com/vanyapr/makaroshki",
     token: "",
+    language: "en",
     privacyAccepted: true,
     updatedAt: new Date().toISOString()
   }, options);
@@ -115,6 +116,38 @@ async function testPollingContract(browser) {
   assert(intervals.withToken === 30000, "GitHub polling interval with token is wrong");
   assert(intervals.readOnly === 60000, "GitHub read-only polling interval is wrong");
   assert(!fs.readFileSync(messengerPath, "utf8").includes("document.hidden"), "polling must not pause hidden tabs");
+
+  await context.close();
+}
+
+async function testLanguageSettings(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+  await installProfile(page);
+
+  assert(await page.locator("#open-settings").textContent() === "Settings", "default language is not English");
+  await page.locator("#open-settings").click();
+  await page.waitForFunction(() => document.body.dataset.view === "settings");
+  await page.locator("#settings-language").selectOption("ru");
+  await page.waitForFunction(() => document.documentElement.lang === "ru");
+  assert(await page.locator(".settings-screen .screen-title").textContent() === "Настройки", "Russian settings title is missing");
+  assert(await page.locator("#message-input").getAttribute("placeholder") === "Введите сообщение...", "Russian composer placeholder is missing");
+  await page.locator("#settings-form button[type='submit']").click();
+  await page.waitForFunction(() => document.body.dataset.view === "app");
+  const storedRu = await page.evaluate(() => ({
+    language: JSON.parse(localStorage.getItem("macaroni.profile.v1")).language,
+    languageKey: localStorage.getItem("macaroni.language.v1")
+  }));
+  assert(storedRu.language === "ru", "Russian language was not saved in profile");
+  assert(storedRu.languageKey === "ru", "Russian language was not saved in localStorage language key");
+
+  await page.locator("#open-settings").click();
+  await page.waitForFunction(() => document.body.dataset.view === "settings");
+  await page.locator("#settings-language").selectOption("en");
+  await page.waitForFunction(() => document.documentElement.lang === "en");
+  await page.locator("#settings-form button[type='submit']").click();
+  await page.waitForFunction(() => document.body.dataset.view === "app");
+  assert(await page.locator("#open-settings").textContent() === "Settings", "English language was not restored");
 
   await context.close();
 }
@@ -1059,6 +1092,7 @@ async function testTwoClientRecipients(browser) {
     await testUnsupportedScreen(browser);
     await testGeneratedClientIdPersists(browser);
     await testPollingContract(browser);
+    await testLanguageSettings(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubRateLimitMessage(browser);

@@ -791,6 +791,14 @@
         </div>
 
         <div class="field">
+          <label class="field-label" for="setup-language">Language</label>
+          <select class="select-field" id="setup-language" name="language">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label class="field-label" for="setup-provider">Git provider</label>
           <select class="select-field" id="setup-provider" name="provider">
             <option value="github">GitHub</option>
@@ -837,6 +845,14 @@
         <div class="field">
           <label class="field-label" for="settings-display-name">Name</label>
           <input class="text-field" id="settings-display-name" name="displayName" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-language">Language</label>
+          <select class="select-field" id="settings-language" name="language">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
         </div>
 
         <div class="field">
@@ -969,12 +985,189 @@
       var DB_VERSION = 3;
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
+      var LANGUAGE_KEY = "macaroni.language.v1";
+      var DEFAULT_LANGUAGE = "en";
       var CLIENT_ID = loadOrCreateClientId();
       var dbPromise = null;
       var currentChatId = null;
       var composerBound = false;
       var pollTimer = null;
       var syncInFlight = false;
+      var activeLanguage = null;
+      var I18N = {
+        en: {
+          browserUnsupportedLabel: "Browser is not supported",
+          unsupportedTitle: "Your browser is not funny enough to run Macaroni Messenger.",
+          required: "Required:",
+          originStorage: "file:// or https:// origin storage",
+          browserChecks: "Browser checks",
+          recommended: "Recommended: Chrome / Chromium / Edge.",
+          unsupportedNote: "We do not suggest running a local server. Open messenger.html in a normal browser.",
+          firstRunLabel: "First run",
+          firstRunTitle: "First Run",
+          firstRunCopy: "Macaroni Messenger is not a private messenger. Messages live in a git repository. If the repository is public, the chat is public. No surprises.",
+          clientIdNote: "Four characters, seems to work. Collisions are possible.",
+          name: "Name",
+          language: "Language",
+          gitProvider: "Git provider",
+          repository: "Repository",
+          accessToken: "Access Token",
+          setupTokenNote: "The token is saved in localStorage. This is not a bank vault. This is an HTML file that warned you honestly.",
+          settingsTokenNote: "The token is stored locally in this browser. Security level: we did warn you.",
+          tokenHelp: "How to get an access token",
+          privacySetup: "I understand that Macaroni Messenger does not promise privacy.",
+          privacySettings: "I understand that messages are not private by default.",
+          save: "Save",
+          settings: "Settings",
+          localIndex: "Local Index",
+          indexStatusDefault: "IndexedDB is a cache. If it breaks, rebuild it from the git repository.",
+          rebuildIndex: "Rebuild Index",
+          back: "Back",
+          reset: "Reset",
+          chats: "Chats",
+          chatList: "Chat list",
+          refresh: "Refresh",
+          chatInfo: "Chat Info",
+          messages: "Messages",
+          selfLabel: "Me",
+          sendMessage: "Send message",
+          search: "Search",
+          searchCurrentChat: "Search current chat",
+          typeMessage: "Type a message...",
+          typeMessageAria: "Type a message",
+          send: "Send",
+          syncWaiting: "sync: waiting for IndexedDB",
+          chatPrefix: "Chat: ",
+          chatAria: "Chat ",
+          chatFallback: "Chat",
+          noChatsTitle: "No chats",
+          noChatsYet: "No chats yet.",
+          noMessagesYet: "No messages yet. Time to ask for macaroni.",
+          noRepoChats: "No chats yet. Git remembers, but right now it is silent.",
+          repoSilent: "There are no chats in the repo yet. Git is silent.",
+          nothingFound: "Nothing found. Git remembers, but not this.",
+          unreadMessages: "{count} unread messages",
+          transportGithub: "GitHub",
+          transportGithubReadOnly: "GitHub read-only",
+          transportLocal: "local test repo",
+          saveProfileFirst: "Save the profile first. An index without a repository is just a mood.",
+          rebuildingIndex: "Rebuilding index. If git is large, you may have time to boil water.",
+          indexRebuilt: "Index rebuilt. Skipped files: {count}.",
+          indexRebuildFailed: "Index rebuild failed: {message}",
+          localIndexResetFailed: "Local index reset failed. Git remembers, but the browser resists: {message}",
+          tokenSavedOutboxFailed: "Token saved, but outbox was not sent yet: {message}",
+          chatOpenFailed: "Chat did not open: {message}",
+          noChatSelected: "No chat selected. Even git does not know where to look.",
+          membersUnknown: "members: unknown",
+          membersPrefix: "members: ",
+          transportPrefix: "transport: ",
+          outboxPrefix: "outbox: ",
+          joinChatQuestion: "You are not in this chat's members.json. Join the chat?",
+          joinedChat: "You were added to members.json. Git now knows you are here.",
+          chatTitlePrompt: "Chat title",
+          newChat: "New Chat",
+          createChatTokenRequired: "Creating a chat requires a GitHub token. Without a token this is a read-only repo.",
+          joinChatTokenRequired: "Joining a chat requires a GitHub token. Without a token this is a read-only repo.",
+          pollingError: "Polling could not refresh messages: {message}",
+          githubReadOnlyRetry: "GitHub repo is read-only. Retry waits for a token.",
+          githubReadOnlySend: "GitHub repo is read-only. Add a token to send messages.",
+          sendingBackground: "sending background",
+          messageOutboxGit: "Message saved in outbox. Git will not run away, we will try again: {message}",
+          messageOutboxImmediate: "Message saved in outbox. Could not send immediately: {message}",
+          refreshFailed: "Refresh failed: {message}",
+          chatCreateFailed: "Chat was not created: {message}",
+          chatInfoFailed: "Chat info did not open: {message}",
+          searchFailed: "Search broke. Even grep gets sad sometimes: {message}",
+          localRepoFailed: "Local test repo did not start: {message}",
+          storageIndexedDbFailed: "IndexedDB did not open. Local cache is unavailable: {message}"
+        },
+        ru: {
+          browserUnsupportedLabel: "Браузер не поддерживается",
+          unsupportedTitle: "Ваш браузер недостаточно смешной для запуска Macaroni Messenger.",
+          required: "Требуется:",
+          originStorage: "file:// или https:// origin storage",
+          browserChecks: "Проверки браузера",
+          recommended: "Рекомендуется: Chrome / Chromium / Edge.",
+          unsupportedNote: "Мы не предлагаем поднять локальный сервер. Откройте messenger.html нормальным браузером.",
+          firstRunLabel: "Первый запуск",
+          firstRunTitle: "Первый запуск",
+          firstRunCopy: "Macaroni Messenger не является приватным мессенджером. Сообщения живут в git-репозитории. Если репозиторий публичный, чат публичный. Без сюрпризов.",
+          clientIdNote: "Четыре символа, вроде работает. Коллизии возможны.",
+          name: "Имя",
+          language: "Язык",
+          gitProvider: "Git provider",
+          repository: "Репозиторий",
+          accessToken: "Токен доступа",
+          setupTokenNote: "Токен сохраняется в localStorage. Это не банковская ячейка. Это HTML-файл, который честно предупредил.",
+          settingsTokenNote: "Токен хранится локально в этом браузере. Уровень безопасности: мы предупреждали.",
+          tokenHelp: "Как получить токен доступа",
+          privacySetup: "Я понимаю, что Macaroni Messenger не обещает приватность.",
+          privacySettings: "Я понимаю, что сообщения по умолчанию не приватны.",
+          save: "Сохранить",
+          settings: "Настройки",
+          localIndex: "Локальный индекс",
+          indexStatusDefault: "IndexedDB - это кеш. Если он сломался, пересоберите его из git-репозитория.",
+          rebuildIndex: "Пересобрать индекс",
+          back: "Назад",
+          reset: "Сбросить",
+          chats: "Чаты",
+          chatList: "Список чатов",
+          refresh: "Обновить",
+          chatInfo: "Инфо о чате",
+          messages: "Сообщения",
+          selfLabel: "Я",
+          sendMessage: "Отправить сообщение",
+          search: "Поиск",
+          searchCurrentChat: "Поиск в текущем чате",
+          typeMessage: "Введите сообщение...",
+          typeMessageAria: "Введите сообщение",
+          send: "Отправить",
+          syncWaiting: "sync: ждем IndexedDB",
+          chatPrefix: "Чат: ",
+          chatAria: "Чат ",
+          chatFallback: "Чат",
+          noChatsTitle: "Нет чатов",
+          noChatsYet: "Чатов пока нет.",
+          noMessagesYet: "Сообщений пока нет. Самое время попросить макароны.",
+          noRepoChats: "Чатов пока нет. Git помнит, но сейчас молчит.",
+          repoSilent: "В репозитории пока нет чатов. Git молчит.",
+          nothingFound: "Ничего не найдено. Git помнит, но не это.",
+          unreadMessages: "{count} новых сообщений",
+          transportGithub: "GitHub",
+          transportGithubReadOnly: "GitHub read-only",
+          transportLocal: "локальный test repo",
+          saveProfileFirst: "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.",
+          rebuildingIndex: "Пересобираем индекс. Если git большой, можно успеть вскипятить воду.",
+          indexRebuilt: "Индекс пересобран. Пропущено файлов: {count}.",
+          indexRebuildFailed: "Не удалось пересобрать индекс: {message}",
+          localIndexResetFailed: "Не удалось сбросить локальный индекс. Git помнит, но браузер сопротивляется: {message}",
+          tokenSavedOutboxFailed: "Токен сохранен, но outbox пока не отправился: {message}",
+          chatOpenFailed: "Чат не открылся: {message}",
+          noChatSelected: "Чат не выбран. Даже git не знает, куда смотреть.",
+          membersUnknown: "участники: неизвестно",
+          membersPrefix: "участники: ",
+          transportPrefix: "transport: ",
+          outboxPrefix: "outbox: ",
+          joinChatQuestion: "Вас нет в members.json этого чата. Вступить в чат?",
+          joinedChat: "Вы добавлены в members.json. Теперь git знает, что вы здесь.",
+          chatTitlePrompt: "Название чата",
+          newChat: "Новый чат",
+          createChatTokenRequired: "Для создания чата нужен GitHub token. Без token это read-only repo.",
+          joinChatTokenRequired: "Для вступления в чат нужен GitHub token. Без token это read-only repo.",
+          pollingError: "Polling не смог обновить сообщения: {message}",
+          githubReadOnlyRetry: "GitHub repo read-only. Retry ждет token.",
+          githubReadOnlySend: "GitHub repo read-only. Добавьте token, чтобы отправлять сообщения.",
+          sendingBackground: "отправляем в фоне",
+          messageOutboxGit: "Сообщение сохранено в outbox. Git не убежит, попробуем еще раз: {message}",
+          messageOutboxImmediate: "Сообщение сохранено в outbox. Не удалось отправить сразу: {message}",
+          refreshFailed: "Обновление не удалось: {message}",
+          chatCreateFailed: "Чат не создан: {message}",
+          chatInfoFailed: "Инфо о чате не открылось: {message}",
+          searchFailed: "Поиск сломался. Даже grep иногда грустит: {message}",
+          localRepoFailed: "Локальный test repo не запустился: {message}",
+          storageIndexedDbFailed: "IndexedDB не открылся. Локальный кеш недоступен: {message}"
+        }
+      };
 
       function get(id) {
         return document.getElementById(id);
@@ -982,6 +1175,125 @@
 
       function setView(view) {
         document.body.dataset.view = view;
+      }
+
+      function normalizeLanguage(language) {
+        return Object.prototype.hasOwnProperty.call(I18N, language) ? language : DEFAULT_LANGUAGE;
+      }
+
+      function currentLanguage() {
+        if (activeLanguage) {
+          return normalizeLanguage(activeLanguage);
+        }
+
+        var profile = loadProfile();
+        try {
+          return normalizeLanguage((profile && profile.language) || window.localStorage.getItem(LANGUAGE_KEY) || DEFAULT_LANGUAGE);
+        } catch (error) {
+          return DEFAULT_LANGUAGE;
+        }
+      }
+
+      function t(key, params) {
+        var lang = currentLanguage();
+        var template = (I18N[lang] && I18N[lang][key]) || I18N[DEFAULT_LANGUAGE][key] || key;
+        Object.keys(params || {}).forEach(function (name) {
+          template = template.replace(new RegExp("\\{" + name + "\\}", "g"), params[name]);
+        });
+        return template;
+      }
+
+      function setText(selector, value) {
+        document.querySelectorAll(selector).forEach(function (node) {
+          node.textContent = value;
+        });
+      }
+
+      function setAttribute(selector, name, value) {
+        document.querySelectorAll(selector).forEach(function (node) {
+          node.setAttribute(name, value);
+        });
+      }
+
+      function setTokenHelp(selector, noteKey) {
+        document.querySelectorAll(selector).forEach(function (node) {
+          var link = node.querySelector("a");
+          node.textContent = t(noteKey) + " ";
+          if (link) {
+            link.href = currentLanguage() === "ru" ? "docs/access-token.md" : "docs/access-token.en.md";
+            link.textContent = t("tokenHelp");
+            node.appendChild(link);
+            node.appendChild(document.createTextNode("."));
+          }
+        });
+      }
+
+      function applyLanguage(language) {
+        var lang = normalizeLanguage(language || currentLanguage());
+        activeLanguage = lang;
+        try {
+          window.localStorage.setItem(LANGUAGE_KEY, lang);
+        } catch (error) {}
+
+        document.documentElement.lang = lang;
+        setAttribute(".unsupported", "aria-label", t("browserUnsupportedLabel"));
+        setText(".unsupported-title", t("unsupportedTitle"));
+        setText(".unsupported-copy:first-of-type", t("required"));
+        setText(".unsupported-list li:first-child", t("originStorage"));
+        setAttribute(".support-checks", "aria-label", t("browserChecks"));
+        setText(".unsupported-copy:nth-of-type(2)", t("recommended"));
+        setText(".unsupported-note", t("unsupportedNote"));
+
+        setAttribute(".setup", "aria-label", t("firstRunLabel"));
+        setText(".setup .screen-title", t("firstRunTitle"));
+        setText(".setup .screen-copy", t("firstRunCopy"));
+        setText("label[for='setup-client-id']", "CLIENT_ID");
+        setText("#setup-client-id + .field-note", t("clientIdNote"));
+        setText("label[for='setup-display-name'], label[for='settings-display-name']", t("name"));
+        setText("label[for='setup-language'], label[for='settings-language']", t("language"));
+        setText("label[for='setup-provider'], label[for='settings-provider']", t("gitProvider"));
+        setText("label[for='setup-repo'], label[for='settings-repo']", t("repository"));
+        setText("label[for='setup-token'], label[for='settings-token']", t("accessToken"));
+        setTokenHelp("#setup-token + .field-note", "setupTokenNote");
+        setTokenHelp("#settings-token + .field-note", "settingsTokenNote");
+        setText("#setup-privacy + .checkbox-label", t("privacySetup"));
+        setText("#settings-privacy + .checkbox-label", t("privacySettings"));
+        setText("#setup-form .form-actions .button[type='submit'], #settings-form .form-actions .button[type='submit']", t("save"));
+
+        setAttribute(".settings-screen", "aria-label", t("settings"));
+        setText(".settings-screen .screen-title", t("settings"));
+        setText(".field > .field-label:not(label)", t("localIndex"));
+        if (get("settings-index-status") && !get("settings-index-status").dataset.state) {
+          get("settings-index-status").textContent = t("indexStatusDefault");
+        }
+        setText("#settings-reindex", t("rebuildIndex"));
+        setText("#settings-back", t("back"));
+        setText("#settings-reset", t("reset"));
+
+        setText("#open-settings", t("settings"));
+        setAttribute(".sidebar", "aria-label", t("chats"));
+        setText(".section-title", t("chats"));
+        setAttribute("#chat-list", "aria-label", t("chatList"));
+        setText("#sync-refresh", t("refresh"));
+        setText("#chat-info", t("chatInfo"));
+        setAttribute("#message-list", "aria-label", t("messages"));
+        setAttribute("#composer-form", "aria-label", t("sendMessage"));
+        setAttribute("#search-input", "placeholder", t("search"));
+        setAttribute("#search-input", "aria-label", t("searchCurrentChat"));
+        setAttribute("#message-input", "placeholder", t("typeMessage"));
+        setAttribute("#message-input", "aria-label", t("typeMessageAria"));
+        setText("#composer-form .send", t("send"));
+        if (get("sync-status") && get("sync-status").textContent === I18N[DEFAULT_LANGUAGE].syncWaiting) {
+          updateSyncStatus(t("syncWaiting"));
+        }
+        if (currentChatId) {
+          getCurrentChat().then(updateChatTitle).catch(function () {});
+        }
+        document.querySelectorAll("select[name='language']").forEach(function (select) {
+          select.value = lang;
+        });
+
+        return lang;
       }
 
       function setClientIdText() {
@@ -1830,14 +2142,24 @@
       function loadProfile() {
         try {
           var raw = window.localStorage.getItem(PROFILE_KEY);
-          return raw ? JSON.parse(raw) : null;
+          if (!raw) {
+            return null;
+          }
+
+          var profile = JSON.parse(raw);
+          profile.language = normalizeLanguage(profile.language || window.localStorage.getItem(LANGUAGE_KEY) || DEFAULT_LANGUAGE);
+          return profile;
         } catch (error) {
           return null;
         }
       }
 
       function saveProfile(profile) {
-        window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        var value = Object.assign({}, profile, {
+          language: normalizeLanguage(profile && profile.language)
+        });
+        window.localStorage.setItem(LANGUAGE_KEY, value.language);
+        window.localStorage.setItem(PROFILE_KEY, JSON.stringify(value));
       }
 
       function resetProfile() {
@@ -2347,14 +2669,14 @@
 
       function transportLabel(profile) {
         if (canWriteGitHub(profile)) {
-          return "GitHub";
+          return t("transportGithub");
         }
 
         if (canReadGitHub(profile)) {
-          return "GitHub read-only";
+          return t("transportGithubReadOnly");
         }
 
-        return "local test repo";
+        return t("transportLocal");
       }
 
       function updateSyncStatus(message) {
@@ -2384,9 +2706,11 @@
       }
 
       function readProfileForm(form) {
+        var language = normalizeLanguage(form.elements.language ? form.elements.language.value : currentLanguage());
         return {
           clientId: CLIENT_ID,
           displayName: form.elements.displayName.value.trim(),
+          language: language,
           provider: form.elements.provider.value,
           repo: form.elements.repo.value.trim(),
           token: form.elements.token.value,
@@ -2398,6 +2722,7 @@
       function fillSettingsForm(profile) {
         var fallback = {
           displayName: "Me",
+          language: currentLanguage(),
           provider: "github",
           repo: "https://github.com/vanyapr/makaroshki",
           token: "",
@@ -2406,6 +2731,8 @@
         var value = profile || fallback;
 
         get("settings-display-name").value = value.displayName || fallback.displayName;
+        get("settings-language").value = normalizeLanguage(value.language || fallback.language);
+        get("setup-language").value = normalizeLanguage(value.language || fallback.language);
         get("settings-provider").value = value.provider || fallback.provider;
         get("settings-repo").value = value.repo || fallback.repo;
         get("settings-token").value = value.token || "";
@@ -2414,6 +2741,7 @@
 
       function showAppOrSetup() {
         var profile = loadProfile();
+        applyLanguage(profile && profile.language);
         if (isReadyProfile(profile)) {
           fillSettingsForm(profile);
           setView("app");
@@ -2436,7 +2764,7 @@
               return renderMessages(currentChatId);
             }
 
-            return drawMessages([], "No chats yet. Git remembers, but right now it is silent.");
+            return drawMessages([], t("noRepoChats"));
           }).then(function () {
             return updateSyncStatusFromState(value, "reindex: ok").then(function () {
               return result;
@@ -2457,7 +2785,7 @@
 
           updateSyncStatus("sync: " + transportLabel(profile) + " · token added, retry outbox");
           return retryOutbox(profile).catch(function (error) {
-            setAppError("Token saved, but outbox was not sent yet: " + error.message);
+            setAppError(t("tokenSavedOutboxFailed", { message: error.message }));
             return updateSyncStatusFromState(profile, "sync: error");
           });
         });
@@ -2465,6 +2793,7 @@
 
       function saveProfileAndOpenApp(profile, previousProfile) {
         saveProfile(profile);
+        applyLanguage(profile.language);
         fillSettingsForm(profile);
         setView("app");
         var boot = initMessengerApp(profile);
@@ -2483,6 +2812,8 @@
         var settingsReset = get("settings-reset");
         var settingsReindex = get("settings-reindex");
         var settingsIndexStatus = get("settings-index-status");
+        var setupLanguage = get("setup-language");
+        var settingsLanguage = get("settings-language");
 
         setupForm.addEventListener("submit", function (event) {
           event.preventDefault();
@@ -2500,25 +2831,38 @@
 
         openSettings.addEventListener("click", function () {
           fillSettingsForm(loadProfile());
+          applyLanguage();
           setView("settings");
+        });
+
+        [setupLanguage, settingsLanguage].forEach(function (select) {
+          select.addEventListener("change", function () {
+            var lang = applyLanguage(select.value);
+            setupLanguage.value = lang;
+            settingsLanguage.value = lang;
+          });
         });
 
         settingsReindex.addEventListener("click", function () {
           var profile = loadProfile();
           if (!isReadyProfile(profile)) {
-            settingsIndexStatus.textContent = "Save the profile first. An index without a repository is just a mood.";
+            settingsIndexStatus.dataset.state = "busy";
+            settingsIndexStatus.textContent = t("saveProfileFirst");
             return;
           }
 
           settingsReindex.disabled = true;
-          settingsIndexStatus.textContent = "Rebuilding index. If git is large, you may have time to boil water.";
+          settingsIndexStatus.dataset.state = "busy";
+          settingsIndexStatus.textContent = t("rebuildingIndex");
 
           rebuildIndex(profile).then(function (result) {
             var skipped = result && result.skipped ? result.skipped.length : 0;
-            settingsIndexStatus.textContent = "Index rebuilt. Skipped files: " + skipped + ".";
+            settingsIndexStatus.dataset.state = "done";
+            settingsIndexStatus.textContent = t("indexRebuilt", { count: skipped });
           }).catch(function (error) {
-            settingsIndexStatus.textContent = "Index rebuild failed: " + error.message;
-            setStorageError("Index rebuild failed: " + error.message);
+            settingsIndexStatus.dataset.state = "error";
+            settingsIndexStatus.textContent = t("indexRebuildFailed", { message: error.message });
+            setStorageError(t("indexRebuildFailed", { message: error.message }));
             updateSyncStatusFromState(profile, "reindex: error");
           }).then(function () {
             settingsReindex.disabled = false;
@@ -2532,9 +2876,10 @@
         settingsReset.addEventListener("click", function () {
           resetProfile();
           Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
-            setStorageError("Local index reset failed. Git remembers, but the browser resists: " + error.message);
+            setStorageError(t("localIndexResetFailed", { message: error.message }));
           });
           get("setup-display-name").value = "Me";
+          get("setup-language").value = currentLanguage();
           get("setup-provider").value = "github";
           get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
           get("setup-token").value = "";
@@ -2563,7 +2908,7 @@
 
       function authorLabel(message, users, members) {
         if (message.from === CLIENT_ID) {
-          return "Me";
+          return t("selfLabel");
         }
 
         var from = message.from || "";
@@ -2630,7 +2975,7 @@
           if (!messages.length) {
             var empty = document.createElement("div");
             empty.className = "message-empty";
-            empty.textContent = emptyText || "No messages yet. Time to ask for macaroni.";
+            empty.textContent = emptyText || t("noMessagesYet");
             list.appendChild(empty);
             return messages;
           }
@@ -2677,9 +3022,9 @@
       }
 
       function updateChatTitle(chat) {
-        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : "Chat";
-        get("chat-title").textContent = "Chat: " + title;
-        get("conversation").setAttribute("aria-label", "Chat " + title);
+        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : t("chatFallback");
+        get("chat-title").textContent = t("chatPrefix") + title;
+        get("conversation").setAttribute("aria-label", t("chatAria") + title);
       }
 
       function selectChat(chat) {
@@ -2719,7 +3064,7 @@
         if (!chats.length) {
           var empty = document.createElement("div");
           empty.className = "message-empty";
-          empty.textContent = "No chats yet.";
+          empty.textContent = t("noChatsYet");
           list.appendChild(empty);
           return chats;
         }
@@ -2738,7 +3083,7 @@
             var badge = document.createElement("span");
             badge.className = "unread-badge";
             badge.textContent = unread > 99 ? "99+" : String(unread);
-            badge.setAttribute("aria-label", unread + " unread messages");
+            badge.setAttribute("aria-label", t("unreadMessages", { count: unread }));
             item.appendChild(badge);
           }
 
@@ -2748,7 +3093,7 @@
             }).then(function () {
               return updateSyncStatusFromState(loadProfile() || {}, "chat: open");
             }).catch(function (error) {
-              setAppError("Chat did not open: " + error.message);
+              setAppError(t("chatOpenFailed", { message: error.message }));
             });
           });
           list.appendChild(item);
@@ -2776,7 +3121,7 @@
       }
 
       function askChatTitle() {
-        var title = window.prompt("Chat title", "New Chat");
+        var title = window.prompt(t("chatTitlePrompt"), t("newChat"));
         return title ? title.trim() : "";
       }
 
@@ -2802,7 +3147,7 @@
         };
 
         if (canReadGitHub(value) && !canWriteGitHub(value)) {
-          return Promise.reject(new Error("Creating a chat requires a GitHub token. Without a token this is a read-only repo."));
+          return Promise.reject(new Error(t("createChatTokenRequired")));
         }
 
         var create = canWriteGitHub(value)
@@ -2839,10 +3184,10 @@
       function formatChatMembers(membersDocument) {
         var members = membersDocument && Array.isArray(membersDocument.members) ? membersDocument.members : [];
         if (!members.length) {
-          return "members: unknown";
+          return t("membersUnknown");
         }
 
-        return "members: " + members.map(function (member) {
+        return t("membersPrefix") + members.map(function (member) {
           return (member.display_name || member.id) + " (" + member.id + ")";
         }).join(", ");
       }
@@ -2888,7 +3233,7 @@
       function writeChatMembers(profile, chatId, membersDocument) {
         var path = macaroniPath("chats/" + chatId + "/members.json");
         if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-          return Promise.reject(new Error("Joining a chat requires a GitHub token. Without a token this is a read-only repo."));
+          return Promise.reject(new Error(t("joinChatTokenRequired")));
         }
 
         if (canWriteGitHub(profile)) {
@@ -2916,7 +3261,7 @@
         var membersDocument;
 
         if (!currentChatId) {
-          window.alert("No chat selected. Even git does not know where to look.");
+          window.alert(t("noChatSelected"));
           return Promise.resolve(null);
         }
 
@@ -2927,11 +3272,11 @@
           membersDocument = document || fallbackChatMembers(chat);
           return listOutbox().then(function (outboxItems) {
             var lines = [
-              "Chat: " + (chat.title || chat.id),
+              t("chatPrefix") + (chat.title || chat.id),
               "chat_id: " + chat.id,
               formatChatMembers(membersDocument),
-              "transport: " + transportLabel(value),
-              "outbox: " + outboxItems.length
+              t("transportPrefix") + transportLabel(value),
+              t("outboxPrefix") + outboxItems.length
             ];
             window.alert(lines.join("\\n"));
             return chat;
@@ -2941,12 +3286,12 @@
             return chat;
           }
 
-          if (!window.confirm("You are not in this chat's members.json. Join the chat?")) {
+          if (!window.confirm(t("joinChatQuestion"))) {
             return chat;
           }
 
           return joinCurrentChat(value, membersDocument).then(function () {
-            window.alert("You were added to members.json. Git now knows you are here.");
+            window.alert(t("joinedChat"));
             return chat;
           });
         });
@@ -2979,7 +3324,7 @@
           var messages = result[0].filter(function (message) {
             return messageMatchesSearch(message, query, users, members);
           });
-          drawMessages(messages, "Nothing found. Git remembers, but not this.", users, members);
+          drawMessages(messages, t("nothingFound"), users, members);
           return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
             return messages;
           });
@@ -3118,8 +3463,8 @@
 
             if (!activeChat) {
               currentChatId = null;
-              updateChatTitle({ title: "No chats", id: "none" });
-              drawMessages([], "There are no chats in the repo yet. Git is silent.");
+              updateChatTitle({ title: t("noChatsTitle"), id: "none" });
+              drawMessages([], t("repoSilent"));
               return renderChatList().then(function () {
                 return updateSyncStatusFromState(value, "sync: ok");
               });
@@ -3171,7 +3516,7 @@
             syncInFlight = false;
             scheduleMessagePoll(latestProfile);
           }, function (error) {
-            setAppError("Polling could not refresh messages: " + error.message);
+            setAppError(t("pollingError", { message: error.message }));
             return updateSyncStatusFromState(latestProfile, "poll: error").then(function () {
               syncInFlight = false;
               scheduleMessagePoll(latestProfile);
@@ -3202,7 +3547,7 @@
                   chat_id: item.payload.chat_id || chat.id
                 });
                 if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-                  return Promise.reject(new Error("GitHub repo is read-only. Retry waits for a token."));
+                  return Promise.reject(new Error(t("githubReadOnlyRetry")));
                 }
 
                 var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
@@ -3234,11 +3579,11 @@
           };
 
           if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-            return Promise.reject(new Error("GitHub repo is read-only. Add a token to send messages."));
+            return Promise.reject(new Error(t("githubReadOnlySend")));
           }
 
           var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
-          updateSyncStatus("send: " + transportLabel(profile) + " · sending background");
+          updateSyncStatus("send: " + transportLabel(profile) + " · " + t("sendingBackground"));
 
           return putMessage(message).then(function () {
             return targetChatId === currentChatId ? renderMessages(targetChatId) : null;
@@ -3252,7 +3597,7 @@
                 payload: payload,
                 error: error.message
               }).then(function () {
-                setAppError("Message saved in outbox. Git will not run away, we will try again: " + error.message);
+                setAppError(t("messageOutboxGit", { message: error.message }));
                 return updateSyncStatusFromState(profile, "send: outbox");
               });
             });
@@ -3302,7 +3647,7 @@
               },
               error: error.message
             }).then(function () {
-              setAppError("Message saved in outbox. Could not send immediately: " + error.message);
+              setAppError(t("messageOutboxImmediate", { message: error.message }));
               updateSyncStatusFromState(profile, "send: outbox");
             });
           });
@@ -3320,7 +3665,7 @@
           retryOutbox(profile).then(function () {
             syncInFlight = false;
           }, function (error) {
-            setAppError("Refresh failed: " + error.message);
+            setAppError(t("refreshFailed", { message: error.message }));
             return updateSyncStatusFromState(profile, "sync: error").then(function () {
               syncInFlight = false;
             }, function () {
@@ -3332,7 +3677,7 @@
         get("add-chat").addEventListener("click", function () {
           var profile = loadProfile() || {};
           createChatFromUi(profile).catch(function (error) {
-            setAppError("Chat was not created: " + error.message);
+            setAppError(t("chatCreateFailed", { message: error.message }));
             updateSyncStatusFromState(profile, "chat: error");
           });
         });
@@ -3340,13 +3685,13 @@
         get("chat-info").addEventListener("click", function () {
           var profile = loadProfile() || {};
           showChatInfo(profile).catch(function (error) {
-            setAppError("Chat info did not open: " + error.message);
+            setAppError(t("chatInfoFailed", { message: error.message }));
           });
         });
 
         get("search-input").addEventListener("input", function () {
           applySearch().catch(function (error) {
-            setAppError("Search broke. Even grep gets sad sometimes: " + error.message);
+            setAppError(t("searchFailed", { message: error.message }));
           });
         });
       }
@@ -3358,7 +3703,7 @@
           startMessagePolling(profile);
           return result;
         }).catch(function (error) {
-          setAppError("Local test repo did not start: " + error.message);
+          setAppError(t("localRepoFailed", { message: error.message }));
           updateSyncStatusFromState(profile, "sync: error");
         });
       }
@@ -3511,7 +3856,15 @@
         stop: stopMessagePolling
       };
 
+      window.MacaroniI18n = {
+        strings: I18N,
+        language: currentLanguage,
+        setLanguage: applyLanguage,
+        t: t
+      };
+
       setClientIdText();
+      applyLanguage();
       bindProfileForms();
 
       checkSupport().then(function (result) {
@@ -3522,7 +3875,7 @@
             clearStorageError();
             showAppOrSetup();
           }).catch(function (error) {
-            setStorageError("IndexedDB did not open. Local cache is unavailable: " + error.message);
+            setStorageError(t("storageIndexedDbFailed", { message: error.message }));
             showAppOrSetup();
           });
         }

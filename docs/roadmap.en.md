@@ -87,6 +87,7 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - MVP runtime: browser.
 - MVP UI: vanilla HTML/CSS/JS, or minimal build output that still becomes one HTML file.
 - MVP storage: `localStorage` for `CLIENT_ID`, token/settings; `IndexedDB` for index/cache.
+- MVP language: English by default, English/Russian selector in settings; UI strings live in browser-side `window.MacaroniI18n`.
 - MVP compatibility: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - MVP transport: browser-compatible HTTPS/API/git adapter. Direct SSH from the browser is not MVP.
@@ -134,6 +135,7 @@ Features:
 - first-launch privacy warning;
 - short `CLIENT_ID` created on first open and saved in `localStorage`;
 - local user profile;
+- UI language selection: English/Russian;
 - repository connection;
 - settings saved in browser storage;
 - repository layout initialization;
@@ -163,6 +165,7 @@ Done when:
 - Send errors do not lose messages.
 - New incoming messages in inactive chats are visible in the sidebar and clear when the chat is opened.
 - Privacy warning is shown before the first message.
+- UI language switches in settings, is saved in the profile, and survives reload.
 - README, product brief, and roadmap match actual behavior.
 
 ## MVP 0.1 Work Plan

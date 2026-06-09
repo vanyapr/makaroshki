@@ -87,6 +87,7 @@ Git является источником истины.
 - Runtime MVP: browser.
 - UI MVP: vanilla HTML/CSS/JS или минимальный build output, который всё равно собирается в один HTML-файл.
 - Storage MVP: `localStorage` для `CLIENT_ID`, токена и настроек; `IndexedDB` для индекса/кеша.
+- Language MVP: английский по умолчанию, переключатель English/Русский в настройках; строки UI хранятся в browser-side `window.MacaroniI18n`.
 - Compatibility MVP: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
@@ -134,6 +135,7 @@ Git является источником истины.
 - первый запуск с privacy warning;
 - короткий `CLIENT_ID`, созданный при первом открытии и сохранённый в `localStorage`;
 - локальный профиль пользователя;
+- выбор языка интерфейса: English/Русский;
 - подключение репозитория;
 - сохранение настроек в browser storage;
 - инициализация repo layout;
@@ -163,6 +165,7 @@ Git является источником истины.
 - Ошибка отправки не теряет сообщение.
 - Новые входящие сообщения в неактивных чатах видны в sidebar и сбрасываются при открытии чата.
 - Privacy warning виден до первого сообщения.
+- Язык интерфейса переключается в настройках, сохраняется в профиле и переживает reload.
 - README, product brief и roadmap не противоречат фактическому поведению.
 
 ## MVP 0.1 Work Plan

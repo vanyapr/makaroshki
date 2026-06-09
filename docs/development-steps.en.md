@@ -248,7 +248,7 @@ Done when:
 
 Goal: make the app usable by a small group on a regular basis.
 
-Language contract: English is the default language for `README.md`, `index.html`, and the `messenger.html` user interface. Russian documents remain as localization and historical context, but the default user-facing entry is English.
+Language contract: English is the default language for `README.md`, `index.html`, and the `messenger.html` user interface. Russian documents remain as localization and historical context, but the default user-facing entry is English. The UI has an English/Russian selector in settings; the selected language is stored in the profile and `localStorage`, and interface strings live in the browser-side `window.MacaroniI18n` object.
 
 Steps:
 
@@ -261,7 +261,8 @@ Steps:
 7. Settings/profile screen.
 8. Reindex/reset controls.
 9. Search input.
-10. Mobile/narrow layout.
+10. Language selector.
+11. Mobile/narrow layout.
 
 Current mobile UI contract: the sidebar does not stretch the chat list with empty space, chats use a compact horizontal strip, and the composer fits fully inside the viewport without sticking to the bottom edge.
 
