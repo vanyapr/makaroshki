@@ -94,6 +94,31 @@ async function testLocalMvpFlow(browser) {
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("MVP smoke")), "message was lost after reindex");
 
+  await page.evaluate(async () => {
+    const chat = await window.MacaroniTestRepo.createChat({
+      title: "РАБОТА",
+      owner_id: "SA6E",
+      owner_name: "Я",
+      members: [
+        { id: "SA6E", display_name: "Я", role: "owner" },
+        { id: "K2XM", display_name: "K2XM", role: "member" }
+      ]
+    });
+    await window.MacaroniTestRepo.sendMessage({
+      chat_id: chat.meta.id,
+      from: "SA6E",
+      to: ["K2XM"],
+      text: "MVP smoke: рабочий чат"
+    });
+  });
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("РАБОТА")));
+  await page.locator("#chat-list .chat-item", { hasText: "РАБОТА" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("РАБОТА"));
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("рабочий чат")));
+  texts = await messageTexts(page);
+  assert(texts.some((text) => text.includes("рабочий чат")), "dynamic chat selection did not render chat messages");
+
   await context.close();
 }
 

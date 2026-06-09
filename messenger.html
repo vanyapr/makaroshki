@@ -140,6 +140,9 @@
     }
 
     .chat-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
       height: 58px;
       display: flex;
       align-items: center;
@@ -147,6 +150,8 @@
       margin-bottom: 4px;
       font-weight: 400;
       white-space: nowrap;
+      text-align: left;
+      cursor: pointer;
     }
 
     .chat-item.active {
@@ -605,6 +610,7 @@
       }
 
       .chat-item {
+        width: auto;
         height: 42px;
         margin: 0;
         flex: 0 0 auto;
@@ -861,12 +867,12 @@
           <button class="button add-button" type="button">+</button>
         </div>
 
-        <nav class="chat-list" aria-label="Список чатов">
-          <div class="chat-item active">МАМА</div>
-          <div class="chat-item">ПАПА</div>
-          <div class="chat-item">БОТАНИК</div>
-          <div class="chat-item">РАБОТА</div>
-          <div class="chat-item">ГРУППА_ДОМ</div>
+        <nav class="chat-list" id="chat-list" aria-label="Список чатов">
+          <button class="chat-item active" type="button">МАМА</button>
+          <button class="chat-item" type="button">ПАПА</button>
+          <button class="chat-item" type="button">БОТАНИК</button>
+          <button class="chat-item" type="button">РАБОТА</button>
+          <button class="chat-item" type="button">ГРУППА_ДОМ</button>
         </nav>
 
         <div class="sidebar-footer">
@@ -874,10 +880,10 @@
         </div>
       </aside>
 
-      <section class="conversation" aria-label="Чат МАМА">
+      <section class="conversation" id="conversation" aria-label="Чат МАМА">
         <div class="conversation-header">
           <div class="conversation-meta">
-            <div class="chat-title">Чат: МАМА</div>
+            <div class="chat-title" id="chat-title">Чат: МАМА</div>
             <div class="sync-status" id="sync-status" aria-live="polite">sync: ждём IndexedDB</div>
           </div>
           <div class="conversation-actions">
@@ -1763,6 +1769,14 @@
         });
       }
 
+      function listChats() {
+        return listRecords("chats").then(function (chats) {
+          return chats.sort(function (left, right) {
+            return String(left.title || left.id || "").localeCompare(String(right.title || right.id || ""));
+          });
+        });
+      }
+
       function putOutbox(item) {
         var value = Object.assign({}, item);
         if (!value.id) {
@@ -2204,6 +2218,55 @@
         });
       }
 
+      function updateChatTitle(chat) {
+        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : "Чат";
+        get("chat-title").textContent = "Чат: " + title;
+        get("conversation").setAttribute("aria-label", "Чат " + title);
+      }
+
+      function selectChat(chat) {
+        currentChatId = chat.id;
+        updateChatTitle(chat);
+        get("search-input").value = "";
+        return renderMessages(currentChatId);
+      }
+
+      function drawChatList(chats) {
+        var list = get("chat-list");
+        list.innerHTML = "";
+
+        if (!chats.length) {
+          var empty = document.createElement("div");
+          empty.className = "message-empty";
+          empty.textContent = "Чатов пока нет.";
+          list.appendChild(empty);
+          return chats;
+        }
+
+        chats.forEach(function (chat) {
+          var item = document.createElement("button");
+          item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
+          item.type = "button";
+          item.textContent = chat.title || chat.id;
+          item.addEventListener("click", function () {
+            selectChat(chat).then(function () {
+              return renderChatList();
+            }).then(function () {
+              return updateSyncStatusFromState(loadProfile() || {}, "chat: open");
+            }).catch(function (error) {
+              setAppError("Чат не открылся: " + error.message);
+            });
+          });
+          list.appendChild(item);
+        });
+
+        return chats;
+      }
+
+      function renderChatList() {
+        return listChats().then(drawChatList);
+      }
+
       function applySearch() {
         var input = get("search-input");
         var query = input ? input.value.trim() : "";
@@ -2334,8 +2397,17 @@
         return ensureDefaultChat(value).then(function (chat) {
           var reindex = canUseGitHub(value) ? reindexFromGitHub(value, chat.id) : reindexFromTestRepo();
           return reindex.then(function () {
-            currentChatId = chat.id;
-            return renderMessages(currentChatId).then(function () {
+            return renderChatList();
+          }).then(function (chats) {
+            var activeChat = chats.find(function (item) {
+              return item.id === chat.id;
+            }) || chats[0] || chat;
+
+            currentChatId = activeChat.id;
+            updateChatTitle(activeChat);
+            return renderChatList().then(function () {
+              return renderMessages(currentChatId);
+            }).then(function () {
               return updateSyncStatusFromState(value, "sync: ok");
             });
           });
@@ -2556,6 +2628,7 @@
         open: openStorage,
         putMessage: putMessage,
         listMessages: listMessages,
+        listChats: listChats,
         searchMessages: searchMessages,
         putOutbox: putOutbox,
         listOutbox: listOutbox,

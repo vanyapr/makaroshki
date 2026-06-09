@@ -270,6 +270,8 @@ Reindex/reset controls live in settings. `Reset` deletes the profile, index, and
 
 Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
 
+The sidebar is rendered from the local `chats` store after init/reindex. Clicking a chat changes the current `chat_id`, title, and message list; the static HTML list is only a startup placeholder before initialization.
+
 Done when:
 
 - main actions are visible without instructions;
