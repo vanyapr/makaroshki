@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "chat_id": "chat_20260609_sa6e_k2xm_work",
+  "members": [
+    {
+      "id": "SA6E",
+      "display_name": "Я",
+      "role": "owner"
+    },
+    {
+      "id": "K2XM",
+      "display_name": "МАМА",
+      "role": "member"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ If the local index breaks, it is rebuilt from these files.
 
 ## Repository Layout
 
+Any git repository with this layout can be a Macaroni repository. The repository that serves `messenger.html` and the repository that stores messages may be the same repository or different repositories.
+
 ```text
 protocol.json
 users/<client_id>.json

@@ -1413,6 +1413,25 @@
         });
       }
 
+      function githubListChatMetas(profile) {
+        var config = createGitHubConfig(profile);
+        return githubListFiles(config, "chats").then(function (entries) {
+          var chain = Promise.resolve([]);
+
+          entries.filter(function (entry) {
+            return entry.type === "dir";
+          }).forEach(function (entry) {
+            chain = chain.then(function (chats) {
+              return readGitHubJsonSafe(config, entry.path + "/meta.json").then(function (chatMeta) {
+                return chatMeta ? chats.concat([chatMeta]) : chats;
+              });
+            });
+          });
+
+          return chain;
+        });
+      }
+
       function createGitHubChat(profile, options) {
         var config = createGitHubConfig(profile);
         var value = options || {};
@@ -1551,9 +1570,9 @@
         var config = createGitHubConfig(profile);
         var clientId = profile.clientId || CLIENT_ID;
         return resetIndex().then(function () {
-          return githubFindFirstChatMeta(profile);
-        }).then(function (chatMeta) {
-          if (!chatMeta) {
+          return githubListChatMetas(profile);
+        }).then(function (chatMetas) {
+          if (!chatMetas.length) {
             return {
               chat: null,
               indexed: 0,
@@ -1562,14 +1581,27 @@
           }
 
           var writes = [
-            putRecord("meta", { key: "protocol", value: null }),
-            putRecord("chats", chatMeta)
+            putRecord("meta", { key: "protocol", value: null })
           ];
           var skipped = [];
+          chatMetas.forEach(function (chatMeta) {
+            writes.push(putRecord("chats", chatMeta));
+          });
+
           return readGitHubJsonSafe(config, "protocol.json").then(function (protocol) {
             writes[0] = putRecord("meta", { key: "protocol", value: protocol });
+            var targetChatIds = chatId ? [chatId] : chatMetas.map(function (chatMeta) {
+              return chatMeta.id;
+            });
+            var messageLists = targetChatIds.map(function (targetChatId) {
+              return listGitHubMessageFiles(config, targetChatId);
+            });
             return Promise.all([
-              listGitHubMessageFiles(config, chatId || chatMeta.id),
+              Promise.all(messageLists).then(function (lists) {
+                return lists.reduce(function (allFiles, files) {
+                  return allFiles.concat(files);
+                }, []);
+              }),
               listGitHubInboxMessageFiles(config, clientId)
             ]);
           }).then(function (sources) {
@@ -1599,7 +1631,7 @@
             });
           }).then(function () {
             return {
-              chat: chatMeta,
+              chat: chatMetas[0],
               indexed: writes.length,
               skipped: skipped
             };
@@ -2080,7 +2112,7 @@
 
       function rebuildIndex(profile) {
         var value = profile || loadProfile() || {};
-        var reindex = canReadGitHub(value) ? reindexFromGitHub(value, currentChatId) : reindexFromTestRepo();
+        var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
         updateSyncStatus("reindex: " + transportLabel(value) + " · пересборка");
 
         return reindex.then(function (result) {
@@ -2509,7 +2541,7 @@
         var value = profile || loadProfile() || {};
         updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
         return ensureDefaultChat(value).then(function (chat) {
-          var reindex = canReadGitHub(value) ? reindexFromGitHub(value, chat && chat.id) : reindexFromTestRepo();
+          var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
           return reindex.then(function () {
             return renderChatList();
           }).then(function (chats) {
