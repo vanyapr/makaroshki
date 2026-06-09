@@ -132,6 +132,7 @@ async function testLanguageSettings(browser) {
   await page.waitForFunction(() => document.documentElement.lang === "ru");
   assert(await page.locator(".settings-screen .screen-title").textContent() === "Настройки", "Russian settings title is missing");
   assert(await page.locator("#message-input").getAttribute("placeholder") === "Введите сообщение...", "Russian composer placeholder is missing");
+  assert(await page.locator("#settings-token + .field-note a").getAttribute("href") === "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.md", "Russian token help link should open GitHub markdown view");
   await page.locator("#settings-form button[type='submit']").click();
   await page.waitForFunction(() => document.body.dataset.view === "app");
   const storedRu = await page.evaluate(() => ({
@@ -145,6 +146,7 @@ async function testLanguageSettings(browser) {
   await page.waitForFunction(() => document.body.dataset.view === "settings");
   await page.locator("#settings-language").selectOption("en");
   await page.waitForFunction(() => document.documentElement.lang === "en");
+  assert(await page.locator("#settings-token + .field-note a").getAttribute("href") === "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md", "English token help link should open GitHub markdown view");
   await page.locator("#settings-form button[type='submit']").click();
   await page.waitForFunction(() => document.body.dataset.view === "app");
   assert(await page.locator("#open-settings").textContent() === "Settings", "English language was not restored");

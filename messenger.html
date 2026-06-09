@@ -997,6 +997,10 @@
       var PROFILE_KEY = "macaroni.profile.v1";
       var LANGUAGE_KEY = "macaroni.language.v1";
       var DEFAULT_LANGUAGE = "en";
+      var TOKEN_DOC_URLS = {
+        en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
+        ru: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.md"
+      };
       var CLIENT_ID = loadOrCreateClientId();
       var dbPromise = null;
       var currentChatId = null;
@@ -1230,7 +1234,7 @@
           var link = node.querySelector("a");
           node.textContent = t(noteKey) + " ";
           if (link) {
-            link.href = currentLanguage() === "ru" ? "docs/access-token.md" : "docs/access-token.en.md";
+            link.href = TOKEN_DOC_URLS[currentLanguage()] || TOKEN_DOC_URLS.en;
             link.textContent = t("tokenHelp");
             node.appendChild(link);
             node.appendChild(document.createTextNode("."));
