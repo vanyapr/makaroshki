@@ -11,6 +11,11 @@
       "id": "K2XM",
       "display_name": "МАМА",
       "role": "member"
+    },
+    {
+      "id": "F6WT",
+      "display_name": "Я",
+      "role": "member"
     }
   ]
 }
