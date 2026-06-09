@@ -13,6 +13,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - write a file through the Contents API;
 - write a JSON file;
 - refresh/reindex reads all chat meta, messages by date, and `.macaroni/inbox/<CLIENT_ID>` as a receive hint;
+- before a full reindex, the client checks the latest branch commit SHA and skips the Contents API walk when the repo has not changed;
 - GitHub repo without a token works in read-only mode for public repos;
 - the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
 - human-readable errors for auth, permissions, missing repo/file, and conflict.
@@ -71,7 +72,9 @@ On auth/network errors, the draft is saved to outbox.
 
 The "Refresh" button also retries outbox and reindexes.
 
-Reindex reads:
+Reindex first reads the latest branch commit SHA through the GitHub API. If the SHA matches the locally saved value, the full Contents API walk is skipped and the client keeps the current IndexedDB index.
+
+If the SHA changed or the HEAD check is unavailable, reindex reads:
 
 1. all found chat meta;
 2. chat messages by `YYYY/MM/DD`;
@@ -87,7 +90,8 @@ Remote flow can write through the Contents API, but sync is still simple:
 - it scans chat meta;
 - messages are walked by `YYYY/MM/DD`;
 - inbox is used only as a list of links to message files;
-- no smart incremental sync yet;
+- only a coarse branch HEAD check exists before a full reindex;
+- no smart file-level incremental sync yet;
 - no Git Trees API yet;
 - no full multi-chat UI yet.
 

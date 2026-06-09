@@ -1276,12 +1276,16 @@
       }
 
       function githubContentUrl(config, path) {
+        return githubRepoUrl(config, "contents/" + normalizeRepoPath(path).split("/").map(encodeURIComponent).join("/"));
+      }
+
+      function githubRepoUrl(config, path) {
         return "https://api.github.com/repos/" +
           encodeURIComponent(config.owner) +
           "/" +
           encodeURIComponent(config.repo) +
-          "/contents/" +
-          normalizeRepoPath(path).split("/").map(encodeURIComponent).join("/");
+          "/" +
+          normalizeRepoPath(path);
       }
 
       function githubError(response, data) {
@@ -1300,22 +1304,34 @@
       }
 
       function githubRequest(config, path, options) {
+        return githubApiRequest(config, githubContentUrl(config, path), options, true);
+      }
+
+      function githubApiRequest(config, url, options, allowMissing) {
         var requestOptions = Object.assign({
           method: "GET",
           headers: githubHeaders(config)
         }, options || {});
 
-        return config.transport(githubContentUrl(config, path), requestOptions).then(function (response) {
+        return config.transport(url, requestOptions).then(function (response) {
           return response.text().then(function (text) {
             var data = text ? JSON.parse(text) : null;
             if (!response.ok) {
-              if (response.status === 404 && requestOptions.method === "GET") {
+              if (allowMissing && response.status === 404 && requestOptions.method === "GET") {
                 return null;
               }
               throw githubError(response, data);
             }
             return data;
           });
+        });
+      }
+
+      function githubReadHead(config) {
+        return githubApiRequest(config, githubRepoUrl(config, "commits/" + encodeURIComponent(config.branch)), {
+          method: "GET"
+        }, false).then(function (data) {
+          return data && data.sha ? data.sha : null;
         });
       }
 
@@ -1738,6 +1754,43 @@
         });
       }
 
+      function githubHeadMetaKey(profile) {
+        var config = createGitHubConfig(profile);
+        return "github_head:" + config.owner + "/" + config.repo + "#" + config.branch;
+      }
+
+      function reindexGitHubIfChanged(profile, chatId) {
+        var config = createGitHubConfig(profile);
+        var metaKey = githubHeadMetaKey(profile);
+        return githubReadHead(config).then(function (remoteSha) {
+          if (!remoteSha) {
+            return reindexFromGitHub(profile, chatId);
+          }
+
+          return getMeta(metaKey).then(function (localSha) {
+            if (localSha === remoteSha) {
+              return {
+                unchanged: true,
+                remote_sha: remoteSha,
+                indexed: 0,
+                skipped: []
+              };
+            }
+
+            return reindexFromGitHub(profile, chatId).then(function (result) {
+              return putRecord("meta", { key: metaKey, value: remoteSha }).then(function () {
+                return Object.assign({}, result, {
+                  unchanged: false,
+                  remote_sha: remoteSha
+                });
+              });
+            });
+          });
+        }).catch(function () {
+          return reindexFromGitHub(profile, chatId);
+        });
+      }
+
       function loadProfile() {
         try {
           var raw = window.localStorage.getItem(PROFILE_KEY);
@@ -1851,6 +1904,12 @@
         });
       }
 
+      function getRecord(storeName, id) {
+        return storageTransaction([storeName], "readonly").then(function (transaction) {
+          return requestToPromise(transaction.objectStore(storeName).get(id));
+        });
+      }
+
       function deleteRecord(storeName, id) {
         return storageTransaction([storeName], "readwrite").then(function (transaction) {
           transaction.objectStore(storeName).delete(id);
@@ -1917,6 +1976,12 @@
 
       function listUsers() {
         return listRecords("users");
+      }
+
+      function getMeta(key) {
+        return getRecord("meta", key).then(function (record) {
+          return record ? record.value : null;
+        });
       }
 
       function getMembers(chatId) {
@@ -2829,8 +2894,9 @@
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
         updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
-        return ensureDefaultChat(value).then(function (chat) {
-          var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
+        var ensureChat = currentChatId ? Promise.resolve(null) : ensureDefaultChat(value);
+        return ensureChat.then(function (chat) {
+          var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
           return reindex.then(function () {
             return renderChatList();
           }).then(function (chats) {

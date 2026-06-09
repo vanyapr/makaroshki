@@ -506,6 +506,154 @@ async function testGitHubInboxReindex(browser) {
   await context.close();
 }
 
+async function testGitHubSkipsUnchangedReindex(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    const chatId = "chat_unchanged_head";
+    const messageId = "2026-06-09T07-00-00.000Z_K2XM_unchanged";
+    const messagePath = ".macaroni/chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
+    const files = {
+      ".macaroni/protocol.json": {
+        name: "Macaroni Protocol",
+        version: 1,
+        created_at: "2026-06-09T07:00:00.000Z",
+        message_format: "json",
+        privacy: "public_by_design",
+        features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
+      },
+      ".macaroni/users/SA6E.json": {
+        version: 1,
+        id: "SA6E",
+        display_name: "Я",
+        created_at: "2026-06-09T07:00:00.000Z",
+        meta: { client: "Macaroni Messenger JS 0.1.0" }
+      },
+      [".macaroni/chats/" + chatId + "/meta.json"]: {
+        version: 1,
+        id: chatId,
+        title: "UNCHANGED_HEAD",
+        created_at: "2026-06-09T07:00:00.000Z",
+        created_by: "K2XM",
+        visibility: "repo",
+        privacy: "public_by_design"
+      },
+      [".macaroni/chats/" + chatId + "/members.json"]: {
+        version: 1,
+        chat_id: chatId,
+        members: [
+          { id: "SA6E", display_name: "SA6E", role: "member" },
+          { id: "K2XM", display_name: "K2XM", role: "owner" }
+        ]
+      }
+    };
+    files[messagePath] = {
+      version: 1,
+      id: messageId,
+      chat_id: chatId,
+      type: "text",
+      from: "K2XM",
+      to: ["SA6E"],
+      created_at: "2026-06-09T07:00:00.000Z",
+      text: "Unchanged head hello",
+      reply_to: null,
+      attachments: [],
+      meta: { client: "Macaroni Messenger JS 0.1.0" },
+      signature: null
+    };
+
+    function encodeJson(value) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(value))));
+    }
+
+    function fileResponse(repoPath) {
+      const value = files[repoPath];
+      return value ? { path: repoPath, type: "file", sha: "sha-" + repoPath, content: encodeJson(value) } : null;
+    }
+
+    function listResponse(repoPath) {
+      if (repoPath === ".macaroni/chats") {
+        return [{ path: ".macaroni/chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      }
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026", type: "dir", sha: "sha-y" }];
+      }
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026/06", type: "dir", sha: "sha-m" }];
+      }
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026/06") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026/06/09", type: "dir", sha: "sha-d" }];
+      }
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026/06/09") {
+        return [{ path: messagePath, type: "file", sha: "sha-message" }];
+      }
+      if (repoPath === ".macaroni/inbox/SA6E" || repoPath === ".macaroni/users") {
+        return [];
+      }
+      return null;
+    }
+
+    window.__macaroniRequestLog = [];
+    window.fetch = (url) => {
+      const textUrl = String(url);
+      window.__macaroniRequestLog.push(textUrl);
+
+      if (textUrl.includes("/commits/main")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(JSON.stringify({ sha: "remote-head-1" }))
+        });
+      }
+
+      const marker = "/contents/";
+      const rawPath = textUrl.slice(textUrl.indexOf(marker) + marker.length).split("?")[0];
+      const repoPath = decodeURIComponent(rawPath);
+      const data = listResponse(repoPath) || fileResponse(repoPath);
+      const ok = !!data;
+      return Promise.resolve({
+        ok,
+        status: ok ? 200 : 404,
+        statusText: ok ? "OK" : "Not Found",
+        text: () => Promise.resolve(JSON.stringify(ok ? data : { message: "Not Found" }))
+      });
+    };
+  });
+
+  const page = await openMessenger(context);
+  await installProfile(page, { provider: "github", token: "fake-token-for-head-smoke" });
+  try {
+    await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Unchanged head hello")));
+  } catch (error) {
+    const debug = await page.evaluate(() => ({
+      sync: document.querySelector("#sync-status").textContent,
+      storage: document.querySelector("[data-storage-status]").textContent,
+      requests: window.__macaroniRequestLog,
+      texts: [...document.querySelectorAll(".message-row .text")].map((node) => node.textContent)
+    }));
+    throw new Error("GitHub unchanged-head smoke did not render message: " + JSON.stringify(debug));
+  }
+
+  const before = await page.evaluate(() => ({
+    commits: window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length,
+    contents: window.__macaroniRequestLog.filter((url) => url.includes("/contents/")).length
+  }));
+
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction((count) => window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length > count, before.commits);
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+
+  const after = await page.evaluate(() => ({
+    commits: window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length,
+    contents: window.__macaroniRequestLog.filter((url) => url.includes("/contents/")).length
+  }));
+
+  assert(after.commits > before.commits, "unchanged sync did not check remote head");
+  assert(after.contents === before.contents, "unchanged sync still walked contents API");
+
+  await context.close();
+}
+
 async function testGitHubReadOnlyMode(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addInitScript(() => {
@@ -844,6 +992,7 @@ async function testTwoClientRecipients(browser) {
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubInboxReindex(browser);
+    await testGitHubSkipsUnchangedReindex(browser);
     await testGitHubReadOnlyMode(browser);
     await testGitHubSendWrites(browser);
     await testTwoClientRecipients(browser);
