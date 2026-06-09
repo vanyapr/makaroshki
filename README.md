@@ -21,6 +21,7 @@ Documents:
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
+- [docs/portable-mom.en.md](docs/portable-mom.en.md) - portable HTML file for mom with a preconfigured profile.
 - [docs/browser-support.en.md](docs/browser-support.en.md) - supported browser feature matrix.
 - [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
@@ -37,6 +38,7 @@ Russian documents:
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)
+- [docs/portable-mom.md](docs/portable-mom.md)
 - [docs/browser-support.md](docs/browser-support.md)
 - [docs/access-token.md](docs/access-token.md)
 - [docs/gitverse-token.md](docs/gitverse-token.md)

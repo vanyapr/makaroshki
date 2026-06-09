@@ -27,6 +27,7 @@ Macaroni Messenger - это мессенджер без серверов, без
 - [docs/plugin-boundary.md](docs/plugin-boundary.md) - browser-side plugin boundary.
 - [docs/electron-wrapper.md](docs/electron-wrapper.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.md](docs/settings-export-import.md) - ручной backup и restore настроек.
+- [docs/portable-mom.md](docs/portable-mom.md) - portable HTML-файл для мамы с преднастроенным профилем.
 - [docs/browser-support.md](docs/browser-support.md) - browser feature support matrix.
 - [docs/access-token.md](docs/access-token.md) - как получить токен доступа.
 - [docs/gitverse-token.md](docs/gitverse-token.md) - как получить токен доступа GitVerse.
@@ -43,6 +44,7 @@ English docs:
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md)
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md)
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md)
+- [docs/portable-mom.en.md](docs/portable-mom.en.md)
 - [docs/browser-support.en.md](docs/browser-support.en.md)
 - [docs/access-token.en.md](docs/access-token.en.md)
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md)
