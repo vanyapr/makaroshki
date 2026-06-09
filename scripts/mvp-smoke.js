@@ -22,7 +22,13 @@ function assert(condition, message) {
   }
 }
 
-async function openMessenger(context, url = messengerUrl) {
+async function openMessenger(context, url = messengerUrl, clientId = "SA6E") {
+  if (clientId) {
+    await context.addInitScript((value) => {
+      localStorage.setItem("macaroni.client_id.v1", value);
+    }, clientId);
+  }
+
   const page = await context.newPage();
   await page.goto(url);
   await page.waitForLoadState("load");
@@ -59,6 +65,28 @@ async function testUnsupportedScreen(browser) {
   const title = await page.locator(".unsupported-title").textContent();
   assert(title.includes("недостаточно смешной"), "unsupported screen title is missing");
   await page.close();
+}
+
+async function testGeneratedClientIdPersists(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context, messengerUrl, null);
+
+  await page.waitForFunction(() => document.body.dataset.support === "supported");
+  const firstId = await page.evaluate(() => ({
+    support: window.MacaroniSupport.clientId,
+    stored: localStorage.getItem("macaroni.client_id.v1"),
+    rendered: document.querySelector("[data-client-id]").textContent
+  }));
+  assert(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(firstId.support), "generated CLIENT_ID has wrong shape");
+  assert(firstId.support === firstId.stored, "generated CLIENT_ID was not saved to localStorage");
+  assert(firstId.support === firstId.rendered, "generated CLIENT_ID was not rendered");
+
+  await page.reload();
+  await page.waitForFunction(() => document.body.dataset.support === "supported");
+  const secondId = await page.evaluate(() => window.MacaroniSupport.clientId);
+  assert(secondId === firstId.support, "generated CLIENT_ID did not survive reload");
+
+  await context.close();
 }
 
 async function testLocalMvpFlow(browser) {
@@ -591,13 +619,10 @@ async function testGitHubSendWrites(browser) {
 async function testTwoClientRecipients(browser) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "macaroni-mvp-smoke-"));
   const k2xmPath = path.join(tempDir, "messenger-k2xm.html");
-  fs.writeFileSync(
-    k2xmPath,
-    fs.readFileSync(messengerPath, "utf8").replace('const CLIENT_ID = "SA6E";', 'const CLIENT_ID = "K2XM";')
-  );
+  fs.writeFileSync(k2xmPath, fs.readFileSync(messengerPath, "utf8"));
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  const page = await openMessenger(context, "file://" + k2xmPath);
+  const page = await openMessenger(context, "file://" + k2xmPath, "K2XM");
   await installProfile(page, { clientId: "K2XM", displayName: "K2XM" });
 
   const members = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/chats/").then((files) => {
@@ -620,6 +645,7 @@ async function testTwoClientRecipients(browser) {
   const browser = await chromium.launch({ headless: true });
   try {
     await testUnsupportedScreen(browser);
+    await testGeneratedClientIdPersists(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubInboxReindex(browser);

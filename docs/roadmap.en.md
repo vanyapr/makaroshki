@@ -86,12 +86,12 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - Source of truth: git repository.
 - MVP runtime: browser.
 - MVP UI: vanilla HTML/CSS/JS, or minimal build output that still becomes one HTML file.
-- MVP storage: `localStorage` for token/settings, `IndexedDB` for index/cache.
+- MVP storage: `localStorage` for `CLIENT_ID`, token/settings; `IndexedDB` for index/cache.
 - MVP compatibility: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - MVP transport: browser-compatible HTTPS/API/git adapter. Direct SSH from the browser is not MVP.
-- MVP client identity: four-character `CLIENT_ID` from alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
-- HTML download stamping: every downloaded `messenger.html` gets its own `CLIENT_ID`.
+- MVP client identity: four-character `CLIENT_ID` from alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, created on first open and saved in `localStorage`.
+- HTML download stamping: cancelled. The same hosted `messenger.html` must give different browsers different local IDs.
 - Message: immutable JSON file.
 - Message branch: `main`.
 - MVP attachments: URL only, or no attachments.
@@ -131,7 +131,7 @@ Features:
 - feature detection before onboarding;
 - unsupported browser screen;
 - first-launch privacy warning;
-- short `CLIENT_ID` inside the downloaded HTML;
+- short `CLIENT_ID` created on first open and saved in `localStorage`;
 - local user profile;
 - repository connection;
 - settings saved in browser storage;
@@ -189,8 +189,8 @@ Done when:
    - Minimal validators without a heavy dependency.
 
 4. Client identity.
-   - Every downloaded/built `messenger.html` has `const CLIENT_ID = "SA6E";`.
-   - This is an instance stamp, not a security signature.
+   - On first open, `messenger.html` creates `CLIENT_ID` and saves it in `localStorage`.
+   - This is a local browser-instance stamp, not a security signature.
    - Generator uses alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
    - Identifier length: 4 characters.
    - Space size: `32^4 = 1,048,576`.
@@ -231,27 +231,28 @@ Done when:
    - Offline/sync error.
    - Reindex.
    - Verify the final artifact is one HTML file.
-   - Verify `CLIENT_ID` exists in HTML and reaches profile/messages.
+   - Verify `CLIENT_ID` is created on first open, saved in `localStorage`, and reaches profile/messages.
 
 ## Client Identity Manifest
 
-Every downloaded Macaroni Messenger instance gets a short identifier:
+Every browser gets a short identifier on first open:
 
 ```js
-const CLIENT_ID = "SA6E";
+localStorage["macaroni.client_id.v1"] = "SA6E";
 ```
 
-This is download stamping, not a cryptographic signature.
+This is local first-run identity, not a cryptographic signature.
 
 Generation:
 
 ```js
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const CLIENT_ID =
+const clientId =
   alphabet[rand()] +
   alphabet[rand()] +
   alphabet[rand()] +
   alphabet[rand()];
+localStorage.setItem("macaroni.client_id.v1", clientId);
 ```
 
 This is not UUID.

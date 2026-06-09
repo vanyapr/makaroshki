@@ -86,12 +86,12 @@ Done when:
 
 Goal: every `messenger.html` instance gets a short identifier.
 
-Status: basically implemented in `messenger.html`. `CLIENT_ID` is declared as a constant, rendered in the UI, and exposed as `window.MacaroniSupport.clientId`; the four-character ID generator remains a simple function.
+Status: implemented in `messenger.html`. On open, the client reads `macaroni.client_id.v1` from `localStorage`; if the ID does not exist yet, it generates four characters, immediately saves them to `localStorage`, renders them in the UI, and exposes them as `window.MacaroniSupport.clientId`.
 
 Steps:
 
-1. Add `const CLIENT_ID = "SA6E";` to HTML.
-2. Describe the ID generator as a simple function or build-time script, if it is actually needed.
+1. Add persistent `CLIENT_ID` storage in `localStorage`.
+2. Describe the ID generator as a simple function.
 3. Use alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
 4. ID length: 4 characters.
 5. Show `CLIENT_ID` in settings/profile.
@@ -101,7 +101,7 @@ Steps:
 
 Done when:
 
-- `CLIENT_ID` is visible in `messenger.html` source;
+- `CLIENT_ID` is created on first open and survives reload;
 - ID is displayed to the user;
 - ID can be used as message author;
 - docs honestly describe collisions.
@@ -309,7 +309,7 @@ Done when:
 
 Goal: prove this is a full application, not a funny HTML mockup.
 
-Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID`, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex/read-only through a fake Contents API, and two-client recipient addressing through a temporary HTML copy with `CLIENT_ID = "K2XM"`.
+Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID` generation and persistence, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex/read-only through a fake Contents API, and two-client recipient addressing through a locally saved `CLIENT_ID = "K2XM"`.
 
 Local command:
 

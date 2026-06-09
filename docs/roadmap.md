@@ -86,12 +86,12 @@ Git является источником истины.
 - Источник истины: git repository.
 - Runtime MVP: browser.
 - UI MVP: vanilla HTML/CSS/JS или минимальный build output, который всё равно собирается в один HTML-файл.
-- Storage MVP: `localStorage` для токена/настроек, `IndexedDB` для индекса/кеша.
+- Storage MVP: `localStorage` для `CLIENT_ID`, токена и настроек; `IndexedDB` для индекса/кеша.
 - Compatibility MVP: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
 - Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
-- Client identity MVP: четырёхсимвольный `CLIENT_ID` из alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
-- HTML download stamping: каждый скачанный `messenger.html` получает свой `CLIENT_ID`.
+- Client identity MVP: четырёхсимвольный `CLIENT_ID` из alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, создаётся при первом открытии и сохраняется в `localStorage`.
+- HTML download stamping: отменён. Один и тот же hosted `messenger.html` должен выдавать разным браузерам разные локальные ID.
 - Сообщение: immutable JSON-файл.
 - Ветка сообщений: `main`.
 - Вложения MVP: только URL или вообще без вложений.
@@ -131,7 +131,7 @@ Git является источником истины.
 - feature detection перед onboarding;
 - экран несовместимости для неподдерживаемого браузера;
 - первый запуск с privacy warning;
-- короткий `CLIENT_ID` внутри скачанного HTML;
+- короткий `CLIENT_ID`, созданный при первом открытии и сохранённый в `localStorage`;
 - локальный профиль пользователя;
 - подключение репозитория;
 - сохранение настроек в browser storage;
@@ -189,8 +189,8 @@ Git является источником истины.
    - Минимальные validators без тяжёлой dependency.
 
 4. Client identity.
-   - В каждом скачанном/собранном `messenger.html` есть `const CLIENT_ID = "SA6E";`.
-   - Это подпись экземпляра файла, а не security signature.
+   - При первом открытии `messenger.html` создаёт `CLIENT_ID` и сохраняет его в `localStorage`.
+   - Это подпись локального браузерного экземпляра, а не security signature.
    - Генератор использует alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
    - Длина идентификатора: 4 символа.
    - Пространство вариантов: `32^4 = 1 048 576`.
@@ -231,27 +231,28 @@ Git является источником истины.
    - Offline/sync error.
    - Reindex.
    - Проверка, что итоговый артефакт один HTML-файл.
-   - Проверка, что `CLIENT_ID` присутствует в HTML и попадает в профиль/сообщения.
+   - Проверка, что `CLIENT_ID` создаётся при первом открытии, сохраняется в `localStorage` и попадает в профиль/сообщения.
 
 ## Client Identity Manifest
 
-Каждый скачанный экземпляр Macaroni Messenger получает короткий идентификатор:
+Каждый браузер при первом открытии Macaroni Messenger получает короткий идентификатор:
 
 ```js
-const CLIENT_ID = "SA6E";
+localStorage["macaroni.client_id.v1"] = "SA6E";
 ```
 
-Это download stamping, а не криптографическая подпись.
+Это local first-run identity, а не криптографическая подпись.
 
 Генерация:
 
 ```js
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const CLIENT_ID =
+const clientId =
   alphabet[rand()] +
   alphabet[rand()] +
   alphabet[rand()] +
   alphabet[rand()];
+localStorage.setItem("macaroni.client_id.v1", clientId);
 ```
 
 Это не UUID.

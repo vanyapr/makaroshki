@@ -152,14 +152,14 @@ To start using it:
 
 ## User Identity
 
-Every downloaded `messenger.html` is stamped with a short instance identifier.
+On first open, `messenger.html` creates a short instance identifier and saves it in `localStorage`.
 
 This is not a security signature.
 
 It is a Macaroni-style signature:
 
 ```js
-const CLIENT_ID = "SA6E";
+localStorage["macaroni.client_id.v1"] = "SA6E";
 ```
 
 Macaroni Messenger uses a distributed user identification system.
@@ -181,6 +181,8 @@ If two users get the same identifier, we recommend they meet each other.
 Macaroni Messenger does not include military-grade cryptography.
 
 Instead it uses the technology known as "four characters, seems to work".
+
+If `localStorage` is cleared, the browser forgets the old `CLIENT_ID` and creates a new one.
 
 ## CLIENT_ID FAQ
 

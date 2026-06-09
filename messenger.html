@@ -926,17 +926,19 @@
 
   <script>
     (function () {
-      const CLIENT_ID = "SA6E";
       const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       const CLIENT_NAME = "Macaroni Messenger JS 0.1.0";
       const PROTOCOL_VERSION = 1;
       const MACARONI_ROOT = ".macaroni";
+      const DEFAULT_CLIENT_ID = "SA6E";
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
       var DB_NAME = "macaroni-messenger";
       var DB_VERSION = 2;
+      var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
+      var CLIENT_ID = loadOrCreateClientId();
       var dbPromise = null;
       var currentChatId = null;
       var composerBound = false;
@@ -967,6 +969,25 @@
           CLIENT_ID_ALPHABET[rand()] +
           CLIENT_ID_ALPHABET[rand()]
         );
+      }
+
+      function isValidClientId(value) {
+        return new RegExp("^[" + CLIENT_ID_ALPHABET + "]{4}$").test(String(value || ""));
+      }
+
+      function loadOrCreateClientId() {
+        try {
+          var existing = window.localStorage.getItem(CLIENT_ID_KEY);
+          if (isValidClientId(existing)) {
+            return existing;
+          }
+
+          var created = createClientId();
+          window.localStorage.setItem(CLIENT_ID_KEY, created);
+          return created;
+        } catch (error) {
+          return DEFAULT_CLIENT_ID;
+        }
       }
 
       function randomSuffix(length) {

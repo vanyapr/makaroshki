@@ -86,12 +86,12 @@
 
 Цель: каждый экземпляр `messenger.html` получает короткий идентификатор.
 
-Статус: базово реализовано в `messenger.html`. `CLIENT_ID` объявлен как константа, подставляется в интерфейс и доступен через `window.MacaroniSupport.clientId`; генератор четырёхсимвольного ID оставлен как простая функция.
+Статус: реализовано в `messenger.html`. При открытии клиент читает `macaroni.client_id.v1` из `localStorage`; если ID ещё нет, генерирует четыре символа, сразу сохраняет их в `localStorage`, подставляет в интерфейс и отдаёт через `window.MacaroniSupport.clientId`.
 
 Шаги:
 
-1. Добавить `const CLIENT_ID = "SA6E";` в HTML.
-2. Описать генератор ID отдельной простой функцией или build-time script, если он реально нужен.
+1. Добавить persistent `CLIENT_ID` в `localStorage`.
+2. Описать генератор ID отдельной простой функцией.
 3. Использовать alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`.
 4. Длина ID: 4 символа.
 5. Показать `CLIENT_ID` в настройках/профиле.
@@ -101,7 +101,7 @@
 
 Готово, когда:
 
-- `CLIENT_ID` виден в исходнике `messenger.html`;
+- `CLIENT_ID` создаётся при первом открытии и переживает reload;
 - ID отображается пользователю;
 - ID можно использовать как автора сообщения;
 - документация честно говорит про коллизии.
@@ -309,7 +309,7 @@ Sidebar строится из локального `chats` store после init
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
-Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex/read-only через fake Contents API и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
+Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, генерацию и persistence `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex/read-only через fake Contents API и двухклиентную адресацию через локально сохранённый `CLIENT_ID = "K2XM"`.
 
 Локальная команда:
 
