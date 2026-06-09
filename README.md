@@ -19,7 +19,7 @@ License: [DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](LICENSE).
 - Download: [messenger.html](https://raw.githubusercontent.com/vanyapr/makaroshki/main/messenger.html).
 - Source repo: [github.com/vanyapr/makaroshki](https://github.com/vanyapr/makaroshki).
 
-The demo opens the public `vanyapr/makaroshki` repository in read-only mode.
+The demo opens a hardcoded read-only `.macaroni` dataset, so the first screen does not burn unauthenticated GitHub API rate limit.
 
 No token.
 
@@ -27,7 +27,7 @@ No registration.
 
 No backend.
 
-You can read public `.macaroni` chats immediately. To write messages, you need a GitHub token with repository Contents read/write access, because GitHub is the backend we refused to build.
+You can read demo `.macaroni` chats immediately. To read or write a real repository, open Settings and connect a GitHub repository. To write messages, you need a GitHub token with repository Contents read/write access, because GitHub is the backend we refused to build.
 
 ## Run Locally
 
@@ -54,7 +54,7 @@ Detailed guide: [How to get an access token](docs/access-token.en.md).
 - GitLab, GitVerse, Gitea, Forgejo, and other git hosts are protocol targets for future adapters. Today they are not finished write adapters.
 - Browser support is intentionally strict: persistent storage for `file://` or `https://`, `localStorage`, `IndexedDB`, and WebCrypto are required. Recommended browsers: Chrome, Chromium, Edge.
 - There is no realtime transport. New messages arrive through polling, and outgoing writes go through a local outbox.
-- GitHub API rate limits exist. Public read-only demo traffic can hit them. Git will not run away, but GitHub sometimes asks everyone to calm down.
+- GitHub API rate limits exist. The public demo is hardcoded to avoid burning unauthenticated rate limit on first load. Real connected repositories still use GitHub API.
 - Tokens are stored in browser `localStorage`. This is convenient, not secure storage.
 - Never paste a real token into public chat, screenshots, issues, README examples, or Hacker News comments. If you did, revoke it.
 - Large repositories will be slow. If a chat gets too large, create another repository. This is called scaling.

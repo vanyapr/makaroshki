@@ -25,7 +25,7 @@ Macaroni Messenger - это мессенджер без серверов, без
 - Скачать: [messenger.html](https://raw.githubusercontent.com/vanyapr/makaroshki/main/messenger.html).
 - Исходный repo: [github.com/vanyapr/makaroshki](https://github.com/vanyapr/makaroshki).
 
-Demo открывает публичный репозиторий `vanyapr/makaroshki` в read-only режиме.
+Demo открывает захардкоженный read-only `.macaroni` dataset, чтобы первый экран не жёг unauthenticated GitHub API rate limit.
 
 Без токена.
 
@@ -33,7 +33,7 @@ Demo открывает публичный репозиторий `vanyapr/makar
 
 Без backend.
 
-Публичные `.macaroni` чаты можно читать сразу. Чтобы писать сообщения, нужен GitHub token с правами `Contents: Read and write` на репозиторий, потому что GitHub - это backend, который мы отказались писать.
+Demo `.macaroni` чаты можно читать сразу. Чтобы читать или писать настоящий repository, откройте настройки и подключите GitHub repository. Чтобы писать сообщения, нужен GitHub token с правами `Contents: Read and write` на репозиторий, потому что GitHub - это backend, который мы отказались писать.
 
 ## Запустить локально
 
@@ -60,7 +60,7 @@ Demo открывает публичный репозиторий `vanyapr/makar
 - GitLab, GitVerse, Gitea, Forgejo и другие git-хостинги - цели протокола для будущих adapters. Сегодня это не готовые write adapters.
 - Browser support намеренно жёсткий: нужны persistent storage для `file://` или `https://`, `localStorage`, `IndexedDB` и WebCrypto. Рекомендуются Chrome, Chromium, Edge.
 - Realtime transport нет. Новые сообщения приходят через polling, исходящие записи проходят через локальный outbox.
-- GitHub API rate limits существуют. Публичный read-only demo traffic может в них упереться. Git не убежит, но GitHub иногда просит всех успокоиться.
+- GitHub API rate limits существуют. Публичный demo захардкожен, чтобы не жечь unauthenticated rate limit при первом открытии. Настоящие подключённые repositories всё ещё используют GitHub API.
 - Токены хранятся в browser `localStorage`. Это удобно, но это не secure storage.
 - Никогда не вставляйте настоящий token в публичный чат, screenshots, issues, README examples или Hacker News comments. Если вставили - отзовите его.
 - Большие репозитории будут медленными. Если чат стал слишком большим, создайте новый repository. Это называется масштабирование.

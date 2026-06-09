@@ -1303,6 +1303,7 @@
           outboxMessages: "{count} pending outgoing messages",
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
+          transportDemo: "demo read-only",
           transportLocal: "local test repo",
           transportUnsupported: "{provider} unsupported",
           unsupportedProvider: "{provider} adapter is not implemented yet. Choose GitHub or Other/local test repo.",
@@ -1348,6 +1349,8 @@
           pollingError: "Polling could not refresh messages: {message}",
           githubReadOnlyRetry: "GitHub repo is read-only. Retry waits for a token.",
           githubReadOnlySend: "GitHub repo is read-only. Add a token to send messages.",
+          demoReadOnlyAction: "Demo is hardcoded read-only. Add a GitHub token in Settings to use a real repo.",
+          demoReadOnlySend: "Demo is read-only. Add a GitHub token in Settings to send messages.",
           sendingBackground: "sending background",
           sendingQueued: "queued for 30s git flush",
           messageOutboxGit: "Message saved in outbox. Git will not run away, we will try again: {message}",
@@ -1431,6 +1434,7 @@
           outboxMessages: "{count} исходящих сообщений ждут отправки",
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
+          transportDemo: "demo read-only",
           transportLocal: "локальный test repo",
           transportUnsupported: "{provider} не поддерживается",
           unsupportedProvider: "{provider} adapter пока не реализован. Выберите GitHub или Other/local test repo.",
@@ -1476,6 +1480,8 @@
           pollingError: "Polling не смог обновить сообщения: {message}",
           githubReadOnlyRetry: "GitHub repo read-only. Retry ждет token.",
           githubReadOnlySend: "GitHub repo read-only. Добавьте token, чтобы отправлять сообщения.",
+          demoReadOnlyAction: "Demo захардкожено и работает read-only. Добавьте GitHub token в настройках, чтобы использовать настоящий repo.",
+          demoReadOnlySend: "Demo read-only. Добавьте GitHub token в настройках, чтобы отправлять сообщения.",
           sendingBackground: "отправляем в фоне",
           sendingQueued: "в очереди до 30-секундной git-отправки",
           messageOutboxGit: "Сообщение сохранено в outbox. Git не убежит, попробуем еще раз: {message}",
@@ -1872,6 +1878,116 @@
 
         validateMessage(message);
         return message;
+      }
+
+      function createDemoData() {
+        var users = [
+          createUserDocument({ clientId: "SA6E", displayName: "Me" }, "2026-06-09T06:40:00.000Z"),
+          createUserDocument({ clientId: "K2XM", displayName: "MOM" }, "2026-06-09T06:40:00.000Z"),
+          createUserDocument({ clientId: "W8LQ", displayName: "AUNT SVETA" }, "2026-06-09T06:40:00.000Z")
+        ];
+        var chats = [
+          createChatMeta({
+            id: "demo_mom",
+            title: "MOM",
+            created_by: "SA6E",
+            member_ids: ["K2XM"],
+            created_at: "2026-06-09T06:41:00.000Z"
+          }),
+          createChatMeta({
+            id: "demo_home",
+            title: "HOME_GROUP",
+            created_by: "SA6E",
+            member_ids: ["K2XM", "W8LQ"],
+            created_at: "2026-06-09T06:42:00.000Z"
+          }),
+          createChatMeta({
+            id: "demo_work",
+            title: "WORK",
+            created_by: "SA6E",
+            member_ids: ["K2XM"],
+            created_at: "2026-06-09T06:43:00.000Z"
+          })
+        ];
+        var members = [
+          createChatMembers("demo_mom", [
+            { id: "SA6E", display_name: "Me", role: "owner" },
+            { id: "K2XM", display_name: "MOM", role: "member" }
+          ]),
+          createChatMembers("demo_home", [
+            { id: "SA6E", display_name: "Me", role: "owner" },
+            { id: "K2XM", display_name: "MOM", role: "member" },
+            { id: "W8LQ", display_name: "AUNT SVETA", role: "member" }
+          ]),
+          createChatMembers("demo_work", [
+            { id: "SA6E", display_name: "Me", role: "owner" },
+            { id: "K2XM", display_name: "MOM", role: "member" }
+          ])
+        ];
+        var messages = [
+          createTextMessage({
+            id: "2026-06-09T06-46-00.000Z_SA6E_demo_mama01",
+            chat_id: "demo_mom",
+            from: "SA6E",
+            from_name: "Me",
+            to: ["K2XM"],
+            created_at: "2026-06-09T06:46:00.000Z",
+            text: "Mom, please cook macaroni."
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-47-00.000Z_K2XM_demo_mama02",
+            chat_id: "demo_mom",
+            from: "K2XM",
+            from_name: "MOM",
+            to: ["SA6E"],
+            created_at: "2026-06-09T06:47:00.000Z",
+            text: "Already boiling."
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-48-00.000Z_SA6E_demo_mama03",
+            chat_id: "demo_mom",
+            from: "SA6E",
+            from_name: "Me",
+            to: ["K2XM"],
+            created_at: "2026-06-09T06:48:00.000Z",
+            text: "Git push your feelings."
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-51-00.000Z_W8LQ_demo_home01",
+            chat_id: "demo_home",
+            from: "W8LQ",
+            from_name: "AUNT SVETA",
+            to: ["SA6E", "K2XM"],
+            created_at: "2026-06-09T06:51:00.000Z",
+            text: "Who created a family chat inside a git repository?"
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-52-00.000Z_K2XM_demo_home02",
+            chat_id: "demo_home",
+            from: "K2XM",
+            from_name: "MOM",
+            to: ["SA6E", "W8LQ"],
+            created_at: "2026-06-09T06:52:00.000Z",
+            text: "The child. Do not touch it, it works."
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-54-00.000Z_SA6E_demo_work01",
+            chat_id: "demo_work",
+            from: "SA6E",
+            from_name: "Me",
+            to: ["K2XM"],
+            created_at: "2026-06-09T06:54:00.000Z",
+            text: "Status: no backend, still somehow a messenger."
+          })
+        ];
+
+        return {
+          protocol: createProtocolDocument("2026-06-09T06:40:00.000Z"),
+          users: users,
+          chats: chats,
+          members: members,
+          messages: messages
+        };
       }
 
       function createInboxNotification(recipientId, message) {
@@ -2303,8 +2419,12 @@
         return !!(profile && profile.provider === "github" && profile.repo);
       }
 
+      function isDemoProfile(profile) {
+        return !!(profile && profile.demo);
+      }
+
       function canWriteGitHub(profile) {
-        return !!(canReadGitHub(profile) && profile.token);
+        return !!(!isDemoProfile(profile) && canReadGitHub(profile) && profile.token);
       }
 
       function unsupportedProviderName(profile) {
@@ -3143,7 +3263,7 @@
             return previous;
           }
 
-          if (canReadGitHub(value) && !canWriteGitHub(value)) {
+          if (isDemoProfile(value) || (canReadGitHub(value) && !canWriteGitHub(value))) {
             return putMeta(chatReceiptMetaKey(chatId), marker);
           }
 
@@ -3376,7 +3496,7 @@
       }
 
       function writeReadReceipt(profile, receipt) {
-        if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+        if (isDemoProfile(profile) || (canReadGitHub(profile) && !canWriteGitHub(profile))) {
           return Promise.resolve(null);
         }
 
@@ -3481,6 +3601,10 @@
       }
 
       function transportLabel(profile) {
+        if (isDemoProfile(profile)) {
+          return t("transportDemo");
+        }
+
         if (canWriteGitHub(profile)) {
           return t("transportGithub");
         }
@@ -3525,7 +3649,7 @@
         return Promise.all([
           listOutbox(),
           getMeta(LAST_SYNC_META_KEY),
-          canReadGitHub(value) ? getMeta(GITHUB_RATE_META_KEY) : Promise.resolve(null)
+          canReadGitHub(value) && !isDemoProfile(value) ? getMeta(GITHUB_RATE_META_KEY) : Promise.resolve(null)
         ]).then(function (result) {
           var items = result[0];
           var lastSync = formatSyncTime(result[1]);
@@ -3613,7 +3737,9 @@
           return Promise.reject(unsupportedProviderError(value));
         }
 
-        var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
+        var reindex = isDemoProfile(value)
+          ? reindexFromDemo()
+          : canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
         updateSyncStatus("reindex: " + transportLabel(value) + " · rebuilding");
 
         return reindex.then(function (result) {
@@ -4272,6 +4398,10 @@
           return Promise.reject(unsupportedProviderError(value));
         }
 
+        if (isDemoProfile(value)) {
+          return Promise.reject(new Error(t("demoReadOnlyAction")));
+        }
+
         updateSyncStatus("chat: " + transportLabel(value) + " · creating");
 
         var options = {
@@ -4378,6 +4508,10 @@
         var path = macaroniPath("chats/" + chatId + "/members.json");
         if (isUnsupportedRemoteProvider(profile)) {
           return Promise.reject(unsupportedProviderError(profile));
+        }
+
+        if (isDemoProfile(profile)) {
+          return Promise.reject(new Error(t("demoReadOnlyAction")));
         }
 
         if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
@@ -4630,6 +4764,38 @@
         });
       }
 
+      function reindexFromDemo() {
+        var demo = createDemoData();
+
+        return resetIndex().then(function () {
+          var writes = [
+            putRecord("meta", { key: "protocol", value: demo.protocol })
+          ];
+
+          demo.users.forEach(function (user) {
+            writes.push(putRecord("users", user));
+          });
+          demo.chats.forEach(function (chat) {
+            writes.push(putRecord("chats", chat));
+          });
+          demo.members.forEach(function (membersDocument) {
+            writes.push(putRecord("members", membersDocument));
+          });
+          demo.messages.forEach(function (message) {
+            writes.push(putMessage(message));
+          });
+
+          return Promise.all(writes);
+        }).then(function () {
+          return {
+            chat: demo.chats[0],
+            indexed: 1 + demo.users.length + demo.chats.length + demo.members.length + demo.messages.length,
+            skipped: [],
+            demo: true
+          };
+        });
+      }
+
       function downloadCurrentChatExport() {
         return buildCurrentChatExport().then(function (exported) {
           var blob = new Blob([exported.html], { type: "text/html;charset=utf-8" });
@@ -4705,6 +4871,12 @@
         }
 
         var path = macaroniPath("chats/" + chatId + "/members.json");
+        if (isDemoProfile(profile)) {
+          return getRecord("members", chatId).then(function (membersDocument) {
+            return membersDocument || null;
+          });
+        }
+
         if (canReadGitHub(profile)) {
           return readGitHubJsonSafe(createGitHubConfig(profile), path);
         }
@@ -4735,6 +4907,12 @@
         var peerId = defaultRecipientIds()[0];
         if (isUnsupportedRemoteProvider(profile)) {
           return Promise.reject(unsupportedProviderError(profile));
+        }
+
+        if (isDemoProfile(profile)) {
+          var demoChat = createDemoData().chats[0];
+          currentChatId = demoChat.id;
+          return Promise.resolve(demoChat);
         }
 
         if (canWriteGitHub(profile)) {
@@ -4815,7 +4993,9 @@
         updateSyncStatus("sync: " + transportLabel(value) + " · refreshing");
         var ensureChat = currentChatId ? Promise.resolve(null) : ensureDefaultChat(value);
         return ensureChat.then(function (chat) {
-          var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
+          var reindex = isDemoProfile(value)
+            ? reindexFromDemo()
+            : canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
           return reindex.then(function (result) {
             reindexResult = result;
             return listOutbox();
@@ -4866,14 +5046,14 @@
 
       function scheduleMessagePoll(profile) {
         var value = profile || loadProfile() || {};
-        if (!canReadGitHub(value) || isUnsupportedRemoteProvider(value)) {
+        if (isDemoProfile(value) || !canReadGitHub(value) || isUnsupportedRemoteProvider(value)) {
           stopMessagePolling();
           return;
         }
 
         pollTimer = window.setTimeout(function () {
           var latestProfile = loadProfile() || value;
-          if (!isReadyProfile(latestProfile) || !canReadGitHub(latestProfile) || isUnsupportedRemoteProvider(latestProfile)) {
+          if (isDemoProfile(latestProfile) || !isReadyProfile(latestProfile) || !canReadGitHub(latestProfile) || isUnsupportedRemoteProvider(latestProfile)) {
             stopMessagePolling();
             return;
           }
@@ -4908,6 +5088,10 @@
       function retryOutbox(profile) {
         if (isUnsupportedRemoteProvider(profile)) {
           return Promise.reject(unsupportedProviderError(profile));
+        }
+
+        if (isDemoProfile(profile)) {
+          return updateSyncStatusFromState(profile, "demo: read-only");
         }
 
         updateSyncStatus("sync: " + transportLabel(profile) + " · pull before push");
@@ -4975,6 +5159,10 @@
         var targetChatId = chatId || currentChatId;
         if (isUnsupportedRemoteProvider(profile)) {
           return Promise.reject(unsupportedProviderError(profile));
+        }
+
+        if (isDemoProfile(profile)) {
+          return Promise.reject(new Error(t("demoReadOnlySend")));
         }
 
         return getChatRecipientIds(profile, targetChatId).then(function (recipients) {

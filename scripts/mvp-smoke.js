@@ -111,38 +111,34 @@ async function testGeneratedClientIdPersists(browser) {
 async function testDemoReadOnlyAutoprofile(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addInitScript(() => {
-    window.fetch = (url) => {
-      const value = String(url);
-      if (value.includes("/contents/.macaroni%2Fchats") || value.includes("/contents/.macaroni/chats")) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          text: () => Promise.resolve(JSON.stringify([]))
-        });
-      }
-
-      return Promise.resolve({
-        ok: false,
-        status: 404,
-        statusText: "Not Found",
-        text: () => Promise.resolve(JSON.stringify({ message: "Not Found" }))
-      });
+    window.__macaroniDemoFetchCount = 0;
+    window.fetch = () => {
+      window.__macaroniDemoFetchCount += 1;
+      throw new Error("demo mode must not call fetch");
     };
   });
 
   const page = await openMessenger(context, messengerUrl + "?demo=1", null);
   await page.waitForFunction(() => document.body.dataset.view === "app");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Mom, please cook macaroni.")));
 
-  const profile = await page.evaluate(() => JSON.parse(localStorage.getItem("macaroni.profile.v1")));
-  assert(profile.demo === true, "demo launch did not mark the profile as demo");
-  assert(profile.provider === "github", "demo launch should use GitHub");
-  assert(profile.repo === "https://github.com/vanyapr/makaroshki", "demo launch used the wrong repo");
-  assert(profile.token === "", "demo launch must not create a token");
-  assert(profile.privacyAccepted === true, "demo launch should be ready without setup form");
+  const state = await page.evaluate(async () => ({
+    profile: JSON.parse(localStorage.getItem("macaroni.profile.v1")),
+    fetchCount: window.__macaroniDemoFetchCount,
+    chats: await window.MacaroniStorage.listChats(),
+    messages: await window.MacaroniStorage.listMessages()
+  }));
+  assert(state.profile.demo === true, "demo launch did not mark the profile as demo");
+  assert(state.profile.provider === "github", "demo launch should keep the GitHub repo target");
+  assert(state.profile.repo === "https://github.com/vanyapr/makaroshki", "demo launch used the wrong repo");
+  assert(state.profile.token === "", "demo launch must not create a token");
+  assert(state.profile.privacyAccepted === true, "demo launch should be ready without setup form");
+  assert(state.fetchCount === 0, "demo launch called fetch and may burn GitHub API rate limit");
+  assert(state.chats.length === 3, "demo launch did not index hardcoded chats");
+  assert(state.messages.length === 6, "demo launch did not index hardcoded messages");
 
   const status = await page.locator("#sync-status").textContent();
-  assert(status.includes("GitHub read-only") || status.includes("public read-only"), "demo launch did not show read-only status");
+  assert(status.includes("demo read-only"), "demo launch did not show demo read-only status");
 
   await context.close();
 }
