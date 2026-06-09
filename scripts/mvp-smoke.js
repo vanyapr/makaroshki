@@ -99,8 +99,9 @@ async function testLocalMvpFlow(browser) {
 
   await installProfile(page);
   await page.locator("#message-input").fill("MVP smoke: сварить макарошки");
-  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
+  await page.locator("#message-input").press("Enter");
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("MVP smoke")));
+  assert(await page.locator("#message-input").inputValue() === "", "Enter submit did not clear composer");
 
   let texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("MVP smoke")), "sent message is not visible");

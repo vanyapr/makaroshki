@@ -2724,6 +2724,15 @@
         }
 
         composerBound = true;
+        get("message-input").addEventListener("keydown", function (event) {
+          if (event.key !== "Enter" || event.isComposing) {
+            return;
+          }
+
+          event.preventDefault();
+          get("composer-form").requestSubmit();
+        });
+
         get("composer-form").addEventListener("submit", function (event) {
           event.preventDefault();
           var input = get("message-input");
