@@ -864,7 +864,7 @@
       <aside class="sidebar" aria-label="Чаты">
         <div class="sidebar-header">
           <div class="section-title">Чаты</div>
-          <button class="button add-button" type="button">+</button>
+          <button class="button add-button" id="add-chat" type="button">+</button>
         </div>
 
         <nav class="chat-list" id="chat-list" aria-label="Список чатов">
@@ -2267,6 +2267,55 @@
         return listChats().then(drawChatList);
       }
 
+      function askChatTitle() {
+        var title = window.prompt("Название чата", "Новый чат");
+        return title ? title.trim() : "";
+      }
+
+      function createChatFromUi(profile) {
+        var value = profile || loadProfile() || {};
+        var title = askChatTitle();
+        var peerId = defaultRecipientIds()[0];
+
+        if (!title) {
+          return Promise.resolve(null);
+        }
+
+        updateSyncStatus("chat: " + transportLabel(value) + " · создаём");
+
+        var options = {
+          title: title,
+          owner_id: CLIENT_ID,
+          owner_name: value.displayName || "Я",
+          members: [
+            { id: CLIENT_ID, display_name: value.displayName || "Я", role: "owner" },
+            { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
+          ]
+        };
+
+        var create = canUseGitHub(value)
+          ? initGitHubRepo(value).then(function () {
+            return createGitHubChat(value, options);
+          })
+          : initTestRepo(value).then(function () {
+            return createTestChat(options);
+          });
+
+        return create.then(function (chat) {
+          var meta = chat.meta || chat;
+          currentChatId = meta.id;
+          return putRecord("chats", meta).then(function () {
+            return renderChatList();
+          }).then(function () {
+            return selectChat(meta);
+          }).then(function () {
+            return updateSyncStatusFromState(value, "chat: created");
+          }).then(function () {
+            return meta;
+          });
+        });
+      }
+
       function applySearch() {
         var input = get("search-input");
         var query = input ? input.value.trim() : "";
@@ -2518,6 +2567,14 @@
           retryOutbox(profile).catch(function (error) {
             setAppError("Обновление не получилось: " + error.message);
             updateSyncStatusFromState(profile, "sync: error");
+          });
+        });
+
+        get("add-chat").addEventListener("click", function () {
+          var profile = loadProfile() || {};
+          createChatFromUi(profile).catch(function (error) {
+            setAppError("Чат не создался: " + error.message);
+            updateSyncStatusFromState(profile, "chat: error");
           });
         });
 

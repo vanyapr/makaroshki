@@ -119,6 +119,16 @@ async function testLocalMvpFlow(browser) {
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("рабочий чат")), "dynamic chat selection did not render chat messages");
 
+  page.once("dialog", async (dialog) => {
+    assert(dialog.message() === "Название чата", "unexpected create chat prompt");
+    await dialog.accept("НОВЫЙ_ЧАТ");
+  });
+  await page.locator("#add-chat").click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("НОВЫЙ_ЧАТ"));
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("НОВЫЙ_ЧАТ")));
+  const chats = await page.evaluate(() => window.MacaroniStorage.listChats());
+  assert(chats.some((chat) => chat.title === "НОВЫЙ_ЧАТ"), "created chat was not stored");
+
   await context.close();
 }
 

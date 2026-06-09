@@ -272,6 +272,8 @@ Composer sends messages to current chat members from `members.json`, excluding t
 
 The sidebar is rendered from the local `chats` store after init/reindex. Clicking a chat changes the current `chat_id`, title, and message list; the static HTML list is only a startup placeholder before initialization.
 
+The `+` button creates a new chat through a simple title prompt, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
+
 Done when:
 
 - main actions are visible without instructions;
