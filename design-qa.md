@@ -13,7 +13,7 @@ Viewport: `1536x1024`
 - Unsupported browser screen uses the same visual language: centered bordered panel, monospace text, no decorative assets, no localhost fallback.
 - First-run setup screen uses the same visual language: centered bordered panel, mono labels, plain controls, no extra decoration.
 - Settings screen uses the same visual language and keeps reset/save/back controls clear.
-- Required unsupported text is present: "Ваш браузер недостаточно смешной для запуска Macaroni Messenger."
+- Required unsupported text is present: "Your browser is not funny enough to run Macaroni Messenger."
 - No external CSS, JS, images, or assets are required.
 
 ## Issues

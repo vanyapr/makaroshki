@@ -247,6 +247,8 @@ Done when:
 
 Goal: make the app usable by a small group on a regular basis.
 
+Language contract: English is the default language for `README.md`, `index.html`, and the `messenger.html` user interface. Russian documents remain as localization and historical context, but the default user-facing entry is English.
+
 Steps:
 
 1. Sidebar with chat list.

@@ -100,8 +100,9 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 
 ## Documents
 
-- `README.md` - short project front page in Russian.
-- `README.en.md` - short project front page in English.
+- `README.md` - main English project front page.
+- `README.en.md` - English copy of the main front page.
+- `README.ru.md` - preserved Russian README.
 - `PHILOSOPHY.md` - project philosophy in Russian.
 - `PHILOSOPHY.en.md` - project philosophy in English.
 - `docs/product-brief.md` - original detailed brief in Russian.

@@ -38,7 +38,7 @@ async function openMessenger(context, url = messengerUrl, clientId = "SA6E") {
 async function installProfile(page, options = {}) {
   const profile = Object.assign({
     clientId: await page.evaluate(() => window.MacaroniSupport.clientId),
-    displayName: "Я",
+    displayName: "Me",
     provider: "other",
     repo: "https://github.com/vanyapr/makaroshki",
     token: "",
@@ -63,7 +63,7 @@ async function testUnsupportedScreen(browser) {
   await page.setContent(fs.readFileSync(messengerPath, "utf8"), { waitUntil: "load" });
   await page.waitForFunction(() => document.body.dataset.support === "unsupported");
   const title = await page.locator(".unsupported-title").textContent();
-  assert(title.includes("недостаточно смешной"), "unsupported screen title is missing");
+  assert(title.includes("not funny enough"), "unsupported screen title is missing");
   await page.close();
 }
 
@@ -97,7 +97,7 @@ async function testPollingContract(browser) {
   const intervals = await page.evaluate(() => {
     const baseProfile = {
       clientId: "SA6E",
-      displayName: "Я",
+      displayName: "Me",
       provider: "github",
       repo: "https://github.com/vanyapr/makaroshki",
       privacyAccepted: true
@@ -124,16 +124,16 @@ async function testLocalMvpFlow(browser) {
   const page = await openMessenger(context);
 
   await page.waitForFunction(() => document.body.dataset.support === "supported");
-  assert(await page.locator(".setup .screen-title").textContent() === "Первый запуск", "first-run screen is missing");
+  assert(await page.locator(".setup .screen-title").textContent() === "First Run", "first-run screen is missing");
   assert(await page.locator("[data-client-id]").first().textContent() === "SA6E", "CLIENT_ID is not rendered");
 
   await installProfile(page);
-  await page.locator("#message-input").fill("MVP smoke: сварить макарошки");
+  await page.locator("#message-input").fill("MVP smoke: cook macaroni");
   await page.locator("#message-input").press("Enter");
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("MVP smoke")));
   assert(await page.locator("#message-input").inputValue() === "", "Enter submit did not clear composer");
 
-  await page.locator("#message-input").fill("MVP smoke: ссылка https://example.com/makaroni.");
+  await page.locator("#message-input").fill("MVP smoke: link https://example.com/makaroni.");
   await page.locator("#message-input").press("Enter");
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text a")].some((node) => node.href === "https://example.com/makaroni"));
   const linkInfo = await page.evaluate(() => {
@@ -152,13 +152,13 @@ async function testLocalMvpFlow(browser) {
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("MVP smoke")), "message was lost after reload");
 
-  await page.locator("#search-input").fill("макарошки");
+  await page.locator("#search-input").fill("macaroni");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: 1"));
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
   await page.locator("#settings-reindex").click();
-  await page.waitForFunction(() => document.querySelector("#settings-index-status").textContent.includes("Индекс пересобран"));
+  await page.waitForFunction(() => document.querySelector("#settings-index-status").textContent.includes("Index rebuilt"));
   await page.locator("#settings-back").click();
   await page.waitForFunction(() => document.body.dataset.view === "app");
   texts = await messageTexts(page);
@@ -166,71 +166,71 @@ async function testLocalMvpFlow(browser) {
 
   await page.evaluate(async () => {
     const chat = await window.MacaroniTestRepo.createChat({
-      title: "РАБОТА",
+      title: "WORK",
       owner_id: "SA6E",
-      owner_name: "Я",
+      owner_name: "Me",
       members: [
-        { id: "SA6E", display_name: "Я", role: "owner" },
-        { id: "K2XM", display_name: "МАМА", role: "member" }
+        { id: "SA6E", display_name: "Me", role: "owner" },
+        { id: "K2XM", display_name: "MOM", role: "member" }
       ]
     });
     await window.MacaroniTestRepo.sendMessage({
       chat_id: chat.meta.id,
       from: "SA6E",
       to: ["K2XM"],
-      text: "MVP smoke: рабочий чат"
+      text: "MVP smoke: work chat"
     });
     await window.MacaroniTestRepo.sendMessage({
       chat_id: chat.meta.id,
       from: "K2XM",
       to: ["SA6E"],
-      text: "MVP smoke: автор из members"
+      text: "MVP smoke: author from members"
     });
   });
   await page.locator("#sync-refresh").click();
-  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("РАБОТА")));
-  await page.locator("#chat-list .chat-item", { hasText: "РАБОТА" }).click();
-  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("РАБОТА"));
-  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("рабочий чат")));
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("WORK")));
+  await page.locator("#chat-list .chat-item", { hasText: "WORK" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("WORK"));
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("work chat")));
   texts = await messageTexts(page);
-  assert(texts.some((text) => text.includes("рабочий чат")), "dynamic chat selection did not render chat messages");
-  await page.locator("#search-input").fill("мама");
+  assert(texts.some((text) => text.includes("work chat")), "dynamic chat selection did not render chat messages");
+  await page.locator("#search-input").fill("mom");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: 1"));
   texts = await messageTexts(page);
-  assert(texts.some((text) => text.includes("автор из members")), "search did not match member display name");
+  assert(texts.some((text) => text.includes("author from members")), "search did not match member display name");
   await page.locator("#search-input").fill("");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: off"));
-  await page.locator("#chat-list .chat-item", { hasText: "МАМА" }).click();
-  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("МАМА"));
+  await page.locator("#chat-list .chat-item", { hasText: "MOM" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("MOM"));
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
-  assert((await page.locator("#chat-title").textContent()).includes("МАМА"), "sync did not preserve selected chat");
-  await page.locator("#message-input").fill("MVP smoke: сообщение в маму после переключения");
+  assert((await page.locator("#chat-title").textContent()).includes("MOM"), "sync did not preserve selected chat");
+  await page.locator("#message-input").fill("MVP smoke: message to mom after switch");
   await page.locator("#message-input").press("Enter");
-  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("сообщение в маму")));
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("message to mom")));
   const switchedSend = await page.evaluate(async () => {
     const chats = await window.MacaroniStorage.listChats();
-    const mama = chats.find((chat) => chat.title === "МАМА");
-    const work = chats.find((chat) => chat.title === "РАБОТА");
+    const mama = chats.find((chat) => chat.title === "MOM");
+    const work = chats.find((chat) => chat.title === "WORK");
     const mamaMessages = await window.MacaroniStorage.listMessages(mama.id);
     const workMessages = await window.MacaroniStorage.listMessages(work.id);
     return {
-      inMama: mamaMessages.some((message) => message.text.includes("сообщение в маму")),
-      inWork: workMessages.some((message) => message.text.includes("сообщение в маму"))
+      inMama: mamaMessages.some((message) => message.text.includes("message to mom")),
+      inWork: workMessages.some((message) => message.text.includes("message to mom"))
     };
   });
   assert(switchedSend.inMama, "message after switching chats was not stored in selected chat");
   assert(!switchedSend.inWork, "message after switching chats leaked into previous/default chat");
 
   page.once("dialog", async (dialog) => {
-    assert(dialog.message() === "Название чата", "unexpected create chat prompt");
-    await dialog.accept("НОВЫЙ_ЧАТ");
+    assert(dialog.message() === "Chat title", "unexpected create chat prompt");
+    await dialog.accept("NEW_CHAT");
   });
   await page.locator("#add-chat").click();
-  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("НОВЫЙ_ЧАТ"));
-  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("НОВЫЙ_ЧАТ")));
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("NEW_CHAT"));
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("NEW_CHAT")));
   const chats = await page.evaluate(() => window.MacaroniStorage.listChats());
-  assert(chats.some((chat) => chat.title === "НОВЫЙ_ЧАТ"), "created chat was not stored");
+  assert(chats.some((chat) => chat.title === "NEW_CHAT"), "created chat was not stored");
 
   const infoTextPromise = page.waitForEvent("dialog").then(async (dialog) => {
     const message = dialog.message();
@@ -239,15 +239,15 @@ async function testLocalMvpFlow(browser) {
   });
   await page.locator("#chat-info").click();
   const infoText = await infoTextPromise;
-  assert(infoText.includes("Чат: НОВЫЙ_ЧАТ"), "chat info title is missing");
+  assert(infoText.includes("Chat: NEW_CHAT"), "chat info title is missing");
   assert(infoText.includes("chat_id:"), "chat info id is missing");
-  assert(infoText.includes("участники:"), "chat info members are missing");
+  assert(infoText.includes("members:"), "chat info members are missing");
   assert(infoText.includes("transport:"), "chat info transport is missing");
   assert(infoText.includes("outbox:"), "chat info outbox is missing");
 
   await page.evaluate(async () => {
     const chat = await window.MacaroniTestRepo.createChat({
-      title: "ЧУЖОЙ_ЧАТ",
+      title: "FOREIGN_CHAT",
       owner_id: "K2XM",
       owner_name: "K2XM",
       members: [
@@ -258,32 +258,32 @@ async function testLocalMvpFlow(browser) {
       chat_id: chat.meta.id,
       from: "K2XM",
       to: [],
-      text: "MVP smoke: чужой чат"
+      text: "MVP smoke: foreign chat"
     });
   });
   await page.locator("#sync-refresh").click();
-  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("ЧУЖОЙ_ЧАТ")));
-  await page.locator("#chat-list .chat-item", { hasText: "ЧУЖОЙ_ЧАТ" }).click();
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("FOREIGN_CHAT")));
+  await page.locator("#chat-list .chat-item", { hasText: "FOREIGN_CHAT" }).click();
   let dialogIndex = 0;
   page.on("dialog", async (dialog) => {
     dialogIndex += 1;
     if (dialogIndex === 1) {
-      assert(dialog.message().includes("Чат: ЧУЖОЙ_ЧАТ"), "join info dialog title is missing");
+      assert(dialog.message().includes("Chat: FOREIGN_CHAT"), "join info dialog title is missing");
       await dialog.accept();
       return;
     }
     if (dialogIndex === 2) {
-      assert(dialog.message().includes("Вас нет в members.json"), "join confirm text is missing");
+      assert(dialog.message().includes("You are not in this chat"), "join confirm text is missing");
       await dialog.accept();
       return;
     }
-    assert(dialog.message().includes("Вы добавлены в members.json"), "join success text is missing");
+    assert(dialog.message().includes("You were added to members.json"), "join success text is missing");
     await dialog.accept();
   });
   await page.locator("#chat-info").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
   const joinedMembers = await page.evaluate(async () => {
-    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "ЧУЖОЙ_ЧАТ");
+    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "FOREIGN_CHAT");
     const members = await window.MacaroniTestRepo.readJson(".macaroni/chats/" + chat.id + "/members.json");
     return members;
   });
@@ -292,7 +292,7 @@ async function testLocalMvpFlow(browser) {
 
   await page.evaluate(async () => {
     const chat = await window.MacaroniTestRepo.createChat({
-      title: "БЕЗ_MEMBERS",
+      title: "MISSING_MEMBERS",
       owner_id: "K2XM",
       owner_name: "K2XM",
       members: [
@@ -322,8 +322,8 @@ async function testLocalMvpFlow(browser) {
     });
   });
   await page.locator("#sync-refresh").click();
-  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("БЕЗ_MEMBERS")));
-  await page.locator("#chat-list .chat-item", { hasText: "БЕЗ_MEMBERS" }).click();
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("MISSING_MEMBERS")));
+  await page.locator("#chat-list .chat-item", { hasText: "MISSING_MEMBERS" }).click();
   dialogIndex = 0;
   page.on("dialog", async (dialog) => {
     dialogIndex += 1;
@@ -341,7 +341,7 @@ async function testLocalMvpFlow(browser) {
   await page.locator("#chat-info").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
   const repairedMembers = await page.evaluate(async () => {
-    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "БЕЗ_MEMBERS");
+    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "MISSING_MEMBERS");
     return window.MacaroniTestRepo.readJson(".macaroni/chats/" + chat.id + "/members.json");
   });
   assert(repairedMembers.members.some((member) => member.id === "K2XM"), "missing members repair lost creator");
@@ -427,21 +427,21 @@ async function testGitHubInboxReindex(browser) {
       ".macaroni/users/SA6E.json": {
         version: 1,
         id: "SA6E",
-        display_name: "Я",
+        display_name: "Me",
         created_at: "2026-06-09T04:00:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
       ".macaroni/users/K2XM.json": {
         version: 1,
         id: "K2XM",
-        display_name: "МАМА",
+        display_name: "MOM",
         created_at: "2026-06-09T04:00:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
       [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
-        title: "МАМА",
+        title: "MOM",
         created_at: "2026-06-09T04:00:00.000Z",
         created_by: "K2XM",
         visibility: "repo",
@@ -452,7 +452,7 @@ async function testGitHubInboxReindex(browser) {
         chat_id: chatId,
         members: [
           { id: "SA6E", display_name: "SA6E", role: "member" },
-          { id: "K2XM", display_name: "МАМА", role: "owner" }
+          { id: "K2XM", display_name: "MOM", role: "owner" }
         ]
       },
       [".macaroni/inbox/SA6E/" + messageId + ".json"]: {
@@ -551,7 +551,7 @@ async function testGitHubInboxReindex(browser) {
   const texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("Remote inbox hello")), "GitHub inbox message was not indexed");
   const authors = await page.evaluate(() => [...document.querySelectorAll(".message-row .author")].map((node) => node.textContent));
-  assert(authors.some((author) => author === "МАМА:"), "GitHub inbox author name was not rendered: " + authors.join(", "));
+  assert(authors.some((author) => author === "MOM:"), "GitHub inbox author name was not rendered: " + authors.join(", "));
 
   await context.close();
 }
@@ -574,7 +574,7 @@ async function testGitHubSkipsUnchangedReindex(browser) {
       ".macaroni/users/SA6E.json": {
         version: 1,
         id: "SA6E",
-        display_name: "Я",
+        display_name: "Me",
         created_at: "2026-06-09T07:00:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
@@ -868,14 +868,14 @@ async function testGitHubSendWrites(browser) {
       ".macaroni/users/SA6E.json": {
         version: 1,
         id: "SA6E",
-        display_name: "Я",
+        display_name: "Me",
         created_at: "2026-06-09T04:30:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
       [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
-        title: "МАМА",
+        title: "MOM",
         created_at: "2026-06-09T04:30:00.000Z",
         created_by: "SA6E",
         visibility: "repo",

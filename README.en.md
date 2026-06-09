@@ -1,325 +1,402 @@
 # Macaroni Messenger
 
-## A messenger that fits into one HTML file
+## A messenger implemented as a single HTML file
 
-Macaroni Messenger is a messenger with no servers, no database, no registration, and no privacy promises.
+Russian version: [README.ru.md](README.ru.md).
 
-Messages live in a git repository.
+Macaroni Messenger is a distributed messaging system implemented as a single HTML file.
 
-The client is a single HTML file that you can open in a browser.
+Messages are stored in Git repositories.
 
-If you know how to download a web page, you already know how to install Macaroni Messenger.
+The client is an HTML document.
 
-Documents:
+The backend does not exist.
 
-- [PHILOSOPHY.en.md](PHILOSOPHY.en.md) - the main project principle.
-- [docs/product-brief.en.md](docs/product-brief.en.md) - detailed product and architecture brief.
-- [docs/roadmap.en.md](docs/roadmap.en.md) - current roadmap.
-- [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
-- [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
-- [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
-- [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
-- [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
+The database is Git.
 
-Russian versions:
+The transport layer is Git.
 
-- [README.md](README.md)
-- [PHILOSOPHY.md](PHILOSOPHY.md)
-- [docs/product-brief.md](docs/product-brief.md)
-- [docs/roadmap.md](docs/roadmap.md)
-- [docs/development-steps.md](docs/development-steps.md)
-- [docs/protocol-v1.md](docs/protocol-v1.md)
-- [docs/github-provider.md](docs/github-provider.md)
-- [docs/access-token.md](docs/access-token.md)
-- [docs/gitverse-token.md](docs/gitverse-token.md)
+The synchronization layer is Git.
 
-## Main Feature
+The history storage is Git.
 
-The primary distribution is a local file named `messenger.html`.
+This sounds like a terrible idea.
 
-Double click.
+Unfortunately, it works.
 
-It works.
-
-No `localhost`.
-
-If a browser cannot persist data for a local HTML file or the HTTPS version on GitHub Pages, that is not a Macaroni Messenger problem. That browser is unsupported.
-
-## Philosophy
-
-Modern messengers solve problems for billions of users.
-
-Macaroni Messenger solves this problem:
-
-> Text your mom: "Boil some macaroni."
-
-That does not require Kubernetes.
-
-That does not require a PostgreSQL cluster.
-
-That does not require a backend.
-
-It requires a text file and a way to deliver it.
+---
 
 ## Main Principle
 
-Git is the source of truth.
+Do not make things complicated when they can be funny.
 
-The local database is a cache.
+This does not prevent them from being real software.
 
-If the local database breaks, it is rebuilt from git.
+Macaroni Messenger is not a joke.
 
-If the client is deleted, it is rebuilt from git.
+It simply refuses to introduce complexity without a reason.
 
-If the device is lost, the history remains in git.
+---
+
+## Why Does This Exist?
+
+Macaroni Messenger was born from a simple observation.
+
+Sending a message to your mother should not require infrastructure comparable to a small bank.
+
+Modern communication systems are increasingly built around:
+
+- registrations
+- phone numbers
+- centralized services
+- applications
+- updates
+- dependencies
+- regulations
+- infrastructure
+
+Macaroni Messenger starts with a different question:
+
+What is the minimum amount of technology required to send:
+
+> Mom, please cook macaroni.
+
+The answer appears to be:
+
+- HTML
+- Git
+- JSON
+
+---
 
 ## Architecture
 
 Frontend:
 
-- HTML;
-- CSS;
-- JavaScript.
+- HTML
+- CSS
+- JavaScript
 
 Backend:
 
-- none.
+- none
 
 Database:
 
-- git.
+- Git
 
-Local storage:
+Synchronization:
 
-- `localStorage` for token and settings;
-- `IndexedDB` for index and cache.
-
-Sync:
-
-- `git fetch`;
-- `git pull`;
-- `git push`.
+- git fetch
+- git pull
+- git push
 
 Search:
 
-- local index.
+- local index
 
-Notifications:
+Storage:
 
-- polling.
+- local browser storage
+
+---
+
+## The Entire Client Is A File
+
+The client is:
+
+```text
+messenger.html
+```
+
+Not an installer.
+
+Not an archive.
+
+Not a launcher.
+
+Not a package.
+
+Not a platform.
+
+A file.
+
+Double click.
+
+The messenger starts.
+
+---
+
+## Distribution
+
+Macaroni Messenger can be distributed as:
+
+```text
+messenger.html
+```
+
+via:
+
+- email
+- USB flash drive
+- Git repository
+- website
+- cloud storage
+- random forum attachment
+
+If a browser can open it, it works.
+
+---
+
+## Deployment
+
+How do I deploy Macaroni Messenger?
+
+Copy the file somewhere.
+
+Deployment completed.
+
+---
 
 ## Privacy
 
-Macaroni Messenger is not a private messenger.
+Macaroni Messenger does not guarantee privacy.
 
-We do not promise privacy.
+In fact, it explicitly guarantees the opposite.
 
-We do not market privacy.
+If your repository is public:
 
-We do not create a false sense of privacy.
+your messages are public.
 
-If your repository is public, your messages are public.
+If your repository is private:
 
-If your repository is private, your messages are available to everyone who has access to that repository.
+everyone with repository access can read them.
 
-If you need privacy, use encryption.
+If you need privacy:
 
-## Encryption
+install an encryption plugin.
 
-Encryption is not part of the base protocol.
+Good luck.
 
-Encryption is a plugin.
+---
 
-You can use:
+## Identity
 
-- PGP;
-- age;
-- custom plugins;
-- custom algorithms.
+Every Macaroni Messenger client receives a small identifier.
 
-The base client works with plain text.
-
-## Registration
-
-Macaroni Messenger has no registration.
-
-To start using it:
-
-1. Create an account on GitVerse, GitLab, GitHub, or any other git hosting provider.
-2. Create an access token.
-3. Enter the repository.
-4. Start writing messages.
-
-## User Identity
-
-On first open, `messenger.html` creates a short instance identifier and saves it in `localStorage`.
-
-This is not a security signature.
-
-It is a Macaroni-style signature:
-
-```js
-localStorage["macaroni.client_id.v1"] = "SA6E";
-```
-
-Macaroni Messenger uses a distributed user identification system.
-
-In practice:
+Example:
 
 ```text
 SA6E
-K2XM
-W8LQ
 ```
 
-We do not guarantee identifier uniqueness.
+We do not guarantee uniqueness.
 
 We tried.
 
-If two users get the same identifier, we recommend they meet each other.
+If two users receive the same identifier:
 
-Macaroni Messenger does not include military-grade cryptography.
+we recommend introducing them to each other.
 
-Instead it uses the technology known as "four characters, seems to work".
+---
 
-If `localStorage` is cleared, the browser forgets the old `CLIENT_ID` and creates a new one.
+## Storage Philosophy
 
-## CLIENT_ID FAQ
+Git is the source of truth.
 
-### How unique is the identifier?
+Everything else is a cache.
 
-Not very.
+If local storage disappears:
 
-### Can collisions happen?
+rebuild it.
 
-Yes.
+If the index disappears:
 
-### What happens during a collision?
+rebuild it.
 
-Nothing good.
+If the browser profile disappears:
 
-### Why not UUID?
+rebuild it.
 
-Because we tried to keep the HTML file small.
+Git remains.
 
-### Why not a cryptographic key?
+---
 
-Because we were lazy.
+## Message Format
 
-### Can this actually work?
+Messages are files.
 
-Yes.
+Files are messages.
 
-For a family, friends, and a small team, `32^4 = 1,048,576` possible identifiers are enough, as long as the project does not pretend to be infrastructure for billions of users.
+A message is a JSON document.
 
-## Installation
+Nothing more.
 
-Choose the style you like.
+Nothing less.
 
-### Option 1
-
-Download `messenger.html`.
-
-Open `messenger.html`.
-
-Use it.
-
-### Option 2
-
-Save the web page with Save As.
-
-Use it.
-
-### Option 3
-
-Run an Electron wrapper around the same HTML file.
-
-Use it.
-
-## Compatibility
-
-On first launch, the client runs feature detection.
-
-Required:
-
-- `file://` or `https://` origin storage;
-- `localStorage`;
-- `IndexedDB`;
-- `WebCrypto`.
-
-Recommended:
-
-- Chrome / Chromium;
-- Edge.
-
-If the browser fails the check, the client shows this screen:
-
-> Your browser is not funny enough to run Macaroni Messenger.
-
-We do not suggest starting a local server.
-
-Open `messenger.html` in a normal browser.
+---
 
 ## Scaling
 
-If a chat becomes too large:
+How does Macaroni Messenger scale?
 
-Create a new repository.
+Poorly.
 
-## Message Deletion
+If a repository becomes too large:
 
-Messages are not deleted.
+create a new repository.
 
-Messages are part of history.
+---
 
-If you need to hide a message, create a hide event.
+## Supported Infrastructure
 
-The history remains available.
+Macaroni Messenger officially supports:
 
-Git remembers.
+- GitHub
+- GitLab
+- GitVerse
+- Forgejo
+- Gitea
+- a server in your basement
 
-## Attachments
+---
 
-By default, attachments are links.
+## Basement Support
 
-Macaroni Messenger is not designed to store gigabytes of binary files inside git.
+Macaroni Messenger officially supports basement deployments.
 
-## Why HTML
+If your server:
+
+- stands on a chair
+- uses an extension cord
+- makes suspicious noises
+- is located near jars of pickles
+
+it is considered a supported configuration.
+
+---
+
+## Enterprise Edition
+
+Enterprise Edition differs from Community Edition by having:
+
+a second basement.
+
+---
+
+## Development Process
+
+Macaroni Messenger was built overnight.
+
+The author wrote a roadmap.
+
+The author went to sleep.
+
+The coding agent continued implementing the roadmap.
+
+The author woke up.
+
+The messenger existed.
+
+This repository is the result of that mistake.
+
+---
+
+## Vibe Coding
+
+Macaroni Messenger is proudly:
+
+1000% vibecoded.
+
+Not because nobody knew what they were doing.
+
+But because modern tooling allows ideas to become software before common sense has a chance to stop them.
+
+---
+
+## AGENT RULES
+
+Before implementing anything, ask:
+
+Can this be solved with fewer files?
+
+Can this be solved without a backend?
+
+Can this be solved using Git?
+
+Can this be solved using JSON?
+
+Can this be solved using HTML?
+
+Can this be solved in a way that is both functional and funny?
+
+Prefer that solution.
+
+---
+
+## Things We Refuse To Build
+
+- Kubernetes support
+- Microservices
+- Service mesh
+- Message broker
+- Blockchain
+- Enterprise AI features
+- Complexity for the sake of complexity
+
+---
+
+## FAQ
+
+Is this a joke?
+
+Partially.
+
+Does it actually work?
+
+Unfortunately, yes.
+
+Why Git?
+
+Because Git already knows how to store files.
+
+Why HTML?
 
 Because it is funny.
 
-Because it is convenient.
+Why not Telegram?
 
-Because it works.
+Telegram already exists.
 
-Because in a world where apps are hundreds of megabytes, the idea of a messenger in one HTML file sounds implausible.
+Why not Matrix?
 
-But that is exactly how it works.
+We just wanted to tell our mom to cook macaroni.
 
-## Slogans
+Why is there more documentation than source code?
 
-A messenger that hides nothing.
+Because explaining the project is harder than implementing it.
 
-Your messages are guaranteed not to be private.
+---
 
-Git push your feelings.
+## What Is Macaroni Messenger?
 
-A chat you can fork.
+Macaroni Messenger is simultaneously:
 
-Real programming in HTML.
+- a joke
+- a messenger
+- a Git client
+- a distributed append-only message log
+- a static web application
+- a peer-to-peer communication protocol
 
-## Target Audience
+and, accidentally,
 
-- families;
-- friends;
-- small teams;
-- developers;
-- people who need a simple chat.
+a real product.
 
-Macaroni Messenger is not built for billions of users.
+---
 
-It is built for people who think git already does more than most modern applications.
+## Final Statement
 
-## Conclusion
+If a message cannot be committed,
 
-If a message cannot be committed, was it worth sending?
+was it worth sending?

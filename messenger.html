@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -716,17 +716,17 @@
   </style>
 </head>
 <body data-support="pending" data-view="app">
-  <section class="unsupported" aria-label="Браузер не поддерживается">
+  <section class="unsupported" aria-label="Browser is not supported">
     <div class="unsupported-panel">
-      <h1 class="unsupported-title">Ваш браузер недостаточно смешной для запуска Macaroni Messenger.</h1>
-      <p class="unsupported-copy">Требуется:</p>
+      <h1 class="unsupported-title">Your browser is not funny enough to run Macaroni Messenger.</h1>
+      <p class="unsupported-copy">Required:</p>
       <ul class="unsupported-list">
-        <li><code>file://</code> или <code>https://</code> origin storage</li>
+        <li><code>file://</code> or <code>https://</code> origin storage</li>
         <li><code>localStorage</code></li>
         <li><code>IndexedDB</code></li>
         <li><code>WebCrypto</code></li>
       </ul>
-      <div class="support-checks" aria-label="Проверки браузера">
+      <div class="support-checks" aria-label="Browser checks">
         <div class="support-check">
           <span><code>file://</code> / <code>https://</code></span>
           <span class="support-value" data-check="supportedOrigin">?</span>
@@ -744,27 +744,27 @@
           <span class="support-value" data-check="crypto">?</span>
         </div>
       </div>
-      <p class="unsupported-copy">Рекомендуется: Chrome / Chromium / Edge.</p>
-      <p class="unsupported-note">Мы не предлагаем поднять локальный сервер. Откройте <code>messenger.html</code> нормальным браузером.</p>
+      <p class="unsupported-copy">Recommended: Chrome / Chromium / Edge.</p>
+      <p class="unsupported-note">We do not suggest running a local server. Open <code>messenger.html</code> in a normal browser.</p>
     </div>
   </section>
 
-  <section class="setup" aria-label="Первый запуск">
+  <section class="setup" aria-label="First run">
     <div class="setup-panel">
-      <h1 class="screen-title">Первый запуск</h1>
-      <p class="screen-copy">Macaroni Messenger не является приватным мессенджером. Сообщения будут лежать в git-репозитории. Если репозиторий публичный, переписка публичная. Сюрпризов не будет.</p>
+      <h1 class="screen-title">First Run</h1>
+      <p class="screen-copy">Macaroni Messenger is not a private messenger. Messages live in a git repository. If the repository is public, the chat is public. No surprises.</p>
       <p class="storage-status" data-storage-status aria-live="polite"></p>
 
       <form class="profile-form" id="setup-form">
         <div class="field">
           <label class="field-label" for="setup-client-id">CLIENT_ID</label>
           <div class="readonly-value" id="setup-client-id" data-client-id>SA6E</div>
-          <p class="field-note">Четыре символа, вроде работает. Коллизии возможны.</p>
+          <p class="field-note">Four characters, seems to work. Collisions are possible.</p>
         </div>
 
         <div class="field">
-          <label class="field-label" for="setup-display-name">Имя</label>
-          <input class="text-field" id="setup-display-name" name="displayName" type="text" value="Я" autocomplete="name" required>
+          <label class="field-label" for="setup-display-name">Name</label>
+          <input class="text-field" id="setup-display-name" name="displayName" type="text" value="Me" autocomplete="name" required>
         </div>
 
         <div class="field">
@@ -773,36 +773,36 @@
             <option value="github">GitHub</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
-            <option value="other">Другой</option>
+            <option value="other">Other</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="field-label" for="setup-repo">Репозиторий</label>
+          <label class="field-label" for="setup-repo">Repository</label>
           <input class="text-field" id="setup-repo" name="repo" type="text" value="https://github.com/vanyapr/makaroshki" autocomplete="off" required>
         </div>
 
         <div class="field">
-          <label class="field-label" for="setup-token">Токен доступа</label>
+          <label class="field-label" for="setup-token">Access Token</label>
           <input class="text-field" id="setup-token" name="token" type="password" autocomplete="off">
-          <p class="field-note">Токен сохраняется в localStorage. Это не банковский сейф. Это HTML-файл, который честно предупреждает. <a href="docs/access-token.md" target="_blank" rel="noreferrer">Как получить токен доступа</a>.</p>
+          <p class="field-note">The token is saved in localStorage. This is not a bank vault. This is an HTML file that warned you honestly. <a href="docs/access-token.en.md" target="_blank" rel="noreferrer">How to get an access token</a>.</p>
         </div>
 
         <label class="checkbox-row">
           <input id="setup-privacy" name="privacyAccepted" type="checkbox" required>
-          <span class="checkbox-label">Я понимаю, что Macaroni Messenger не обещает приватность.</span>
+          <span class="checkbox-label">I understand that Macaroni Messenger does not promise privacy.</span>
         </label>
 
         <div class="form-actions">
-          <button class="button" type="submit">Сохранить</button>
+          <button class="button" type="submit">Save</button>
         </div>
       </form>
     </div>
   </section>
 
-  <section class="settings-screen" aria-label="Настройки">
+  <section class="settings-screen" aria-label="Settings">
     <div class="settings-panel">
-      <h1 class="screen-title">Настройки</h1>
+      <h1 class="screen-title">Settings</h1>
       <p class="storage-status" data-storage-status aria-live="polite"></p>
 
       <form class="profile-form" id="settings-form">
@@ -812,7 +812,7 @@
         </div>
 
         <div class="field">
-          <label class="field-label" for="settings-display-name">Имя</label>
+          <label class="field-label" for="settings-display-name">Name</label>
           <input class="text-field" id="settings-display-name" name="displayName" type="text" autocomplete="name" required>
         </div>
 
@@ -822,36 +822,36 @@
             <option value="github">GitHub</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
-            <option value="other">Другой</option>
+            <option value="other">Other</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="field-label" for="settings-repo">Репозиторий</label>
+          <label class="field-label" for="settings-repo">Repository</label>
           <input class="text-field" id="settings-repo" name="repo" type="text" autocomplete="off" required>
         </div>
 
         <div class="field">
-          <label class="field-label" for="settings-token">Токен доступа</label>
+          <label class="field-label" for="settings-token">Access Token</label>
           <input class="text-field" id="settings-token" name="token" type="password" autocomplete="off">
-          <p class="field-note">Токен хранится локально в этом браузере. Секретность уровня "ну мы предупреждали". <a href="docs/access-token.md" target="_blank" rel="noreferrer">Как получить токен доступа</a>.</p>
+          <p class="field-note">The token is stored locally in this browser. Security level: we did warn you. <a href="docs/access-token.en.md" target="_blank" rel="noreferrer">How to get an access token</a>.</p>
         </div>
 
         <div class="field">
-          <span class="field-label">Локальный индекс</span>
-          <p class="field-note" id="settings-index-status">IndexedDB является кешем. Если он поехал, его можно пересобрать из git-репозитория.</p>
-          <button class="button" id="settings-reindex" type="button">Пересобрать индекс</button>
+          <span class="field-label">Local Index</span>
+          <p class="field-note" id="settings-index-status">IndexedDB is a cache. If it breaks, rebuild it from the git repository.</p>
+          <button class="button" id="settings-reindex" type="button">Rebuild Index</button>
         </div>
 
         <label class="checkbox-row">
           <input id="settings-privacy" name="privacyAccepted" type="checkbox" required>
-          <span class="checkbox-label">Я понимаю, что сообщения не приватны по умолчанию.</span>
+          <span class="checkbox-label">I understand that messages are not private by default.</span>
         </label>
 
         <div class="form-actions">
-          <button class="button" type="submit">Сохранить</button>
-          <button class="button" id="settings-back" type="button">Назад</button>
-          <button class="button danger" id="settings-reset" type="button">Сбросить</button>
+          <button class="button" type="submit">Save</button>
+          <button class="button" id="settings-back" type="button">Back</button>
+          <button class="button danger" id="settings-reset" type="button">Reset</button>
         </div>
       </form>
     </div>
@@ -862,68 +862,68 @@
       <div class="brand">Macaroni Messenger</div>
       <div class="top-actions">
         <div class="client-id">ID: <span data-client-id>SA6E</span></div>
-        <button class="button settings" id="open-settings" type="button">Настройки</button>
+        <button class="button settings" id="open-settings" type="button">Settings</button>
       </div>
     </header>
 
     <div class="main">
-      <aside class="sidebar" aria-label="Чаты">
+      <aside class="sidebar" aria-label="Chats">
         <div class="sidebar-header">
-          <div class="section-title">Чаты</div>
+          <div class="section-title">Chats</div>
           <button class="button add-button" id="add-chat" type="button">+</button>
         </div>
 
-        <nav class="chat-list" id="chat-list" aria-label="Список чатов">
-          <button class="chat-item active" type="button">МАМА</button>
-          <button class="chat-item" type="button">ПАПА</button>
-          <button class="chat-item" type="button">БОТАНИК</button>
-          <button class="chat-item" type="button">РАБОТА</button>
-          <button class="chat-item" type="button">ГРУППА_ДОМ</button>
+        <nav class="chat-list" id="chat-list" aria-label="Chat list">
+          <button class="chat-item active" type="button">MOM</button>
+          <button class="chat-item" type="button">DAD</button>
+          <button class="chat-item" type="button">BOTANIST</button>
+          <button class="chat-item" type="button">WORK</button>
+          <button class="chat-item" type="button">HOME_GROUP</button>
         </nav>
 
         <div class="sidebar-footer">
-          <button class="button refresh" id="sync-refresh" type="button">Обновить</button>
+          <button class="button refresh" id="sync-refresh" type="button">Refresh</button>
         </div>
       </aside>
 
-      <section class="conversation" id="conversation" aria-label="Чат МАМА">
+      <section class="conversation" id="conversation" aria-label="Chat MOM">
         <div class="conversation-header">
           <div class="conversation-meta">
-            <div class="chat-title" id="chat-title">Чат: МАМА</div>
-            <div class="sync-status" id="sync-status" aria-live="polite">sync: ждём IndexedDB</div>
+            <div class="chat-title" id="chat-title">Chat: MOM</div>
+            <div class="sync-status" id="sync-status" aria-live="polite">sync: waiting for IndexedDB</div>
           </div>
           <div class="conversation-actions">
-            <input class="search-input" id="search-input" type="search" placeholder="Поиск" aria-label="Поиск по текущему чату" autocomplete="off">
-            <button class="button chat-info" id="chat-info" type="button">Инфо о чате</button>
+            <input class="search-input" id="search-input" type="search" placeholder="Search" aria-label="Search current chat" autocomplete="off">
+            <button class="button chat-info" id="chat-info" type="button">Chat Info</button>
           </div>
         </div>
 
-        <div class="messages" id="message-list" aria-label="Сообщения">
+        <div class="messages" id="message-list" aria-label="Messages">
           <div class="message-row">
-            <div class="author">Я:</div>
-            <div class="text">Мам, свари макарошки</div>
+            <div class="author">Me:</div>
+            <div class="text">Mom, please cook macaroni</div>
             <div class="time">12:41</div>
           </div>
           <div class="message-row">
-            <div class="author">МАМА:</div>
-            <div class="text">Уже варю</div>
+            <div class="author">MOM:</div>
+            <div class="text">Already cooking</div>
             <div class="time">12:42</div>
           </div>
           <div class="message-row">
-            <div class="author">Я:</div>
-            <div class="text">Спасибо</div>
+            <div class="author">Me:</div>
+            <div class="text">Thank you</div>
             <div class="time">12:42</div>
           </div>
           <div class="message-row">
-            <div class="author">МАМА:</div>
-            <div class="text">Не за что <span class="emoji">❤</span></div>
+            <div class="author">MOM:</div>
+            <div class="text">You are welcome <span class="emoji">❤</span></div>
             <div class="time">12:43</div>
           </div>
         </div>
 
-        <form class="composer" id="composer-form" action="#" aria-label="Отправка сообщения">
-          <input class="message-input" id="message-input" name="message" type="text" placeholder="Введите сообщение..." aria-label="Введите сообщение" autocomplete="off" required>
-          <button class="button send" type="submit">Отправить</button>
+        <form class="composer" id="composer-form" action="#" aria-label="Send message">
+          <input class="message-input" id="message-input" name="message" type="text" placeholder="Type a message..." aria-label="Type a message" autocomplete="off" required>
+          <button class="button send" type="submit">Send</button>
           <p class="storage-status" data-storage-status aria-live="polite"></p>
         </form>
       </section>
@@ -1081,7 +1081,7 @@
         return {
           version: PROTOCOL_VERSION,
           id: value.clientId || CLIENT_ID,
-          display_name: value.displayName || "Я",
+          display_name: value.displayName || "Me",
           created_at: createdAt || new Date().toISOString(),
           meta: {
             client: CLIENT_NAME
@@ -1129,7 +1129,7 @@
         return {
           version: PROTOCOL_VERSION,
           id: chatId,
-          title: value.title || "Новый чат",
+          title: value.title || "New Chat",
           created_at: createdAt,
           created_by: value.created_by || CLIENT_ID,
           visibility: "repo",
@@ -1298,19 +1298,19 @@
         var rawMessage = data && data.message ? data.message : response.statusText;
         var message = rawMessage;
         if (response.status === 401) {
-          message = "GitHub token не принят. Проверьте токен доступа.";
+          message = "GitHub rejected the token. Check the access token.";
         } else if (response.status === 403) {
           if (/rate limit/i.test(rawMessage || "")) {
-            message = "GitHub rate limit кончился. Подождите сброса лимита или добавьте token: authenticated requests получают больший лимит.";
+            message = "GitHub rate limit is exhausted. Wait for the limit reset or add a token: authenticated requests get a higher limit.";
           } else if (/resource not accessible|permission|forbidden/i.test(rawMessage || "")) {
-            message = "GitHub не дал доступ. Нужен token с Contents: Read and write.";
+            message = "GitHub denied access. Use a token with Contents: Read and write.";
           } else {
-            message = "GitHub вернул 403 Forbidden: " + rawMessage;
+            message = "GitHub returned 403 Forbidden: " + rawMessage;
           }
         } else if (response.status === 404) {
-          message = "GitHub не нашёл repo или файл. Проверьте URL репозитория и доступ токена.";
+          message = "GitHub did not find the repo or file. Check the repository URL and token access.";
         } else if (response.status === 409) {
-          message = "GitHub увидел конфликт записи. Нажмите Обновить и попробуйте ещё раз.";
+          message = "GitHub saw a write conflict. Click Refresh and try again.";
         }
 
         return new Error(message);
@@ -1518,10 +1518,10 @@
         var value = options || {};
         var ownerId = value.owner_id || CLIENT_ID;
         var members = value.members || [
-          { id: ownerId, display_name: value.owner_name || "Я", role: "owner" }
+          { id: ownerId, display_name: value.owner_name || "Me", role: "owner" }
         ];
         var chatMeta = createChatMeta({
-          title: value.title || "Новый чат",
+          title: value.title || "New Chat",
           created_by: ownerId,
           member_ids: members.map(function (member) {
             return member.id;
@@ -2089,7 +2089,7 @@
         var now = new Date().toISOString();
         var value = profile || loadProfile() || {
           clientId: CLIENT_ID,
-          displayName: "Я"
+          displayName: "Me"
         };
         return Promise.all([
           repoWriteJson(macaroniPath("protocol.json"), createProtocolDocument(now)),
@@ -2101,10 +2101,10 @@
         var value = options || {};
         var ownerId = value.owner_id || CLIENT_ID;
         var members = value.members || [
-          { id: ownerId, display_name: value.owner_name || "Я", role: "owner" }
+          { id: ownerId, display_name: value.owner_name || "Me", role: "owner" }
         ];
         var chatMeta = createChatMeta({
-          title: value.title || "Новый чат",
+          title: value.title || "New Chat",
           created_by: ownerId,
           member_ids: members.map(function (member) {
             return member.id;
@@ -2300,7 +2300,7 @@
 
       function fillSettingsForm(profile) {
         var fallback = {
-          displayName: "Я",
+          displayName: "Me",
           provider: "github",
           repo: "https://github.com/vanyapr/makaroshki",
           token: "",
@@ -2330,7 +2330,7 @@
       function rebuildIndex(profile) {
         var value = profile || loadProfile() || {};
         var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
-        updateSyncStatus("reindex: " + transportLabel(value) + " · пересборка");
+        updateSyncStatus("reindex: " + transportLabel(value) + " · rebuilding");
 
         return reindex.then(function (result) {
           return findFirstChatMeta().then(function (chat) {
@@ -2339,7 +2339,7 @@
               return renderMessages(currentChatId);
             }
 
-            return drawMessages([], "Чатов пока нет. Git помнит, но сейчас молчит.");
+            return drawMessages([], "No chats yet. Git remembers, but right now it is silent.");
           }).then(function () {
             return updateSyncStatusFromState(value, "reindex: ok").then(function () {
               return result;
@@ -2360,7 +2360,7 @@
 
           updateSyncStatus("sync: " + transportLabel(profile) + " · token added, retry outbox");
           return retryOutbox(profile).catch(function (error) {
-            setAppError("Токен сохранён, но outbox пока не отправился: " + error.message);
+            setAppError("Token saved, but outbox was not sent yet: " + error.message);
             return updateSyncStatusFromState(profile, "sync: error");
           });
         });
@@ -2409,19 +2409,19 @@
         settingsReindex.addEventListener("click", function () {
           var profile = loadProfile();
           if (!isReadyProfile(profile)) {
-            settingsIndexStatus.textContent = "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.";
+            settingsIndexStatus.textContent = "Save the profile first. An index without a repository is just a mood.";
             return;
           }
 
           settingsReindex.disabled = true;
-          settingsIndexStatus.textContent = "Пересобираем индекс. Если git большой, можно успеть поставить чайник.";
+          settingsIndexStatus.textContent = "Rebuilding index. If git is large, you may have time to boil water.";
 
           rebuildIndex(profile).then(function (result) {
             var skipped = result && result.skipped ? result.skipped.length : 0;
-            settingsIndexStatus.textContent = "Индекс пересобран. Пропущено файлов: " + skipped + ".";
+            settingsIndexStatus.textContent = "Index rebuilt. Skipped files: " + skipped + ".";
           }).catch(function (error) {
-            settingsIndexStatus.textContent = "Индекс не пересобрался: " + error.message;
-            setStorageError("Индекс не пересобрался: " + error.message);
+            settingsIndexStatus.textContent = "Index rebuild failed: " + error.message;
+            setStorageError("Index rebuild failed: " + error.message);
             updateSyncStatusFromState(profile, "reindex: error");
           }).then(function () {
             settingsReindex.disabled = false;
@@ -2435,9 +2435,9 @@
         settingsReset.addEventListener("click", function () {
           resetProfile();
           Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
-            setStorageError("Локальный индекс не сбросился. Git помнит, но браузер сопротивляется: " + error.message);
+            setStorageError("Local index reset failed. Git remembers, but the browser resists: " + error.message);
           });
-          get("setup-display-name").value = "Я";
+          get("setup-display-name").value = "Me";
           get("setup-provider").value = "github";
           get("setup-repo").value = "https://github.com/vanyapr/makaroshki";
           get("setup-token").value = "";
@@ -2466,7 +2466,7 @@
 
       function authorLabel(message, users, members) {
         if (message.from === CLIENT_ID) {
-          return "Я";
+          return "Me";
         }
 
         var from = message.from || "";
@@ -2533,7 +2533,7 @@
           if (!messages.length) {
             var empty = document.createElement("div");
             empty.className = "message-empty";
-            empty.textContent = emptyText || "Сообщений пока нет. Самое время попросить макарошки.";
+            empty.textContent = emptyText || "No messages yet. Time to ask for macaroni.";
             list.appendChild(empty);
             return messages;
           }
@@ -2573,9 +2573,9 @@
       }
 
       function updateChatTitle(chat) {
-        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : "Чат";
-        get("chat-title").textContent = "Чат: " + title;
-        get("conversation").setAttribute("aria-label", "Чат " + title);
+        var title = chat && (chat.title || chat.id) ? chat.title || chat.id : "Chat";
+        get("chat-title").textContent = "Chat: " + title;
+        get("conversation").setAttribute("aria-label", "Chat " + title);
       }
 
       function selectChat(chat) {
@@ -2592,7 +2592,7 @@
         if (!chats.length) {
           var empty = document.createElement("div");
           empty.className = "message-empty";
-          empty.textContent = "Чатов пока нет.";
+          empty.textContent = "No chats yet.";
           list.appendChild(empty);
           return chats;
         }
@@ -2608,7 +2608,7 @@
             }).then(function () {
               return updateSyncStatusFromState(loadProfile() || {}, "chat: open");
             }).catch(function (error) {
-              setAppError("Чат не открылся: " + error.message);
+              setAppError("Chat did not open: " + error.message);
             });
           });
           list.appendChild(item);
@@ -2630,7 +2630,7 @@
       }
 
       function askChatTitle() {
-        var title = window.prompt("Название чата", "Новый чат");
+        var title = window.prompt("Chat title", "New Chat");
         return title ? title.trim() : "";
       }
 
@@ -2643,20 +2643,20 @@
           return Promise.resolve(null);
         }
 
-        updateSyncStatus("chat: " + transportLabel(value) + " · создаём");
+        updateSyncStatus("chat: " + transportLabel(value) + " · creating");
 
         var options = {
           title: title,
           owner_id: CLIENT_ID,
-          owner_name: value.displayName || "Я",
+          owner_name: value.displayName || "Me",
           members: [
-            { id: CLIENT_ID, display_name: value.displayName || "Я", role: "owner" },
-            { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
+            { id: CLIENT_ID, display_name: value.displayName || "Me", role: "owner" },
+            { id: peerId, display_name: peerId === "K2XM" ? "MOM" : peerId, role: "member" }
           ]
         };
 
         if (canReadGitHub(value) && !canWriteGitHub(value)) {
-          return Promise.reject(new Error("Для создания чата нужен GitHub token. Без token это read-only repo."));
+          return Promise.reject(new Error("Creating a chat requires a GitHub token. Without a token this is a read-only repo."));
         }
 
         var create = canWriteGitHub(value)
@@ -2693,10 +2693,10 @@
       function formatChatMembers(membersDocument) {
         var members = membersDocument && Array.isArray(membersDocument.members) ? membersDocument.members : [];
         if (!members.length) {
-          return "участники: неизвестно";
+          return "members: unknown";
         }
 
-        return "участники: " + members.map(function (member) {
+        return "members: " + members.map(function (member) {
           return (member.display_name || member.id) + " (" + member.id + ")";
         }).join(", ");
       }
@@ -2742,7 +2742,7 @@
       function writeChatMembers(profile, chatId, membersDocument) {
         var path = macaroniPath("chats/" + chatId + "/members.json");
         if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-          return Promise.reject(new Error("Для вступления в чат нужен GitHub token. Без token это read-only repo."));
+          return Promise.reject(new Error("Joining a chat requires a GitHub token. Without a token this is a read-only repo."));
         }
 
         if (canWriteGitHub(profile)) {
@@ -2755,7 +2755,7 @@
       function joinCurrentChat(profile, membersDocument) {
         var value = profile || loadProfile() || {};
         var joinedMembers = addCurrentClientToMembersDocument(membersDocument, value, currentChatId);
-        updateSyncStatus("chat: " + transportLabel(value) + " · вступаем");
+        updateSyncStatus("chat: " + transportLabel(value) + " · joining");
         return writeChatMembers(value, currentChatId, joinedMembers).then(function () {
           clearAppError();
           return updateSyncStatusFromState(value, "chat: joined");
@@ -2770,7 +2770,7 @@
         var membersDocument;
 
         if (!currentChatId) {
-          window.alert("Чат не выбран. Даже git не знает, куда смотреть.");
+          window.alert("No chat selected. Even git does not know where to look.");
           return Promise.resolve(null);
         }
 
@@ -2781,7 +2781,7 @@
           membersDocument = document || fallbackChatMembers(chat);
           return listOutbox().then(function (outboxItems) {
             var lines = [
-              "Чат: " + (chat.title || chat.id),
+              "Chat: " + (chat.title || chat.id),
               "chat_id: " + chat.id,
               formatChatMembers(membersDocument),
               "transport: " + transportLabel(value),
@@ -2795,12 +2795,12 @@
             return chat;
           }
 
-          if (!window.confirm("Вас нет в members.json этого чата. Вступить в чат?")) {
+          if (!window.confirm("You are not in this chat's members.json. Join the chat?")) {
             return chat;
           }
 
           return joinCurrentChat(value, membersDocument).then(function () {
-            window.alert("Вы добавлены в members.json. Git теперь знает, что вы тут.");
+            window.alert("You were added to members.json. Git now knows you are here.");
             return chat;
           });
         });
@@ -2833,7 +2833,7 @@
           var messages = result[0].filter(function (message) {
             return messageMatchesSearch(message, query, users, members);
           });
-          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.", users, members);
+          drawMessages(messages, "Nothing found. Git remembers, but not this.", users, members);
           return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
             return messages;
           });
@@ -2902,12 +2902,12 @@
             }
 
             return createGitHubChat(profile, {
-              title: "МАМА",
+              title: "MOM",
               owner_id: CLIENT_ID,
-              owner_name: profile.displayName || "Я",
+              owner_name: profile.displayName || "Me",
               members: [
-                { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
-                { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
+                { id: CLIENT_ID, display_name: profile.displayName || "Me", role: "owner" },
+                { id: peerId, display_name: peerId === "K2XM" ? "MOM" : peerId, role: "member" }
               ]
             }).then(function (chat) {
               currentChatId = chat.meta.id;
@@ -2936,12 +2936,12 @@
           }
 
           return createTestChat({
-            title: "МАМА",
+            title: "MOM",
             owner_id: CLIENT_ID,
-            owner_name: profile.displayName || "Я",
+            owner_name: profile.displayName || "Me",
             members: [
-              { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
-              { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
+              { id: CLIENT_ID, display_name: profile.displayName || "Me", role: "owner" },
+              { id: peerId, display_name: peerId === "K2XM" ? "MOM" : peerId, role: "member" }
             ]
           }).then(function (chat) {
             currentChatId = chat.meta.id;
@@ -2961,7 +2961,7 @@
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
-        updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
+        updateSyncStatus("sync: " + transportLabel(value) + " · refreshing");
         var ensureChat = currentChatId ? Promise.resolve(null) : ensureDefaultChat(value);
         return ensureChat.then(function (chat) {
           var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
@@ -2972,8 +2972,8 @@
 
             if (!activeChat) {
               currentChatId = null;
-              updateChatTitle({ title: "Нет чатов", id: "none" });
-              drawMessages([], "В repo пока нет чатов. Git молчит.");
+              updateChatTitle({ title: "No chats", id: "none" });
+              drawMessages([], "There are no chats in the repo yet. Git is silent.");
               return updateSyncStatusFromState(value, "sync: ok");
             }
 
@@ -3023,7 +3023,7 @@
             syncInFlight = false;
             scheduleMessagePoll(latestProfile);
           }, function (error) {
-            setAppError("Polling не смог обновить сообщения: " + error.message);
+            setAppError("Polling could not refresh messages: " + error.message);
             return updateSyncStatusFromState(latestProfile, "poll: error").then(function () {
               syncInFlight = false;
               scheduleMessagePoll(latestProfile);
@@ -3054,7 +3054,7 @@
                   chat_id: item.payload.chat_id || chat.id
                 });
                 if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-                  return Promise.reject(new Error("GitHub repo открыт read-only. Retry ждёт token."));
+                  return Promise.reject(new Error("GitHub repo is read-only. Retry waits for a token."));
                 }
 
                 var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
@@ -3086,7 +3086,7 @@
           };
 
           if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
-            return Promise.reject(new Error("GitHub repo открыт read-only. Добавьте token, чтобы отправлять сообщения."));
+            return Promise.reject(new Error("GitHub repo is read-only. Add a token to send messages."));
           }
 
           var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
@@ -3104,7 +3104,7 @@
                 payload: payload,
                 error: error.message
               }).then(function () {
-                setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
+                setAppError("Message saved in outbox. Git will not run away, we will try again: " + error.message);
                 return updateSyncStatusFromState(profile, "send: outbox");
               });
             });
@@ -3154,7 +3154,7 @@
               },
               error: error.message
             }).then(function () {
-              setAppError("Сообщение сохранено в outbox. Не удалось отправить сразу: " + error.message);
+              setAppError("Message saved in outbox. Could not send immediately: " + error.message);
               updateSyncStatusFromState(profile, "send: outbox");
             });
           });
@@ -3172,7 +3172,7 @@
           retryOutbox(profile).then(function () {
             syncInFlight = false;
           }, function (error) {
-            setAppError("Обновление не получилось: " + error.message);
+            setAppError("Refresh failed: " + error.message);
             return updateSyncStatusFromState(profile, "sync: error").then(function () {
               syncInFlight = false;
             }, function () {
@@ -3184,7 +3184,7 @@
         get("add-chat").addEventListener("click", function () {
           var profile = loadProfile() || {};
           createChatFromUi(profile).catch(function (error) {
-            setAppError("Чат не создался: " + error.message);
+            setAppError("Chat was not created: " + error.message);
             updateSyncStatusFromState(profile, "chat: error");
           });
         });
@@ -3192,13 +3192,13 @@
         get("chat-info").addEventListener("click", function () {
           var profile = loadProfile() || {};
           showChatInfo(profile).catch(function (error) {
-            setAppError("Инфо о чате не открылось: " + error.message);
+            setAppError("Chat info did not open: " + error.message);
           });
         });
 
         get("search-input").addEventListener("input", function () {
           applySearch().catch(function (error) {
-            setAppError("Поиск сломался. Даже grep иногда грустит: " + error.message);
+            setAppError("Search broke. Even grep gets sad sometimes: " + error.message);
           });
         });
       }
@@ -3210,7 +3210,7 @@
           startMessagePolling(profile);
           return result;
         }).catch(function (error) {
-          setAppError("Локальный test repo не поднялся: " + error.message);
+          setAppError("Local test repo did not start: " + error.message);
           updateSyncStatusFromState(profile, "sync: error");
         });
       }
@@ -3374,7 +3374,7 @@
             clearStorageError();
             showAppOrSetup();
           }).catch(function (error) {
-            setStorageError("IndexedDB не открылся. Локальный кеш недоступен: " + error.message);
+            setStorageError("IndexedDB did not open. Local cache is unavailable: " + error.message);
             showAppOrSetup();
           });
         }
