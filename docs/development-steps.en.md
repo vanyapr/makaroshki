@@ -264,6 +264,8 @@ Current mobile UI contract: the sidebar does not stretch the chat list with empt
 
 Sync/outbox status is shown in the current chat header: transport (`GitHub`, `local fallback`, `local test repo`), action, and outbox size.
 
+Search input lives in the current chat header and filters the local index for the current chat.
+
 Done when:
 
 - main actions are visible without instructions;
@@ -274,6 +276,8 @@ Done when:
 ## Stage 11. Search
 
 Goal: local search over index.
+
+Status: basically implemented in `messenger.html`. Search input calls `searchMessages(query, currentChatId)`, runs simple substring search over `text`, `from`, `chat_id`, `created_at`, filters the current chat, and survives reload/reindex. Jump-to-result is not needed yet: the list is small and results are rendered directly.
 
 Steps:
 

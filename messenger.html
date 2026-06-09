@@ -197,6 +197,30 @@
       min-width: 190px;
     }
 
+    .conversation-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .search-input {
+      width: 260px;
+      min-width: 180px;
+      height: 48px;
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 3px;
+      padding: 0 14px;
+      color: var(--ink);
+      font-size: 18px;
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+      opacity: 1;
+    }
+
     .sync-status {
       min-width: 0;
       color: var(--muted);
@@ -596,12 +620,28 @@
       }
 
       .conversation {
-        grid-template-rows: 76px minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         min-height: 0;
       }
 
       .conversation-header {
+        align-items: stretch;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
         min-height: 76px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .conversation-actions {
+        width: 100%;
+      }
+
+      .search-input {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
       }
 
       .conversation-meta {
@@ -834,7 +874,10 @@
             <div class="chat-title">Чат: МАМА</div>
             <div class="sync-status" id="sync-status" aria-live="polite">sync: ждём IndexedDB</div>
           </div>
-          <button class="button chat-info" type="button">Инфо о чате</button>
+          <div class="conversation-actions">
+            <input class="search-input" id="search-input" type="search" placeholder="Поиск" aria-label="Поиск по текущему чату" autocomplete="off">
+            <button class="button chat-info" type="button">Инфо о чате</button>
+          </div>
         </div>
 
         <div class="messages" id="message-list" aria-label="Сообщения">
@@ -2028,15 +2071,14 @@
         return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
       }
 
-      function renderMessages(chatId) {
-        return listMessages(chatId).then(function (messages) {
+      function drawMessages(messages, emptyText) {
           var list = get("message-list");
           list.innerHTML = "";
 
           if (!messages.length) {
             var empty = document.createElement("div");
             empty.className = "message-empty";
-            empty.textContent = "Сообщений пока нет. Самое время попросить макарошки.";
+            empty.textContent = emptyText || "Сообщений пока нет. Самое время попросить макарошки.";
             list.appendChild(empty);
             return messages;
           }
@@ -2063,6 +2105,36 @@
           });
 
           return messages;
+      }
+
+      function renderMessages(chatId) {
+        return listMessages(chatId).then(function (messages) {
+          return drawMessages(messages);
+        });
+      }
+
+      function applySearch() {
+        var input = get("search-input");
+        var query = input ? input.value.trim() : "";
+        var profile = loadProfile() || {};
+
+        if (!currentChatId) {
+          return Promise.resolve([]);
+        }
+
+        if (!query) {
+          return renderMessages(currentChatId).then(function (messages) {
+            return updateSyncStatusFromState(profile, "search: off").then(function () {
+              return messages;
+            });
+          });
+        }
+
+        return searchMessages(query, currentChatId).then(function (messages) {
+          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.");
+          return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
+            return messages;
+          });
         });
       }
 
@@ -2176,8 +2248,13 @@
         var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
         updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
         return send.then(function () {
+          var searchInput = get("search-input");
+          var refreshMessages = searchInput && searchInput.value.trim() ? applySearch : function () {
+            return renderMessages(currentChatId);
+          };
+
           clearAppError();
-          return renderMessages(currentChatId).then(function () {
+          return refreshMessages().then(function () {
             return updateSyncStatusFromState(profile, "send: ok");
           });
         }).catch(function (error) {
@@ -2235,6 +2312,12 @@
           retryOutbox(profile).catch(function (error) {
             setAppError("Обновление не получилось: " + error.message);
             updateSyncStatusFromState(profile, "sync: error");
+          });
+        });
+
+        get("search-input").addEventListener("input", function () {
+          applySearch().catch(function (error) {
+            setAppError("Поиск сломался. Даже grep иногда грустит: " + error.message);
           });
         });
       }

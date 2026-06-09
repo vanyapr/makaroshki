@@ -264,6 +264,8 @@
 
 Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `local fallback`, `local test repo`), действие и размер outbox.
 
+Search input находится в header текущего чата и фильтрует локальный индекс текущего чата.
+
 Готово, когда:
 
 - основные действия видны без инструкции;
@@ -274,6 +276,8 @@ Sync/outbox status показывается в header текущего чата:
 ## Этап 11. Поиск
 
 Цель: локальный поиск по индексу.
+
+Статус: базово реализовано в `messenger.html`. Search input вызывает `searchMessages(query, currentChatId)`, делает простой substring search по `text`, `from`, `chat_id`, `created_at`, фильтрует текущий чат и переживает reload/reindex. Jump к найденному сообщению пока не нужен: список маленький и результат сразу перерисовывается.
 
 Шаги:
 
