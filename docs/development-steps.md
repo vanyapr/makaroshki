@@ -301,11 +301,11 @@ Sync/reindex сохраняет выбранный чат, если этот `ch
 
 Цель: локальный поиск по индексу.
 
-Статус: базово реализовано в `messenger.html`. Search input вызывает `searchMessages(query, currentChatId)`, делает простой substring search по `text`, `from`, `chat_id`, `created_at`, фильтрует текущий чат и переживает reload/reindex. Jump к найденному сообщению пока не нужен: список маленький и результат сразу перерисовывается.
+Статус: базово реализовано в `messenger.html`. Search input делает простой substring search по `text`, `from`, `from_name`, отображаемому имени автора из `users/members`, `chat_id`, `created_at`, фильтрует текущий чат и переживает reload/reindex. Jump к найденному сообщению пока не нужен: список маленький и результат сразу перерисовывается.
 
 Шаги:
 
-1. Индексировать `text`, `from`, `chat_id`, `created_at`.
+1. Индексировать `text`, `from`, `from_name`, отображаемое имя автора, `chat_id`, `created_at`.
 2. Сделать простой substring search.
 3. Добавить фильтр по текущему чату.
 4. Добавить переход к найденному сообщению.

@@ -160,7 +160,7 @@ async function testLocalMvpFlow(browser) {
       owner_name: "Я",
       members: [
         { id: "SA6E", display_name: "Я", role: "owner" },
-        { id: "K2XM", display_name: "K2XM", role: "member" }
+        { id: "K2XM", display_name: "МАМА", role: "member" }
       ]
     });
     await window.MacaroniTestRepo.sendMessage({
@@ -168,6 +168,12 @@ async function testLocalMvpFlow(browser) {
       from: "SA6E",
       to: ["K2XM"],
       text: "MVP smoke: рабочий чат"
+    });
+    await window.MacaroniTestRepo.sendMessage({
+      chat_id: chat.meta.id,
+      from: "K2XM",
+      to: ["SA6E"],
+      text: "MVP smoke: автор из members"
     });
   });
   await page.locator("#sync-refresh").click();
@@ -177,6 +183,12 @@ async function testLocalMvpFlow(browser) {
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("рабочий чат")));
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("рабочий чат")), "dynamic chat selection did not render chat messages");
+  await page.locator("#search-input").fill("мама");
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: 1"));
+  texts = await messageTexts(page);
+  assert(texts.some((text) => text.includes("автор из members")), "search did not match member display name");
+  await page.locator("#search-input").fill("");
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: off"));
   await page.locator("#chat-list .chat-item", { hasText: "МАМА" }).click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("МАМА"));
   await page.locator("#sync-refresh").click();

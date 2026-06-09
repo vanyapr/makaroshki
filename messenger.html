@@ -2469,6 +2469,23 @@
         return message.from_name || (user && user.display_name) || (member && member.display_name) || from || "???";
       }
 
+      function messageMatchesSearch(message, query, users, members) {
+        var needle = String(query || "").trim().toLowerCase();
+        if (!needle) {
+          return true;
+        }
+
+        var haystack = [
+          message.text,
+          message.from,
+          message.from_name,
+          authorLabel(message, users, members),
+          message.chat_id,
+          message.created_at
+        ].join(" ").toLowerCase();
+        return haystack.indexOf(needle) !== -1;
+      }
+
       function drawMessages(messages, emptyText, users, members) {
           var list = get("message-list");
           list.innerHTML = "";
@@ -2767,12 +2784,16 @@
         }
 
         return Promise.all([
-          searchMessages(query, currentChatId),
+          listMessages(currentChatId),
           listUsers(),
           getMembers(currentChatId)
         ]).then(function (result) {
-          var messages = result[0];
-          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.", usersById(result[1]), membersById(result[2]));
+          var users = usersById(result[1]);
+          var members = membersById(result[2]);
+          var messages = result[0].filter(function (message) {
+            return messageMatchesSearch(message, query, users, members);
+          });
+          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.", users, members);
           return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
             return messages;
           });
