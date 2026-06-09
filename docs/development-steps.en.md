@@ -312,7 +312,7 @@ Message sending uses the selected `chat_id` captured at submit time. If a chat i
 
 Chat switching must stay fast: title, active state, and selected chat messages update immediately, while read receipts, unread counters, and the full sidebar rerender run afterwards and do not block the click.
 
-The `+` button creates a new chat through a simple title prompt, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
+The `+` button opens an in-app new-chat panel instead of a browser prompt. On submit, the client creates the chat, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
 
 `Chat info` opens an in-app panel instead of `alert`: title, `chat_id`, members from `members.json`, current `CLIENT_ID` membership status, transport, and outbox size. If the current user is not in `members.json`, the panel shows an explicit `Join Chat` button.
 

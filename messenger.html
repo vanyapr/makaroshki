@@ -246,7 +246,7 @@
       min-width: 120px;
     }
 
-    .chat-info-dialog {
+    .app-dialog {
       width: min(720px, calc(100vw - 32px));
       max-height: calc(100vh - 32px);
       border: var(--line) solid var(--ink);
@@ -257,18 +257,18 @@
       font: inherit;
     }
 
-    .chat-info-dialog::backdrop {
+    .app-dialog::backdrop {
       background: rgba(255, 255, 255, 0.72);
     }
 
-    .chat-info-panel {
+    .app-dialog-panel {
       display: grid;
       grid-template-rows: auto 1fr auto;
       max-height: calc(100vh - 40px);
     }
 
-    .chat-info-header,
-    .chat-info-actions {
+    .app-dialog-header,
+    .app-dialog-actions {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -276,27 +276,35 @@
       padding: 18px 22px;
     }
 
-    .chat-info-header {
+    .app-dialog-header {
       border-bottom: var(--thin-line) solid var(--ink);
     }
 
-    .chat-info-actions {
+    .app-dialog-actions {
       border-top: var(--thin-line) solid var(--ink);
       justify-content: flex-end;
       flex-wrap: wrap;
     }
 
-    .chat-info-title {
+    .app-dialog-title {
       font-weight: 700;
       font-size: 24px;
     }
 
-    .chat-info-body {
+    .app-dialog-body {
       padding: 18px 22px 22px;
       overflow: auto;
       display: grid;
       gap: 16px;
       font-size: 18px;
+    }
+
+    .chat-info-dialog {
+      width: min(720px, calc(100vw - 32px));
+    }
+
+    .new-chat-dialog {
+      width: min(560px, calc(100vw - 32px));
     }
 
     .chat-info-row {
@@ -337,7 +345,7 @@
       overflow-wrap: anywhere;
     }
 
-    .chat-info-close {
+    .dialog-close {
       min-width: 48px;
       padding: 0 14px;
     }
@@ -846,16 +854,16 @@
         height: 54px;
       }
 
-      .chat-info-dialog {
+      .app-dialog {
         width: calc(100vw - 20px);
       }
 
-      .chat-info-header,
-      .chat-info-actions {
+      .app-dialog-header,
+      .app-dialog-actions {
         padding: 14px 16px;
       }
 
-      .chat-info-body {
+      .app-dialog-body {
         padding: 14px 16px 16px;
         font-size: 16px;
       }
@@ -1133,18 +1141,38 @@
     </div>
   </main>
 
-  <dialog class="chat-info-dialog" id="chat-info-dialog" aria-labelledby="chat-info-title">
-    <div class="chat-info-panel">
-      <div class="chat-info-header">
-        <div class="chat-info-title" id="chat-info-title">Chat Info</div>
-        <button class="button chat-info-close" id="chat-info-close" type="button" aria-label="Close">×</button>
+  <dialog class="app-dialog chat-info-dialog" id="chat-info-dialog" aria-labelledby="chat-info-title">
+    <div class="app-dialog-panel">
+      <div class="app-dialog-header">
+        <div class="app-dialog-title" id="chat-info-title">Chat Info</div>
+        <button class="button dialog-close" id="chat-info-close" type="button" aria-label="Close">×</button>
       </div>
-      <div class="chat-info-body" id="chat-info-body"></div>
-      <div class="chat-info-actions">
+      <div class="app-dialog-body" id="chat-info-body"></div>
+      <div class="app-dialog-actions">
         <button class="button" id="chat-info-copy" type="button">Copy chat_id</button>
         <button class="button" id="chat-info-join" type="button">Join Chat</button>
       </div>
     </div>
+  </dialog>
+
+  <dialog class="app-dialog new-chat-dialog" id="new-chat-dialog" aria-labelledby="new-chat-title">
+    <form class="app-dialog-panel" id="new-chat-form" method="dialog">
+      <div class="app-dialog-header">
+        <div class="app-dialog-title" id="new-chat-title">New Chat</div>
+        <button class="button dialog-close" id="new-chat-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="app-dialog-body">
+        <div class="field">
+          <label class="field-label" id="new-chat-name-label" for="new-chat-name">Chat title</label>
+          <input class="text-field" id="new-chat-name" name="title" type="text" autocomplete="off" required>
+          <p class="field-note" id="new-chat-note">A chat is just a directory in git. Try not to name it Kubernetes.</p>
+        </div>
+      </div>
+      <div class="app-dialog-actions">
+        <button class="button" id="new-chat-cancel" type="button">Cancel</button>
+        <button class="button" id="new-chat-submit" type="submit">Create</button>
+      </div>
+    </form>
   </dialog>
 
   <script>
@@ -1289,6 +1317,11 @@
           joinedChat: "You were added to members.json. Git now knows you are here.",
           chatTitlePrompt: "Chat title",
           newChat: "New Chat",
+          newChatTitle: "New Chat",
+          newChatNameLabel: "Chat title",
+          newChatNote: "A chat is just a directory in git. Try not to name it Kubernetes.",
+          create: "Create",
+          cancel: "Cancel",
           createChatTokenRequired: "Creating a chat requires a GitHub token. Without a token this is a read-only repo.",
           joinChatTokenRequired: "Joining a chat requires a GitHub token. Without a token this is a read-only repo.",
           pollingError: "Polling could not refresh messages: {message}",
@@ -1408,6 +1441,11 @@
           joinedChat: "Вы добавлены в members.json. Теперь git знает, что вы здесь.",
           chatTitlePrompt: "Название чата",
           newChat: "Новый чат",
+          newChatTitle: "Новый чат",
+          newChatNameLabel: "Название чата",
+          newChatNote: "Чат - это просто директория в git. Постарайтесь не назвать ее Kubernetes.",
+          create: "Создать",
+          cancel: "Отмена",
           createChatTokenRequired: "Для создания чата нужен GitHub token. Без token это read-only repo.",
           joinChatTokenRequired: "Для вступления в чат нужен GitHub token. Без token это read-only repo.",
           pollingError: "Polling не смог обновить сообщения: {message}",
@@ -1545,6 +1583,12 @@
         setText("#chat-info-copy", t("chatInfoCopy"));
         setText("#chat-info-join", t("chatInfoJoin"));
         setAttribute("#chat-info-close", "aria-label", t("chatInfoClose"));
+        setText("#new-chat-title", t("newChatTitle"));
+        setText("#new-chat-name-label", t("newChatNameLabel"));
+        setText("#new-chat-note", t("newChatNote"));
+        setText("#new-chat-cancel", t("cancel"));
+        setText("#new-chat-submit", t("create"));
+        setAttribute("#new-chat-close", "aria-label", t("chatInfoClose"));
         setAttribute("#message-list", "aria-label", t("messages"));
         setAttribute("#composer-form", "aria-label", t("sendMessage"));
         setAttribute("#search-input", "placeholder", t("search"));
@@ -4127,17 +4171,16 @@
         }) || chats[0] || ensuredChat || null;
       }
 
-      function askChatTitle() {
-        var title = window.prompt(t("chatTitlePrompt"), t("newChat"));
-        return title ? title.trim() : "";
+      function normalizeChatTitle(title) {
+        return String(title || "").trim();
       }
 
-      function createChatFromUi(profile) {
+      function createChatFromUi(profile, title) {
         var value = profile || loadProfile() || {};
-        var title = askChatTitle();
+        var chatTitle = normalizeChatTitle(title);
         var peerId = defaultRecipientIds()[0];
 
-        if (!title) {
+        if (!chatTitle) {
           return Promise.resolve(null);
         }
 
@@ -4148,7 +4191,7 @@
         updateSyncStatus("chat: " + transportLabel(value) + " · creating");
 
         var options = {
-          title: title,
+          title: chatTitle,
           owner_id: CLIENT_ID,
           owner_name: value.displayName || "Me",
           members: [
@@ -4337,8 +4380,7 @@
         }
       }
 
-      function closeChatInfoDialog() {
-        var dialog = get("chat-info-dialog");
+      function closeDialog(dialog) {
         if (!dialog) {
           return;
         }
@@ -4349,6 +4391,25 @@
         }
 
         dialog.removeAttribute("open");
+      }
+
+      function closeChatInfoDialog() {
+        closeDialog(get("chat-info-dialog"));
+      }
+
+      function openNewChatDialog() {
+        var dialog = get("new-chat-dialog");
+        var input = get("new-chat-name");
+        input.value = "";
+        input.placeholder = t("newChat");
+        openDialog(dialog);
+        window.setTimeout(function () {
+          input.focus();
+        }, 0);
+      }
+
+      function closeNewChatDialog() {
+        closeDialog(get("new-chat-dialog"));
       }
 
       function renderChatInfoDialog(state) {
@@ -4944,8 +5005,23 @@
         });
 
         get("add-chat").addEventListener("click", function () {
+          openNewChatDialog();
+        });
+
+        get("new-chat-close").addEventListener("click", closeNewChatDialog);
+        get("new-chat-cancel").addEventListener("click", closeNewChatDialog);
+        get("new-chat-form").addEventListener("submit", function (event) {
+          event.preventDefault();
           var profile = loadProfile() || {};
-          createChatFromUi(profile).catch(function (error) {
+          var title = get("new-chat-name").value;
+          get("new-chat-submit").disabled = true;
+          createChatFromUi(profile, title).then(function (chat) {
+            get("new-chat-submit").disabled = false;
+            if (chat) {
+              closeNewChatDialog();
+            }
+          }).catch(function (error) {
+            get("new-chat-submit").disabled = false;
             setAppError(t("chatCreateFailed", { message: error.message }));
             updateSyncStatusFromState(profile, "chat: error");
           });

@@ -467,12 +467,13 @@ async function testLocalMvpFlow(browser) {
   assert(exported.html.includes("MVP smoke: message to mom after switch"), "chat export missed current chat messages");
   assert(!exported.html.includes("<script"), "chat export should be static HTML without scripts");
 
-  page.once("dialog", async (dialog) => {
-    assert(dialog.message() === "Chat title", "unexpected create chat prompt");
-    await dialog.accept("NEW_CHAT");
-  });
   await page.locator("#add-chat").click();
+  await page.waitForFunction(() => document.querySelector("#new-chat-dialog").open);
+  assert(await page.locator("#new-chat-title").textContent() === "New Chat", "new chat dialog title is missing");
+  await page.locator("#new-chat-name").fill("NEW_CHAT");
+  await page.locator("#new-chat-submit").click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("NEW_CHAT"));
+  await page.waitForFunction(() => !document.querySelector("#new-chat-dialog").open);
   await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("NEW_CHAT")));
   const chats = await page.evaluate(() => window.MacaroniStorage.listChats());
   assert(chats.some((chat) => chat.title === "NEW_CHAT"), "created chat was not stored");
