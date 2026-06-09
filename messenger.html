@@ -1085,6 +1085,7 @@
           rebuildIndex: "Rebuild Index",
           back: "Back",
           reset: "Reset",
+          resetConfirm: "Reset local profile, token, index, and local test repo? Git will remember remote messages, but this browser will forget its local state.",
           chats: "Chats",
           chatList: "Chat list",
           refresh: "Refresh",
@@ -1189,6 +1190,7 @@
           rebuildIndex: "Пересобрать индекс",
           back: "Назад",
           reset: "Сбросить",
+          resetConfirm: "Сбросить локальный профиль, token, индекс и local test repo? Git запомнит remote-сообщения, но этот браузер забудет локальное состояние.",
           chats: "Чаты",
           chatList: "Список чатов",
           refresh: "Обновить",
@@ -3433,6 +3435,10 @@
         });
 
         settingsReset.addEventListener("click", function () {
+          if (!window.confirm(t("resetConfirm"))) {
+            return;
+          }
+
           resetProfile();
           Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
             setStorageError(t("localIndexResetFailed", { message: error.message }));
