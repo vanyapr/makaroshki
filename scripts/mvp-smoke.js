@@ -528,6 +528,36 @@ async function testGitHubRateLimitMessage(browser) {
   await context.close();
 }
 
+async function testUnsupportedProviderGuard(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+  await installProfile(page, {
+    provider: "gitverse",
+    repo: "https://gitverse.ru/vanyapr/makaroshki",
+    token: "fake-token-for-unsupported-provider"
+  });
+
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("gitverse adapter is not implemented yet"));
+  const state = await page.evaluate(async () => ({
+    status: document.querySelector("#sync-status").textContent,
+    error: document.querySelector("[data-storage-status]").textContent,
+    repoFiles: await window.MacaroniTestRepo.listFiles(".macaroni/")
+  }));
+
+  assert(state.status.includes("gitverse unsupported"), "unsupported provider transport label is missing");
+  assert(state.error.includes("Choose GitHub or Other/local test repo"), "unsupported provider error is not actionable");
+  assert(state.repoFiles.length === 0, "unsupported remote provider silently wrote to local test repo");
+
+  await page.locator("#message-input").fill("Should not go local");
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("gitverse adapter is not implemented yet"));
+  const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
+  assert(outbox.length === 1, "unsupported provider failed send was not kept in outbox");
+  assert(outbox[0].error.includes("gitverse adapter is not implemented yet"), "unsupported provider outbox error is wrong");
+
+  await context.close();
+}
+
 async function testGitHubInboxReindex(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addInitScript(() => {
@@ -1221,6 +1251,7 @@ async function testPluginBoundary(browser) {
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
     await testGitHubRateLimitMessage(browser);
+    await testUnsupportedProviderGuard(browser);
     await testGitHubInboxReindex(browser);
     await testGitHubSkipsUnchangedReindex(browser);
     await testGitHubReadOnlyMode(browser);

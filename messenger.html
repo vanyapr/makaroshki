@@ -1081,6 +1081,8 @@
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
           transportLocal: "local test repo",
+          transportUnsupported: "{provider} unsupported",
+          unsupportedProvider: "{provider} adapter is not implemented yet. Choose GitHub or Other/local test repo.",
           saveProfileFirst: "Save the profile first. An index without a repository is just a mood.",
           rebuildingIndex: "Rebuilding index. If git is large, you may have time to boil water.",
           indexRebuilt: "Index rebuilt. Skipped files: {count}.",
@@ -1172,6 +1174,8 @@
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
           transportLocal: "локальный test repo",
+          transportUnsupported: "{provider} не поддерживается",
+          unsupportedProvider: "{provider} adapter пока не реализован. Выберите GitHub или Other/local test repo.",
           saveProfileFirst: "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.",
           rebuildingIndex: "Пересобираем индекс. Если git большой, можно успеть вскипятить воду.",
           indexRebuilt: "Индекс пересобран. Пропущено файлов: {count}.",
@@ -1958,6 +1962,24 @@
 
       function canWriteGitHub(profile) {
         return !!(canReadGitHub(profile) && profile.token);
+      }
+
+      function unsupportedProviderName(profile) {
+        var provider = profile && profile.provider;
+        if (!provider || provider === "github" || provider === "other") {
+          return "";
+        }
+
+        return provider;
+      }
+
+      function isUnsupportedRemoteProvider(profile) {
+        return !!unsupportedProviderName(profile);
+      }
+
+      function unsupportedProviderError(profile) {
+        var provider = unsupportedProviderName(profile) || "provider";
+        return new Error(t("unsupportedProvider", { provider: provider }));
       }
 
       function initGitHubRepo(profile) {
@@ -2925,6 +2947,10 @@
           return t("transportGithubReadOnly");
         }
 
+        if (isUnsupportedRemoteProvider(profile)) {
+          return t("transportUnsupported", { provider: unsupportedProviderName(profile) });
+        }
+
         return t("transportLocal");
       }
 
@@ -3003,6 +3029,10 @@
 
       function rebuildIndex(profile) {
         var value = profile || loadProfile() || {};
+        if (isUnsupportedRemoteProvider(value)) {
+          return Promise.reject(unsupportedProviderError(value));
+        }
+
         var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
         updateSyncStatus("reindex: " + transportLabel(value) + " · rebuilding");
 
@@ -3452,6 +3482,10 @@
           return Promise.resolve(null);
         }
 
+        if (isUnsupportedRemoteProvider(value)) {
+          return Promise.reject(unsupportedProviderError(value));
+        }
+
         updateSyncStatus("chat: " + transportLabel(value) + " · creating");
 
         var options = {
@@ -3550,6 +3584,10 @@
 
       function writeChatMembers(profile, chatId, membersDocument) {
         var path = macaroniPath("chats/" + chatId + "/members.json");
+        if (isUnsupportedRemoteProvider(profile)) {
+          return Promise.reject(unsupportedProviderError(profile));
+        }
+
         if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
           return Promise.reject(new Error(t("joinChatTokenRequired")));
         }
@@ -3797,6 +3835,10 @@
 
       function ensureDefaultChat(profile) {
         var peerId = defaultRecipientIds()[0];
+        if (isUnsupportedRemoteProvider(profile)) {
+          return Promise.reject(unsupportedProviderError(profile));
+        }
+
         if (canWriteGitHub(profile)) {
           return initGitHubRepo(profile).then(function () {
             return githubFindFirstChatMeta(profile);
@@ -3866,6 +3908,10 @@
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
+        if (isUnsupportedRemoteProvider(value)) {
+          return Promise.reject(unsupportedProviderError(value));
+        }
+
         updateSyncStatus("sync: " + transportLabel(value) + " · refreshing");
         var ensureChat = currentChatId ? Promise.resolve(null) : ensureDefaultChat(value);
         return ensureChat.then(function (chat) {
@@ -3908,14 +3954,14 @@
 
       function scheduleMessagePoll(profile) {
         var value = profile || loadProfile() || {};
-        if (!canReadGitHub(value)) {
+        if (!canReadGitHub(value) || isUnsupportedRemoteProvider(value)) {
           stopMessagePolling();
           return;
         }
 
         pollTimer = window.setTimeout(function () {
           var latestProfile = loadProfile() || value;
-          if (!isReadyProfile(latestProfile) || !canReadGitHub(latestProfile)) {
+          if (!isReadyProfile(latestProfile) || !canReadGitHub(latestProfile) || isUnsupportedRemoteProvider(latestProfile)) {
             stopMessagePolling();
             return;
           }
@@ -3948,6 +3994,10 @@
       }
 
       function retryOutbox(profile) {
+        if (isUnsupportedRemoteProvider(profile)) {
+          return Promise.reject(unsupportedProviderError(profile));
+        }
+
         return listOutbox().then(function (items) {
           var chain = Promise.resolve();
           items.forEach(function (item) {
@@ -3990,6 +4040,10 @@
 
       function sendComposerMessage(profile, text, chatId) {
         var targetChatId = chatId || currentChatId;
+        if (isUnsupportedRemoteProvider(profile)) {
+          return Promise.reject(unsupportedProviderError(profile));
+        }
+
         return getChatRecipientIds(profile, targetChatId).then(function (recipients) {
           return applyMessagePlugins("outgoing", createTextMessage({
             chat_id: targetChatId,
@@ -4141,7 +4195,7 @@
           startMessagePolling(profile);
           return result;
         }).catch(function (error) {
-          setAppError(t("localRepoFailed", { message: error.message }));
+          setAppError(isUnsupportedRemoteProvider(profile) ? error.message : t("localRepoFailed", { message: error.message }));
           updateSyncStatusFromState(profile, "sync: error");
         });
       }

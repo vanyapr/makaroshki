@@ -55,7 +55,7 @@ Do not give the token access to all repositories if you can select one specific 
 
 ## GitVerse
 
-GitVerse works too.
+GitVerse works as git hosting too, but the Macaroni browser adapter for GitVerse is not implemented yet. If you choose `GitVerse` in the client today, the app shows an honest error instead of silently falling back to the local test repo.
 
 The bonus is that Sberbank becomes the operator of your personal data, and that is funny.
 
@@ -77,7 +77,7 @@ Official GitVerse documentation: [Tokens](https://gitverse.ru/docs/collaborative
 
 ## GitLab And Others
 
-The logic is the same:
+The token flow is similar, but each provider adapter must be implemented separately:
 
 1. Open account settings.
 2. Find access tokens / personal access tokens.

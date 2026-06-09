@@ -2,6 +2,8 @@
 
 This document explains where to click and what to do to get an access token for Macaroni Messenger using GitVerse as the example provider.
 
+Important: the GitVerse browser adapter in Macaroni Messenger is not implemented yet. This guide records the future auth flow and will be useful when the adapter exists. For real remote sync today, use GitHub.
+
 Why GitVerse?
 
 Because in that case Sberbank becomes the operator of your personal data, and that is funny.
@@ -52,7 +54,7 @@ The official GitVerse repository-token flow says to enable the **Repositories** 
 1. Create or choose a repository for messages.
 2. Make sure your account can access the repository.
 3. Copy the repository URL.
-4. In Macaroni Messenger, choose provider `GitVerse`.
+4. When the GitVerse adapter is implemented, choose provider `GitVerse` in Macaroni Messenger.
 5. Paste the repository URL.
 6. Paste the token.
 7. Save settings.
