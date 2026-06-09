@@ -158,6 +158,7 @@ Features:
 - chat list;
 - local new-message indicators in the chat list;
 - local outgoing-message indicators per chat;
+- embedded sound for new incoming messages;
 - message history;
 - local search;
 - outbox on network/sync error;
@@ -354,7 +355,7 @@ Recommended:
 
 - URL attachments;
 - markdown rendering;
-- basic notifications;
+- basic notifications: partially done as unread count and embedded sound for new incoming messages;
 - receipts as append-only events;
 - HTML export of chat history;
 - Electron/WebView wrapper around the same `messenger.html`.

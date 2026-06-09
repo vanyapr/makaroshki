@@ -298,6 +298,8 @@ The sidebar is rendered from the local `chats` store after init/reindex. Clickin
 
 New-message indicators are local: `meta` stores the last read message marker for each chat, the sidebar shows a count of incoming messages newer than that marker, and opening a chat marks it as read. Git does not store read receipts.
 
+The new-message sound is embedded in `messenger.html` as a heavily compressed base64 MP3. It plays only for new incoming messages (`from !== CLIENT_ID`), does not play while indexing old history for the first time, and does not require a separate asset file.
+
 Sync/reindex preserves the selected chat if that `chat_id` still exists in the index. The client must not jump to another chat before sending a message.
 
 Message sending uses the selected `chat_id` captured at submit time. If a chat is already selected, the composer does not call the default-chat fallback and does not change the active chat before writing.
@@ -379,7 +381,7 @@ Only after working `messenger.html`:
 3. Read-only public repo mode: partially done for GitHub public repos without a token; the client reads history, shows `GitHub read-only`, but does not create chats or send messages without a write token.
 4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
 5. Markdown rendering: partially done as safe inline rendering for `**bold**`, `*italic*`, and `` `code` `` in the message UI, without HTML passthrough and without a full CommonMark engine.
-6. Basic notifications: partially done as unread count in `document.title`, without Browser Notification API or permission prompts.
+6. Basic notifications: partially done as unread count in `document.title` and an embedded sound for new incoming messages, without Browser Notification API or permission prompts.
 7. Receipts as append-only events: partially done as `read` receipt files in `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, written only when the latest read message marker moves forward.
 8. HTML export of chat history: partially done as local export of the current chat from IndexedDB into a standalone HTML file, without writing to git.
 9. Electron/WebView wrapper around the same HTML: partially done as optional `wrappers/electron/main.js`, which opens the root `messenger.html` through `loadFile`, without localhost, backend, or a copied client.

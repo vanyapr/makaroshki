@@ -249,6 +249,19 @@ async function testSettingsExportImport(browser) {
 
 async function testLocalMvpFlow(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.addInitScript(() => {
+    window.__macaroniSoundPlays = 0;
+    window.Audio = function Audio(src) {
+      this.src = src;
+      this.preload = "";
+      this.currentTime = 0;
+      this.load = () => {};
+      this.play = () => {
+        window.__macaroniSoundPlays += 1;
+        return Promise.resolve();
+      };
+    };
+  });
   const page = await openMessenger(context);
 
   await page.waitForFunction(() => document.body.dataset.support === "supported");
@@ -256,6 +269,7 @@ async function testLocalMvpFlow(browser) {
   assert(await page.locator("[data-client-id]").first().textContent() === "SA6E", "CLIENT_ID is not rendered");
 
   await installProfile(page);
+  assert(await page.evaluate(() => window.__macaroniSoundPlays) === 0, "initial history should not play incoming sound");
   await page.locator("#message-input").fill("MVP smoke: cook macaroni");
   await page.locator("#message-input").press("Enter");
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("MVP smoke")));
@@ -362,6 +376,7 @@ async function testLocalMvpFlow(browser) {
   });
   assert(workUnreadBeforeOpen === "1", "new incoming message did not create unread chat indicator");
   assert(await page.title() === "(1) Macaroni Messenger", "unread message did not update document title");
+  assert(await page.evaluate(() => window.__macaroniSoundPlays) === 1, "new incoming message did not play notification sound once");
   await page.locator("#chat-list .chat-item", { hasText: "WORK" }).click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("WORK"));
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("work chat")));
@@ -394,6 +409,7 @@ async function testLocalMvpFlow(browser) {
     return badge ? badge.textContent : null;
   });
   assert(workUnreadAfterReindex === null, "reindex did not preserve read chat marker");
+  assert(await page.evaluate(() => window.__macaroniSoundPlays) === 1, "known incoming message played notification sound again");
   const receiptCountAfterReindex = await page.evaluate(async () => {
     const chats = await window.MacaroniStorage.listChats();
     const work = chats.find((chat) => chat.title === "WORK");

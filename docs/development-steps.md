@@ -298,6 +298,8 @@ Sidebar строится из локального `chats` store после init
 
 Индикаторы новых сообщений считаются локально: `meta` хранит последний прочитанный message marker для каждого чата, sidebar показывает count входящих сообщений новее этого marker, открытие чата помечает его прочитанным. Git не хранит read receipts.
 
+Звук нового сообщения встроен в `messenger.html` как сильно сжатый base64 MP3. Он играет только для новых входящих сообщений (`from !== CLIENT_ID`), не играет при первом индексировании старой истории и не требует отдельного asset-файла.
+
 Sync/reindex сохраняет выбранный чат, если этот `chat_id` всё ещё есть в индексе. Клиент не должен перескакивать в другой чат перед отправкой сообщения.
 
 Отправка сообщения использует выбранный на момент submit `chat_id`. Если чат уже выбран, composer не вызывает default-chat fallback и не меняет активный чат перед записью.
@@ -379,7 +381,7 @@ node scripts/mvp-smoke.js
 3. Read-only public repo mode: частично сделано для GitHub public repo без token; клиент читает историю, показывает `GitHub read-only`, но не создаёт чаты и не отправляет сообщения без write token.
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
 5. Markdown rendering: частично сделано как безопасный inline-render `**bold**`, `*italic*`, `` `code` `` в UI сообщений, без HTML passthrough и без полноценного CommonMark-движка.
-6. Basic notifications: частично сделано как unread count в `document.title`, без Browser Notification API и permission prompts.
+6. Basic notifications: частично сделано как unread count в `document.title` и встроенный sound для новых входящих сообщений, без Browser Notification API и permission prompts.
 7. Receipts как append-only события: частично сделано как `read` receipt files в `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, которые пишутся только при продвижении последнего прочитанного message marker.
 8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML: частично сделано как optional `wrappers/electron/main.js`, который открывает корневой `messenger.html` через `loadFile`, без localhost, backend и копии клиента.

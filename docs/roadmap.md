@@ -158,6 +158,7 @@ Git является источником истины.
 - показ списка чатов;
 - локальные индикаторы новых сообщений в списке чатов;
 - локальные индикаторы исходящих сообщений по чатам;
+- встроенный звук для новых входящих сообщений;
 - показ истории сообщений;
 - поиск по локальному индексу;
 - outbox при ошибке сети/sync;
@@ -354,7 +355,7 @@ async function checkSupport() {
 
 - URL attachments;
 - markdown rendering;
-- basic notifications;
+- basic notifications: частично сделано как unread count и встроенный sound для новых входящих сообщений;
 - receipts как append-only события;
 - HTML export of chat history;
 - Electron/WebView wrapper над тем же `messenger.html`.

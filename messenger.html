@@ -1034,6 +1034,7 @@
       var LANGUAGE_KEY = "macaroni.language.v1";
       var LAST_SYNC_META_KEY = "sync:last_success_at";
       var GITHUB_RATE_META_KEY = "github:rate_limit";
+      var INCOMING_SOUND_SRC = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMQAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAKQAABOUAKiowMDU1NTo6Pz8/RUVKSkpPT1VVWlpaYGBlZWVqam9vb3V1enp6f3+FhYqKipCQlZWVmpqfn5+lpaqqsLCwtbW6urrAwMXFxcrKz8/P1dXa2uDg4OXl6urq8PD19fX6+v//AAAAAExhdmM2Mi4yOAAAAAAAAAAAAAAAACQCiwAAAAAAAATliGg4EgAAAAAAAAAAAAAAAAD/8xDEAAAAAogACEQASBoCCScuJNAj9HqVTv/zEsQNAtAagEAphABAM4ZuGWYOQCCMQWU8AP/zEMQPAcAqxeAIRgOBILBFQEwpxlZtsOAA//MQxBUBYBrF4ACCAwAlAlBMkCiTlLf/dNX/8xDEHAK4LnABRgABEQjEoCDRy1PMf6/QPf/zEMQeBCgavkGGCAIw266Kya6VM8EwYCCb//MQxBoE4AKUAYMQACF2U/3/Y1Vc45iXbGr/8xDEEwTQBpwBgQAAFf/fy/eEiyxsaMYkhv/zEMQMBUhm1AGPKADoKDgGaAAc0Ayq/9/+//MSxAMD2F7QAckAAb52S5XREOHEA6iVlPWe//MQxAEDAFbQAABYJWbqGeoaGDo5qPYzE5z/8xDEAgJYSswAAEwkRToAGACCssqjRhHACv/zEMQFAthqvAAAUiiRDF+fhau1rlMKdH0A//MQxAYCsFK8AABSCfWcirddqLM2UpcKkSr/8xDECALITrQAAFIJsi2Cqs43S1QQEKIWc//zEMQJAnhSrAAIEgSXIQZklljDAYqFbSoo//MQxAwCmFaswABMJK5vaTlUCjlZRZBI4u3/8xLEDgJoVqQACEwMnOWjgGirasWfbSDuCQ7/8xDEEgKoUqAACEwItxaFXbgDuxrylGEYMf/zEMQUArhOmCAITAjbQg4Y6rJnUCNxzS7S//MQxBYCqFKQABhGIJIv8wwcTGcXLDgVBFL/8xDEGALwUpDAEEwlgAPtXoRr9f+qHASAKP/zEMQZBTAehFAQRAAAQNaLjo8USjiHFU73//MQxBEFME6AWBjGJP/9P6YQSCgCCRSQ9Vn/8xDECQRQRoR4GEYkMFQX2t6/p/oqHwwGSP/zEsQEBAgOfFAwRgAC0FQIrCYb13Po//TVLP/zEMQBAYgetUAAxALHDwWbzio4CVDKajwI//MQxAcBEALFQAhEAhzguhc1KNpUNwHVcJD/8xDEDwEgIr1AAMYCVGAiIOHje5QhDM2Cjv/zEMQXAcgCqUAIwAIcY5lb/pqmRGC4gLFy//MQxBwCeCZ4ADJGAPyFOkwIB0gk4OlRAwH/8xDEHwKgJnggGEYAkV91CgwawYIBgqUP0P/zEMQhAigmfABJhgCbq7l16QOiMPMTH0oe//MSxCUDmCpsAGJMAGiprpUEMKoCKhMe2hn9//MQxCQDGBaEQDCEAGqYMoaP0Q7hDQMwUGn/8xDEJAMgHoAAMYIAHW0qQwgHmAoBQANFlf/zEMQkApgWiOAYggDV4MFGyRJgIgaK/61M//MQxCYBOB6IABCEAEFNRTMuMTAwVVVVVVX/8xDELgJIJnQAGYYBVVVVVVVVVVVVVVVVVf/zEMQxArgicCAxhgBVVVVVVVVVVVVVVVVV//MQxDMCsCpMADDCIFVVVVVVVVVVVVVVVVU=";
       var DEFAULT_LANGUAGE = "en";
       var TOKEN_DOC_URLS = {
         en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
@@ -1046,6 +1047,9 @@
       var pollTimer = null;
       var syncInFlight = false;
       var activeLanguage = null;
+      var incomingSound = null;
+      var incomingSoundReady = false;
+      var knownIncomingMessages = {};
       var I18N = {
         en: {
           browserUnsupportedLabel: "Browser is not supported",
@@ -3700,6 +3704,67 @@
         return total;
       }
 
+      function incomingMessageKey(message) {
+        return message && (message.id || [message.chat_id, message.created_at, message.from, message.text].join("|"));
+      }
+
+      function isIncomingMessage(message) {
+        return !!(message && message.from && message.from !== CLIENT_ID);
+      }
+
+      function incomingMessageSound() {
+        if (!incomingSound) {
+          incomingSound = new window.Audio(INCOMING_SOUND_SRC);
+          incomingSound.preload = "auto";
+        }
+
+        return incomingSound;
+      }
+
+      function playIncomingMessageSound() {
+        try {
+          var audio = incomingMessageSound();
+          audio.currentTime = 0;
+          var played = audio.play();
+          if (played && typeof played.catch === "function") {
+            played.catch(function () {});
+          }
+        } catch (error) {}
+      }
+
+      function notifyIncomingMessages(messages) {
+        var newIncoming = 0;
+
+        (messages || []).forEach(function (message) {
+          var key = incomingMessageKey(message);
+          if (!key || !isIncomingMessage(message)) {
+            return;
+          }
+
+          if (!knownIncomingMessages[key]) {
+            knownIncomingMessages[key] = true;
+            if (incomingSoundReady) {
+              newIncoming += 1;
+            }
+          }
+        });
+
+        if (!incomingSoundReady) {
+          incomingSoundReady = true;
+          return 0;
+        }
+
+        if (newIncoming > 0) {
+          playIncomingMessageSound();
+        }
+
+        return newIncoming;
+      }
+
+      function notifyIncomingMessagesFromIndex() {
+        return listMessages().then(notifyIncomingMessages);
+      }
+
       function outboxChatId(item) {
         return item && item.payload && (
           item.payload.chat_id ||
@@ -4269,6 +4334,8 @@
               updateChatTitle({ title: t("noChatsTitle"), id: "none" });
               drawMessages([], t("repoSilent"));
               return renderChatList().then(function () {
+                return notifyIncomingMessagesFromIndex();
+              }).then(function () {
                 return updateLastSyncStatus(value, syncAction);
               });
             }
@@ -4277,6 +4344,8 @@
             updateChatTitle(activeChat);
             return renderMessages(currentChatId).then(function () {
               return renderChatList();
+            }).then(function () {
+              return notifyIncomingMessagesFromIndex();
             }).then(function () {
               return updateLastSyncStatus(value, syncAction);
             });
