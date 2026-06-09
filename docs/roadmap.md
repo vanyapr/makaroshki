@@ -118,6 +118,8 @@ Git является источником истины.
 - `docs/github-provider.en.md` - GitHub adapter guide на английском.
 - `docs/plugin-boundary.md` - browser-side plugin boundary.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
+- `docs/electron-wrapper.md` - контракт optional Electron/WebView wrapper.
+- `docs/electron-wrapper.en.md` - Electron/WebView wrapper contract на английском.
 - `docs/access-token.md` - основная инструкция получения токена доступа, GitHub по умолчанию.
 - `docs/access-token.en.md` - основная инструкция получения токена доступа на английском.
 - `docs/gitverse-token.md` - инструкция получения токена GitVerse.

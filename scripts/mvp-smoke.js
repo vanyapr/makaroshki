@@ -68,6 +68,18 @@ async function testUnsupportedScreen(browser) {
   await page.close();
 }
 
+function testElectronWrapperContract() {
+  const wrapperPath = path.join(repoRoot, "wrappers", "electron", "main.js");
+  const wrapper = fs.readFileSync(wrapperPath, "utf8");
+
+  assert(wrapper.includes("messenger.html"), "Electron wrapper does not load messenger.html");
+  assert(wrapper.includes("loadFile"), "Electron wrapper should load the local file directly");
+  assert(wrapper.includes("nodeIntegration: false"), "Electron wrapper must keep nodeIntegration disabled");
+  assert(wrapper.includes("contextIsolation: true"), "Electron wrapper must keep contextIsolation enabled");
+  assert(!wrapper.includes("localhost"), "Electron wrapper must not start or depend on localhost");
+  assert(!fs.existsSync(path.join(repoRoot, "wrappers", "electron", "messenger.html")), "Electron wrapper must not copy messenger.html");
+}
+
 async function testGeneratedClientIdPersists(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context, messengerUrl, null);
@@ -1242,6 +1254,8 @@ async function testPluginBoundary(browser) {
 }
 
 (async () => {
+  testElectronWrapperContract();
+
   const browser = await chromium.launch({ headless: true });
   try {
     await testUnsupportedScreen(browser);

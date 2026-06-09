@@ -25,6 +25,7 @@ Macaroni Messenger - это мессенджер без серверов, без
 - [docs/protocol-v1.md](docs/protocol-v1.md) - файловая модель Macaroni Protocol v1.
 - [docs/github-provider.md](docs/github-provider.md) - первый реальный provider adapter.
 - [docs/plugin-boundary.md](docs/plugin-boundary.md) - browser-side plugin boundary.
+- [docs/electron-wrapper.md](docs/electron-wrapper.md) - optional Electron/WebView wrapper contract.
 - [docs/access-token.md](docs/access-token.md) - как получить токен доступа.
 - [docs/gitverse-token.md](docs/gitverse-token.md) - как получить токен доступа GitVerse.
 
@@ -38,6 +39,7 @@ English docs:
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md)
 - [docs/github-provider.en.md](docs/github-provider.en.md)
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md)
+- [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md)
 - [docs/access-token.en.md](docs/access-token.en.md)
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md)
 

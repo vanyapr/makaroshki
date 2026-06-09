@@ -118,6 +118,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/github-provider.en.md` - GitHub adapter guide in English.
 - `docs/plugin-boundary.md` - browser-side plugin boundary in Russian.
 - `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
+- `docs/electron-wrapper.md` - optional Electron/WebView wrapper contract in Russian.
+- `docs/electron-wrapper.en.md` - optional Electron/WebView wrapper contract in English.
 - `docs/access-token.md` - default access token guide in Russian, with GitHub first.
 - `docs/access-token.en.md` - default access token guide in English.
 - `docs/gitverse-token.md` - GitVerse token guide in Russian.

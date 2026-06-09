@@ -372,7 +372,7 @@ Only after working `messenger.html`:
 6. Basic notifications: partially done as unread count in `document.title`, without Browser Notification API or permission prompts.
 7. Receipts as append-only events: partially done as `read` receipt files in `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, written only when the latest read message marker moves forward.
 8. HTML export of chat history: partially done as local export of the current chat from IndexedDB into a standalone HTML file, without writing to git.
-9. Electron/WebView wrapper around the same HTML.
+9. Electron/WebView wrapper around the same HTML: partially done as optional `wrappers/electron/main.js`, which opens the root `messenger.html` through `loadFile`, without localhost, backend, or a copied client.
 10. Plugin boundary: partially done as a browser-side `window.MacaroniPlugins` registry with outbound/inbound message transform hooks; the composer applies the outbound hook before writing a message.
 
 ## Not Before MVP
