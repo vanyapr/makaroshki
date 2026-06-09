@@ -270,6 +270,8 @@ Sync/outbox status is shown in the current chat header: transport (`GitHub`, `Gi
 
 The sidebar also shows a local per-chat outbox indicator: if `outbox` contains outgoing messages for a chat, a separate badge appears next to that chat title. This is local UI state; git does not store delivery/read status.
 
+Successful sync/send/reindex operations update local `sync:last_success_at` in the IndexedDB `meta` store; the status line shows the last successful operation time. This is diagnostic UI, not a delivery guarantee.
+
 Search input lives in the current chat header and filters the local index for the current chat.
 
 Reindex/reset controls live in settings. `Reset` deletes the profile, index, and local test repo; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.

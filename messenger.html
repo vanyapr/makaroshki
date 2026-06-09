@@ -1032,6 +1032,7 @@
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
       var LANGUAGE_KEY = "macaroni.language.v1";
+      var LAST_SYNC_META_KEY = "sync:last_success_at";
       var DEFAULT_LANGUAGE = "en";
       var TOKEN_DOC_URLS = {
         en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
@@ -1097,6 +1098,7 @@
           typeMessageAria: "Type a message",
           send: "Send",
           syncWaiting: "sync: waiting for IndexedDB",
+          lastSyncPrefix: "last: ",
           chatPrefix: "Chat: ",
           chatAria: "Chat ",
           chatFallback: "Chat",
@@ -1199,6 +1201,7 @@
           typeMessageAria: "Введите сообщение",
           send: "Отправить",
           syncWaiting: "sync: ждем IndexedDB",
+          lastSyncPrefix: "обновлено: ",
           chatPrefix: "Чат: ",
           chatAria: "Чат ",
           chatFallback: "Чат",
@@ -3123,12 +3126,41 @@
         }
       }
 
+      function formatSyncTime(value) {
+        if (!value) {
+          return "";
+        }
+
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "";
+        }
+
+        return date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        });
+      }
+
       function updateSyncStatusFromState(profile, action) {
-        return listOutbox().then(function (items) {
+        return Promise.all([
+          listOutbox(),
+          getMeta(LAST_SYNC_META_KEY)
+        ]).then(function (result) {
+          var items = result[0];
+          var lastSync = formatSyncTime(result[1]);
           var label = transportLabel(profile || loadProfile() || {});
           var prefix = action ? action + " · " : "";
-          updateSyncStatus(prefix + label + " · outbox: " + items.length);
+          var suffix = lastSync ? " · " + t("lastSyncPrefix") + lastSync : "";
+          updateSyncStatus(prefix + label + " · outbox: " + items.length + suffix);
           return items;
+        });
+      }
+
+      function updateLastSyncStatus(profile, action) {
+        return putMeta(LAST_SYNC_META_KEY, new Date().toISOString()).then(function () {
+          return updateSyncStatusFromState(profile, action);
         });
       }
 
@@ -3207,7 +3239,7 @@
 
             return drawMessages([], t("noRepoChats"));
           }).then(function () {
-            return updateSyncStatusFromState(value, "reindex: ok").then(function () {
+            return updateLastSyncStatus(value, "reindex: ok").then(function () {
               return result;
             });
           });
@@ -4174,7 +4206,7 @@
               updateChatTitle({ title: t("noChatsTitle"), id: "none" });
               drawMessages([], t("repoSilent"));
               return renderChatList().then(function () {
-                return updateSyncStatusFromState(value, "sync: ok");
+                return updateLastSyncStatus(value, "sync: ok");
               });
             }
 
@@ -4183,7 +4215,7 @@
             return renderMessages(currentChatId).then(function () {
               return renderChatList();
             }).then(function () {
-              return updateSyncStatusFromState(value, "sync: ok");
+              return updateLastSyncStatus(value, "sync: ok");
             });
           });
         });
@@ -4324,7 +4356,7 @@
           }).then(function () {
             clearAppError();
             send.then(function () {
-              return updateSyncStatusFromState(profile, "send: ok");
+              return updateLastSyncStatus(profile, "send: ok");
             }).catch(function (error) {
               return putOutbox({
                 type: "send_message",
@@ -4560,6 +4592,7 @@
         putOutbox: putOutbox,
         listOutbox: listOutbox,
         deleteOutbox: deleteOutbox,
+        getMeta: getMeta,
         resetIndex: resetIndex
       };
 

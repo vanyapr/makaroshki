@@ -370,6 +370,9 @@ async function testLocalMvpFlow(browser) {
   assert(receiptDocument.message_id, "read receipt message id is missing");
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("last:"));
+  const lastSyncAt = await page.evaluate(() => window.MacaroniStorage.getMeta("sync:last_success_at"));
+  assert(lastSyncAt && !Number.isNaN(new Date(lastSyncAt).getTime()), "successful sync did not store last sync timestamp");
   const workUnreadAfterReindex = await page.evaluate(() => {
     const item = [...document.querySelectorAll("#chat-list .chat-item")].find((node) => node.textContent.includes("WORK"));
     const badge = item && item.querySelector(".unread-badge");
