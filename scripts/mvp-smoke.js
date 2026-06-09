@@ -147,6 +147,11 @@ async function testLocalMvpFlow(browser) {
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("рабочий чат")));
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("рабочий чат")), "dynamic chat selection did not render chat messages");
+  await page.locator("#chat-list .chat-item", { hasText: "МАМА" }).click();
+  await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("МАМА"));
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  assert((await page.locator("#chat-title").textContent()).includes("МАМА"), "sync did not preserve selected chat");
 
   page.once("dialog", async (dialog) => {
     assert(dialog.message() === "Название чата", "unexpected create chat prompt");

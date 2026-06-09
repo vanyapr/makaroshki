@@ -2385,6 +2385,14 @@
         return listChats().then(drawChatList);
       }
 
+      function chooseActiveChatAfterSync(chats, ensuredChat, previousChatId) {
+        return chats.find(function (item) {
+          return previousChatId && item.id === previousChatId;
+        }) || chats.find(function (item) {
+          return ensuredChat && item.id === ensuredChat.id;
+        }) || chats[0] || ensuredChat || null;
+      }
+
       function askChatTitle() {
         var title = window.prompt("Название чата", "Новый чат");
         return title ? title.trim() : "";
@@ -2699,15 +2707,14 @@
 
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
+        var previousChatId = currentChatId;
         updateSyncStatus("sync: " + transportLabel(value) + " · обновляемся");
         return ensureDefaultChat(value).then(function (chat) {
           var reindex = canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
           return reindex.then(function () {
             return renderChatList();
           }).then(function (chats) {
-            var activeChat = chats.find(function (item) {
-              return chat && item.id === chat.id;
-            }) || chats[0] || chat;
+            var activeChat = chooseActiveChatAfterSync(chats, chat, previousChatId);
 
             if (!activeChat) {
               currentChatId = null;
