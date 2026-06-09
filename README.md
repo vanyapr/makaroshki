@@ -5,10 +5,13 @@
 ![No Backend](https://img.shields.io/badge/backend-none-success?style=for-the-badge)
 ![Git Powered](https://img.shields.io/badge/powered%20by-git-orange?style=for-the-badge)
 ![Privacy](https://img.shields.io/badge/privacy-absolutely%20not-red?style=for-the-badge)
+![License](https://img.shields.io/badge/license-WTFPL-black?style=for-the-badge)
 
 ## A messenger implemented as a single HTML file
 
 Russian version: [README.ru.md](README.ru.md).
+
+License: [DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](LICENSE).
 
 ## Try It
 

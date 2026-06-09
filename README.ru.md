@@ -5,6 +5,7 @@
 ![No Backend](https://img.shields.io/badge/backend-none-success?style=for-the-badge)
 ![Git Powered](https://img.shields.io/badge/powered%20by-git-orange?style=for-the-badge)
 ![Privacy](https://img.shields.io/badge/privacy-absolutely%20not-red?style=for-the-badge)
+![License](https://img.shields.io/badge/license-WTFPL-black?style=for-the-badge)
 
 ## Мессенджер, который состоит из одного HTML-файла
 
@@ -15,6 +16,8 @@ Macaroni Messenger - это мессенджер без серверов, без
 Клиент представляет собой один HTML-файл, который можно открыть в браузере.
 
 Если вы умеете скачивать веб-страницы, вы уже умеете устанавливать Macaroni Messenger.
+
+Лицензия: [DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](LICENSE).
 
 ## Попробовать
 
