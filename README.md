@@ -1,5 +1,11 @@
 # Macaroni Messenger
 
+![1000% vibecoded](https://img.shields.io/badge/1000%25-vibecoded-ff69b4?style=for-the-badge)
+![One HTML File](https://img.shields.io/badge/one%20file-HTML-blue?style=for-the-badge)
+![No Backend](https://img.shields.io/badge/backend-none-success?style=for-the-badge)
+![Git Powered](https://img.shields.io/badge/powered%20by-git-orange?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/privacy-absolutely%20not-red?style=for-the-badge)
+
 ## A messenger implemented as a single HTML file
 
 Russian version: [README.ru.md](README.ru.md).
