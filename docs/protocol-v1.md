@@ -124,6 +124,7 @@ Body:
   "chat_id": "chat_20260608_sa6e_k2xm",
   "type": "text",
   "from": "SA6E",
+  "from_name": "Я",
   "to": ["K2XM"],
   "created_at": "2026-06-08T12:30:01.123Z",
   "text": "Мам, свари макарошки",
@@ -143,6 +144,15 @@ Body:
 - короткого random suffix.
 
 Git-конфликтов почти нет, потому что каждое сообщение - новый файл.
+
+`from` остаётся техническим идентификатором автора. `from_name` - снимок отображаемого имени на момент отправки, чтобы UI не показывал `LXVF:` там, где человек писал как `Мама`.
+
+При отображении автора клиент использует первый доступный источник:
+
+1. `message.from_name`;
+2. `.macaroni/users/<client_id>.json`;
+3. `.macaroni/chats/<chat_id>/members.json`;
+4. голый `client_id`.
 
 ## .macaroni/inbox/<recipient>/<message_id>.json
 

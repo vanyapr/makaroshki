@@ -247,7 +247,7 @@ async function testLocalMvpFlow(browser) {
       ]
     });
     const path = ".macaroni/chats/" + chat.meta.id + "/members.json";
-    const request = indexedDB.open("macaroni-messenger", 2);
+    const request = indexedDB.open("macaroni-messenger", 3);
     await new Promise((resolve, reject) => {
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
@@ -352,6 +352,13 @@ async function testGitHubInboxReindex(browser) {
         created_at: "2026-06-09T04:00:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
+      ".macaroni/users/K2XM.json": {
+        version: 1,
+        id: "K2XM",
+        display_name: "МАМА",
+        created_at: "2026-06-09T04:00:00.000Z",
+        meta: { client: "Macaroni Messenger JS 0.1.0" }
+      },
       [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
@@ -366,7 +373,7 @@ async function testGitHubInboxReindex(browser) {
         chat_id: chatId,
         members: [
           { id: "SA6E", display_name: "SA6E", role: "member" },
-          { id: "K2XM", display_name: "K2XM", role: "owner" }
+          { id: "K2XM", display_name: "МАМА", role: "owner" }
         ]
       },
       [".macaroni/inbox/SA6E/" + messageId + ".json"]: {
@@ -416,6 +423,13 @@ async function testGitHubInboxReindex(browser) {
         return [];
       }
 
+      if (repoPath === ".macaroni/users") {
+        return [
+          { path: ".macaroni/users/SA6E.json", type: "file", sha: "sha-user-sa6e" },
+          { path: ".macaroni/users/K2XM.json", type: "file", sha: "sha-user-k2xm" }
+        ];
+      }
+
       if (repoPath === ".macaroni/inbox/SA6E") {
         return [{ path: ".macaroni/inbox/SA6E/" + messageId + ".json", type: "file", sha: "sha-inbox" }];
       }
@@ -457,6 +471,8 @@ async function testGitHubInboxReindex(browser) {
 
   const texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("Remote inbox hello")), "GitHub inbox message was not indexed");
+  const authors = await page.evaluate(() => [...document.querySelectorAll(".message-row .author")].map((node) => node.textContent));
+  assert(authors.some((author) => author === "МАМА:"), "GitHub inbox author name was not rendered: " + authors.join(", "));
 
   await context.close();
 }

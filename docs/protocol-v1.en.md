@@ -124,6 +124,7 @@ Body:
   "chat_id": "chat_20260608_sa6e_k2xm",
   "type": "text",
   "from": "SA6E",
+  "from_name": "Me",
   "to": ["K2XM"],
   "created_at": "2026-06-08T12:30:01.123Z",
   "text": "Mom, boil some macaroni",
@@ -143,6 +144,15 @@ Body:
 - short random suffix.
 
 Git conflicts are rare because every message is a new file.
+
+`from` remains the technical author identifier. `from_name` is a snapshot of the display name at send time, so the UI does not show `LXVF:` when the person wrote as `Mom`.
+
+When rendering the author, the client uses the first available source:
+
+1. `message.from_name`;
+2. `.macaroni/users/<client_id>.json`;
+3. `.macaroni/chats/<chat_id>/members.json`;
+4. raw `client_id`.
 
 ## .macaroni/inbox/<recipient>/<message_id>.json
 

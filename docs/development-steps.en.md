@@ -272,6 +272,8 @@ Composer sends messages to current chat members from `members.json`, excluding t
 
 The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, while the git write runs in the background. If the git write fails, the prepared message is saved to outbox for retry.
 
+New messages store `from_name` as a snapshot of the display name at send time. Author rendering uses `from_name`, then the local `.macaroni/users` cache, then `members.json`, and only then falls back to the short `CLIENT_ID`.
+
 Joining a chat means the current `CLIENT_ID` is added to `members.json`. If the user opens a chat but their ID is not there, `Chat info` offers to join and writes the current user to `members.json`.
 
 If `members.json` is missing, `Chat info` shows a fallback member from `meta.created_by`; when joining, the client creates `members.json` and adds the current `CLIENT_ID`.

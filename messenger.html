@@ -935,7 +935,7 @@
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
       var DB_NAME = "macaroni-messenger";
-      var DB_VERSION = 2;
+      var DB_VERSION = 3;
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
       var CLIENT_ID = loadOrCreateClientId();
@@ -1151,6 +1151,7 @@
           chat_id: value.chat_id,
           type: "text",
           from: from,
+          from_name: value.from_name || null,
           to: value.to || [],
           created_at: createdAt,
           text: value.text || "",
@@ -1622,6 +1623,16 @@
         });
       }
 
+      function listGitHubUserFiles(config) {
+        return githubListFiles(config, macaroniPath("users")).then(function (entries) {
+          return entries.filter(function (entry) {
+            return entry.type === "file" && /\.json$/.test(entry.path);
+          });
+        }).catch(function () {
+          return [];
+        });
+      }
+
       function reindexFromGitHub(profile, chatId) {
         var config = createGitHubConfig(profile);
         var clientId = profile.clientId || CLIENT_ID;
@@ -1652,16 +1663,44 @@
             var messageLists = targetChatIds.map(function (targetChatId) {
               return listGitHubMessageFiles(config, targetChatId);
             });
+            var memberDocuments = targetChatIds.map(function (targetChatId) {
+              return readGitHubJsonSafe(config, macaroniPath("chats/" + targetChatId + "/members.json")).then(function (membersDocument) {
+                return membersDocument && membersDocument.chat_id ? membersDocument : null;
+              });
+            });
             return Promise.all([
               Promise.all(messageLists).then(function (lists) {
                 return lists.reduce(function (allFiles, files) {
                   return allFiles.concat(files);
                 }, []);
               }),
-              listGitHubInboxMessageFiles(config, clientId)
+              listGitHubInboxMessageFiles(config, clientId),
+              listGitHubUserFiles(config),
+              Promise.all(memberDocuments)
             ]);
           }).then(function (sources) {
-            return uniqueRepoFiles(sources[0].concat(sources[1]));
+            return Promise.resolve(sources[2]).then(function (userFiles) {
+              var chain = Promise.resolve();
+              userFiles.forEach(function (file) {
+                chain = chain.then(function () {
+                  return readGitHubJsonSafe(config, file.path).then(function (user) {
+                    if (user && user.id) {
+                      writes.push(putRecord("users", user));
+                    }
+                    return null;
+                  });
+                });
+              });
+
+              return chain.then(function () {
+                sources[3].forEach(function (membersDocument) {
+                  if (membersDocument && membersDocument.chat_id) {
+                    writes.push(putRecord("members", membersDocument));
+                  }
+                });
+                return uniqueRepoFiles(sources[0].concat(sources[1]));
+              });
+            });
           }).then(function (files) {
             var chain = Promise.resolve();
             files.forEach(function (file) {
@@ -1757,6 +1796,8 @@
             var db = request.result;
             var messages = createStore(db, "messages", { keyPath: "id" });
             var chats = createStore(db, "chats", { keyPath: "id" });
+            createStore(db, "users", { keyPath: "id" });
+            createStore(db, "members", { keyPath: "chat_id" });
             createStore(db, "outbox", { keyPath: "id" });
             createStore(db, "meta", { keyPath: "key" });
             createStore(db, "repoFiles", { keyPath: "path" });
@@ -1853,6 +1894,7 @@
             var haystack = [
               message.text,
               message.from,
+              message.from_name,
               message.chat_id,
               message.created_at
             ].join(" ").toLowerCase();
@@ -1867,6 +1909,29 @@
             return String(left.title || left.id || "").localeCompare(String(right.title || right.id || ""));
           });
         });
+      }
+
+      function listUsers() {
+        return listRecords("users");
+      }
+
+      function getMembers(chatId) {
+        if (!chatId) {
+          return Promise.resolve(null);
+        }
+
+        return storageTransaction(["members"], "readonly").then(function (transaction) {
+          return requestToPromise(transaction.objectStore("members").get(chatId));
+        });
+      }
+
+      function usersById(users) {
+        return (users || []).reduce(function (map, user) {
+          if (user && user.id) {
+            map[user.id] = user;
+          }
+          return map;
+        }, {});
       }
 
       function putOutbox(item) {
@@ -1891,7 +1956,7 @@
       }
 
       function resetIndex() {
-        return clearStores(["messages", "chats", "meta"]);
+        return clearStores(["messages", "chats", "users", "members", "meta"]);
       }
 
       function repoWriteFile(path, content) {
@@ -2042,6 +2107,20 @@
                 writes.push(putRecord("chats", entry.value));
               } catch (error) {
                 skipped.push({ path: entry.path, reason: error.message });
+              }
+              return;
+            }
+
+            if (/^\.macaroni\/users\/[^/]+\.json$/.test(entry.path)) {
+              if (entry.value && entry.value.id) {
+                writes.push(putRecord("users", entry.value));
+              }
+              return;
+            }
+
+            if (/^\.macaroni\/chats\/[^/]+\/members\.json$/.test(entry.path)) {
+              if (entry.value && entry.value.chat_id) {
+                writes.push(putRecord("members", entry.value));
               }
               return;
             }
@@ -2294,7 +2373,27 @@
         return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
       }
 
-      function drawMessages(messages, emptyText) {
+      function membersById(membersDocument) {
+        return (membersDocument && Array.isArray(membersDocument.members) ? membersDocument.members : []).reduce(function (map, member) {
+          if (member && member.id) {
+            map[member.id] = member;
+          }
+          return map;
+        }, {});
+      }
+
+      function authorLabel(message, users, members) {
+        if (message.from === CLIENT_ID) {
+          return "Я";
+        }
+
+        var from = message.from || "";
+        var user = users && users[from];
+        var member = members && members[from];
+        return message.from_name || (user && user.display_name) || (member && member.display_name) || from || "???";
+      }
+
+      function drawMessages(messages, emptyText, users, members) {
           var list = get("message-list");
           list.innerHTML = "";
 
@@ -2317,7 +2416,7 @@
             text.className = "text";
             time.className = "time";
 
-            author.textContent = (message.from === CLIENT_ID ? "Я" : message.from) + ":";
+            author.textContent = authorLabel(message, users, members) + ":";
             text.textContent = message.text;
             time.textContent = formatMessageTime(message.created_at);
 
@@ -2331,8 +2430,12 @@
       }
 
       function renderMessages(chatId) {
-        return listMessages(chatId).then(function (messages) {
-          return drawMessages(messages);
+        return Promise.all([
+          listMessages(chatId),
+          listUsers(),
+          getMembers(chatId)
+        ]).then(function (result) {
+          return drawMessages(result[0], null, usersById(result[1]), membersById(result[2]));
         });
       }
 
@@ -2587,8 +2690,13 @@
           });
         }
 
-        return searchMessages(query, currentChatId).then(function (messages) {
-          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.");
+        return Promise.all([
+          searchMessages(query, currentChatId),
+          listUsers(),
+          getMembers(currentChatId)
+        ]).then(function (result) {
+          var messages = result[0];
+          drawMessages(messages, "Ничего не найдено. Git помнит, но не это.", usersById(result[1]), membersById(result[2]));
           return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
             return messages;
           });
@@ -2779,6 +2887,7 @@
           var message = createTextMessage({
             chat_id: targetChatId,
             from: CLIENT_ID,
+            from_name: (profile && profile.displayName) || CLIENT_ID,
             to: recipients,
             text: text
           });
