@@ -1045,6 +1045,7 @@
       var currentChatId = null;
       var composerBound = false;
       var pollTimer = null;
+      var chatListRenderTimer = null;
       var syncInFlight = false;
       var activeLanguage = null;
       var incomingSound = null;
@@ -3676,8 +3677,10 @@
         ]).then(function (result) {
           var messages = drawMessages(result[0], null, usersById(result[1]), membersById(result[2]));
           if (chatId === currentChatId) {
-            return markChatRead(chatId, messages).then(function () {
-              return messages;
+            markChatRead(chatId, messages).then(function () {
+              scheduleChatListRender();
+            }).catch(function (error) {
+              setAppError(t("chatOpenFailed", { message: error.message }));
             });
           }
 
@@ -3839,6 +3842,43 @@
         return counts;
       }
 
+      function updateChatListSelection(chatId) {
+        document.querySelectorAll("#chat-list .chat-item").forEach(function (item) {
+          item.classList.toggle("active", item.dataset.chatId === chatId);
+        });
+      }
+
+      function clearChatUnreadBadge(chatId) {
+        document.querySelectorAll("#chat-list .chat-item").forEach(function (item) {
+          if (item.dataset.chatId !== chatId) {
+            return;
+          }
+
+          var badge = item.querySelector(".unread-badge");
+          if (badge) {
+            badge.remove();
+          }
+
+          var badges = item.querySelector(".chat-badges");
+          if (badges && !badges.children.length) {
+            badges.remove();
+          }
+        });
+      }
+
+      function scheduleChatListRender() {
+        if (chatListRenderTimer) {
+          return;
+        }
+
+        chatListRenderTimer = window.setTimeout(function () {
+          chatListRenderTimer = null;
+          renderChatList().catch(function (error) {
+            setAppError(t("chatOpenFailed", { message: error.message }));
+          });
+        }, 0);
+      }
+
       function drawChatList(chats, unreadByChat, outboxByChat) {
         var list = get("chat-list");
         updateDocumentTitle(unreadByChat || {});
@@ -3859,6 +3899,7 @@
           var pending = outboxByChat && outboxByChat[chat.id] ? outboxByChat[chat.id] : 0;
           item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
           item.type = "button";
+          item.dataset.chatId = chat.id;
           name.className = "chat-name";
           name.textContent = chat.title || chat.id;
           item.appendChild(name);
@@ -3886,9 +3927,9 @@
           }
 
           item.addEventListener("click", function () {
+            updateChatListSelection(chat.id);
+            clearChatUnreadBadge(chat.id);
             selectChat(chat).then(function () {
-              return renderChatList();
-            }).then(function () {
               return updateSyncStatusFromState(loadProfile() || {}, "chat: open");
             }).catch(function (error) {
               setAppError(t("chatOpenFailed", { message: error.message }));
