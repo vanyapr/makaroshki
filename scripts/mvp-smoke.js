@@ -275,6 +275,17 @@ async function testLocalMvpFlow(browser) {
   });
   assert(workUnreadAfterOpen === null, "opening a chat did not clear unread indicator");
   assert(await page.title() === "Macaroni Messenger", "opening a chat did not clear document title unread count");
+  const receiptFilesAfterOpen = await page.evaluate(async () => {
+    const chats = await window.MacaroniStorage.listChats();
+    const work = chats.find((chat) => chat.title === "WORK");
+    return window.MacaroniTestRepo.listFiles(".macaroni/chats/" + work.id + "/receipts/SA6E/");
+  });
+  assert(receiptFilesAfterOpen.length === 1, "opening a chat did not write one append-only read receipt");
+  const receiptDocument = JSON.parse(receiptFilesAfterOpen[0].content);
+  assert(receiptDocument.type === "read", "read receipt type is wrong");
+  assert(receiptDocument.user_id === "SA6E", "read receipt user is wrong");
+  assert(receiptDocument.chat_id, "read receipt chat id is missing");
+  assert(receiptDocument.message_id, "read receipt message id is missing");
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
   const workUnreadAfterReindex = await page.evaluate(() => {
@@ -283,6 +294,12 @@ async function testLocalMvpFlow(browser) {
     return badge ? badge.textContent : null;
   });
   assert(workUnreadAfterReindex === null, "reindex did not preserve read chat marker");
+  const receiptCountAfterReindex = await page.evaluate(async () => {
+    const chats = await window.MacaroniStorage.listChats();
+    const work = chats.find((chat) => chat.title === "WORK");
+    return window.MacaroniTestRepo.listFiles(".macaroni/chats/" + work.id + "/receipts/SA6E/").then((files) => files.length);
+  });
+  assert(receiptCountAfterReindex === 1, "reindex duplicated read receipt without a new read marker");
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("work chat")), "dynamic chat selection did not render chat messages");
   await page.locator("#search-input").fill("mom");

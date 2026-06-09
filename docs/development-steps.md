@@ -370,7 +370,7 @@ node scripts/mvp-smoke.js
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
 5. Markdown rendering: частично сделано как безопасный inline-render `**bold**`, `*italic*`, `` `code` `` в UI сообщений, без HTML passthrough и без полноценного CommonMark-движка.
 6. Basic notifications: частично сделано как unread count в `document.title`, без Browser Notification API и permission prompts.
-7. Receipts как append-only события.
+7. Receipts как append-only события: частично сделано как `read` receipt files в `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, которые пишутся только при продвижении последнего прочитанного message marker.
 8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML.
 10. Plugin boundary.

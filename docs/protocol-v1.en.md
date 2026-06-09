@@ -26,6 +26,7 @@ The token is not the user. The token is the access right to the repository.
 .macaroni/chats/<chat_id>/meta.json
 .macaroni/chats/<chat_id>/members.json
 .macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
+.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/<receipt_id>.json
 .macaroni/inbox/<recipient>/<message_id>.json
 ```
 
@@ -47,6 +48,7 @@ MVP does not edit or delete messages in place.
   "features": {
     "encryption": "optional",
     "attachments": "url_only",
+    "receipts": "append_only",
     "deletion": "markers_only"
   }
 }
@@ -155,6 +157,39 @@ When rendering the author, the client uses the first available source:
 2. `.macaroni/users/<client_id>.json`;
 3. `.macaroni/chats/<chat_id>/members.json`;
 4. raw `client_id`.
+
+## Read Receipt
+
+Read receipts are append-only events. They do not replace local unread markers and they do not guarantee that a human actually read the message.
+
+Path:
+
+```text
+.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/<receipt_id>.json
+```
+
+Body:
+
+```json
+{
+  "version": 1,
+  "id": "2026-06-09T12-30-01.123Z_SA6E_2026-06-09T12-20-00.000Z_K2XM_a1b2c3_d4e5",
+  "type": "read",
+  "chat_id": "chat_20260608_sa6e_k2xm",
+  "user_id": "SA6E",
+  "user_name": "Me",
+  "message_id": "2026-06-09T12-20-00.000Z_K2XM_a1b2c3",
+  "message_created_at": "2026-06-09T12:20:00.000Z",
+  "read_at": "2026-06-09T12:30:01.123Z",
+  "created_at": "2026-06-09T12:30:01.123Z",
+  "meta": {
+    "client": "Macaroni Messenger JS 0.1.0"
+  },
+  "signature": null
+}
+```
+
+The client writes a receipt only when the latest read message marker moves forward. If the repo is open without write access or the receipt write fails, no receipt is created and nothing is added to outbox: this is a best-effort signal, not message delivery.
 
 ## .macaroni/inbox/<recipient>/<message_id>.json
 

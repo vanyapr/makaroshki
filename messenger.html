@@ -1477,6 +1477,11 @@
         return compactIso(iso) + "_" + String(authorId || CLIENT_ID).trim() + "_" + randomSuffix(6);
       }
 
+      function createReceiptId(userId, messageId, createdAt) {
+        var iso = createdAt || new Date().toISOString();
+        return compactIso(iso) + "_" + String(userId || CLIENT_ID).trim() + "_" + String(messageId || "message").replace(/[^a-zA-Z0-9_.-]+/g, "_") + "_" + randomSuffix(4);
+      }
+
       function messagePath(chatId, message) {
         var parts = dateParts(message.created_at);
         return macaroniPath([
@@ -1487,6 +1492,20 @@
           parts.month,
           parts.day,
           message.id + ".json"
+        ].join("/"));
+      }
+
+      function receiptPath(receipt) {
+        var parts = dateParts(receipt.created_at);
+        return macaroniPath([
+          "chats",
+          receipt.chat_id,
+          "receipts",
+          receipt.user_id,
+          parts.year,
+          parts.month,
+          parts.day,
+          receipt.id + ".json"
         ].join("/"));
       }
 
@@ -1560,6 +1579,30 @@
         };
       }
 
+      function createReadReceipt(options) {
+        var value = options || {};
+        var createdAt = value.created_at || new Date().toISOString();
+        var receipt = {
+          version: PROTOCOL_VERSION,
+          id: value.id || createReceiptId(value.user_id || CLIENT_ID, value.message_id, createdAt),
+          type: "read",
+          chat_id: value.chat_id,
+          user_id: value.user_id || CLIENT_ID,
+          user_name: value.user_name || null,
+          message_id: value.message_id,
+          message_created_at: value.message_created_at,
+          read_at: value.read_at || createdAt,
+          created_at: createdAt,
+          meta: {
+            client: CLIENT_NAME
+          },
+          signature: null
+        };
+
+        validateReadReceipt(receipt);
+        return receipt;
+      }
+
       function requireString(value, field) {
         if (typeof value !== "string" || !value.trim()) {
           throw new Error(field + " is required");
@@ -1608,6 +1651,26 @@
         requireString(meta.title, "chat.title");
         requireString(meta.created_by, "chat.created_by");
         requireIsoDate(meta.created_at, "chat.created_at");
+        return true;
+      }
+
+      function validateReadReceipt(receipt) {
+        if (!receipt || receipt.version !== PROTOCOL_VERSION) {
+          throw new Error("Unsupported receipt version");
+        }
+
+        requireString(receipt.id, "receipt.id");
+        requireString(receipt.chat_id, "receipt.chat_id");
+        requireString(receipt.user_id, "receipt.user_id");
+        requireString(receipt.message_id, "receipt.message_id");
+        requireIsoDate(receipt.message_created_at, "receipt.message_created_at");
+        requireIsoDate(receipt.read_at, "receipt.read_at");
+        requireIsoDate(receipt.created_at, "receipt.created_at");
+
+        if (receipt.type !== "read") {
+          throw new Error("Only read receipts are supported in Protocol v1");
+        }
+
         return true;
       }
 
@@ -1947,6 +2010,14 @@
           return putMessage(message);
         }).then(function () {
           return message;
+        });
+      }
+
+      function writeGitHubReadReceipt(profile, receipt) {
+        var config = createGitHubConfig(profile);
+        validateReadReceipt(receipt);
+        return githubWriteJson(config, receiptPath(receipt), receipt, "Macaroni: read receipt " + receipt.message_id).then(function () {
+          return receipt;
         });
       }
 
@@ -2390,6 +2461,10 @@
         return "read:" + chatId;
       }
 
+      function chatReceiptMetaKey(chatId) {
+        return "receipt:" + chatId;
+      }
+
       function compareMessageMarkers(left, right) {
         var createdCompare = String((left && left.created_at) || "").localeCompare(String((right && right.created_at) || ""));
         if (createdCompare !== 0) {
@@ -2415,6 +2490,17 @@
         return latest;
       }
 
+      function latestMessage(messages) {
+        var latest = null;
+        (messages || []).forEach(function (message) {
+          if (!latest || compareMessageMarkers(latest, message) < 0) {
+            latest = message;
+          }
+        });
+
+        return latest;
+      }
+
       function isMessageUnread(message, marker) {
         if (!message || message.from === CLIENT_ID) {
           return false;
@@ -2430,17 +2516,60 @@
         }) < 0;
       }
 
+      function queueReadReceipt(profile, chatId, message) {
+        var value = profile || loadProfile() || {};
+        var marker = {
+          id: message.id || "",
+          created_at: message.created_at || ""
+        };
+
+        return getMeta(chatReceiptMetaKey(chatId)).then(function (previous) {
+          if (previous && compareMessageMarkers(previous, marker) >= 0) {
+            return previous;
+          }
+
+          if (canReadGitHub(value) && !canWriteGitHub(value)) {
+            return putMeta(chatReceiptMetaKey(chatId), marker);
+          }
+
+          var receipt = createReadReceipt({
+            chat_id: chatId,
+            user_id: CLIENT_ID,
+            user_name: value.displayName || CLIENT_ID,
+            message_id: message.id,
+            message_created_at: message.created_at
+          });
+
+          return writeReadReceipt(value, receipt).then(function () {
+            return putMeta(chatReceiptMetaKey(chatId), marker);
+          }).catch(function (error) {
+            return putMeta(chatReceiptMetaKey(chatId), marker);
+          });
+        });
+      }
+
       function markChatRead(chatId, messages) {
         if (!chatId) {
           return Promise.resolve(null);
         }
 
-        var latest = latestMessageMarker(messages || []);
-        if (!latest) {
+        var message = latestMessage(messages || []);
+        if (!message) {
           return Promise.resolve(null);
         }
 
-        return putMeta(chatReadMetaKey(chatId), latest);
+        var latest = latestMessageMarker(messages || []);
+        return getMeta(chatReadMetaKey(chatId)).then(function (previous) {
+          if (previous && compareMessageMarkers(previous, latest) >= 0) {
+            return previous;
+          }
+
+          return putMeta(chatReadMetaKey(chatId), latest).then(function () {
+            return queueReadReceipt(loadProfile() || {}, chatId, message);
+          }).then(function () {
+            return latest;
+          });
+        });
       }
 
       function getMembers(chatId) {
@@ -2486,7 +2615,7 @@
       function resetIndex() {
         return listRecords("meta").then(function (records) {
           var localReadState = records.filter(function (record) {
-            return record && record.key && record.key.indexOf("read:") === 0;
+            return record && record.key && (record.key.indexOf("read:") === 0 || record.key.indexOf("receipt:") === 0);
           });
 
           return clearStores(["messages", "chats", "users", "members", "meta"]).then(function () {
@@ -2605,6 +2734,21 @@
         return Promise.all(writes).then(function () {
           return message;
         });
+      }
+
+      function writeTestReadReceipt(receipt) {
+        validateReadReceipt(receipt);
+        return repoWriteJson(receiptPath(receipt), receipt).then(function () {
+          return receipt;
+        });
+      }
+
+      function writeReadReceipt(profile, receipt) {
+        if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+          return Promise.resolve(null);
+        }
+
+        return canWriteGitHub(profile) ? writeGitHubReadReceipt(profile, receipt) : writeTestReadReceipt(receipt);
       }
 
       function parseRepoJson(record) {
@@ -3734,7 +3878,17 @@
           var chain = Promise.resolve();
           items.forEach(function (item) {
             chain = chain.then(function () {
-              if (item.type !== "send_message" || !item.payload) {
+              if (!item.payload) {
+                return null;
+              }
+
+              if (item.type === "read_receipt" && item.payload.receipt) {
+                return writeReadReceipt(profile, item.payload.receipt).then(function () {
+                  return deleteOutbox(item.id);
+                });
+              }
+
+              if (item.type !== "send_message") {
                 return null;
               }
 
@@ -4021,11 +4175,15 @@
         createChatMeta: createChatMeta,
         createChatMembers: createChatMembers,
         createMessageId: createMessageId,
+        createReceiptId: createReceiptId,
         createTextMessage: createTextMessage,
         createInboxNotification: createInboxNotification,
+        createReadReceipt: createReadReceipt,
         messagePath: messagePath,
+        receiptPath: receiptPath,
         inboxPath: inboxPath,
         validateMessage: validateMessage,
+        validateReadReceipt: validateReadReceipt,
         validateChatMeta: validateChatMeta
       };
 

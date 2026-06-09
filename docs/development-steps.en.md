@@ -370,7 +370,7 @@ Only after working `messenger.html`:
 4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
 5. Markdown rendering: partially done as safe inline rendering for `**bold**`, `*italic*`, and `` `code` `` in the message UI, without HTML passthrough and without a full CommonMark engine.
 6. Basic notifications: partially done as unread count in `document.title`, without Browser Notification API or permission prompts.
-7. Receipts as append-only events.
+7. Receipts as append-only events: partially done as `read` receipt files in `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, written only when the latest read message marker moves forward.
 8. HTML export of chat history: partially done as local export of the current chat from IndexedDB into a standalone HTML file, without writing to git.
 9. Electron/WebView wrapper around the same HTML.
 10. Plugin boundary.
