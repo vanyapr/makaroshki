@@ -2945,13 +2945,6 @@
             return;
           }
 
-          if (document.hidden) {
-            updateSyncStatusFromState(latestProfile, "poll: paused").then(function () {
-              scheduleMessagePoll(latestProfile);
-            });
-            return;
-          }
-
           if (syncInFlight) {
             scheduleMessagePoll(latestProfile);
             return;

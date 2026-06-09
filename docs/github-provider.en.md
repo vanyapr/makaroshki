@@ -101,7 +101,7 @@ MVP polling is intentionally dumb:
 
 - GitHub profile with a token: sync every 30 seconds.
 - GitHub read-only profile without a token: sync every 60 seconds.
-- A hidden tab does not run network sync and waits until it becomes active again.
+- A hidden tab still schedules sync; the browser may throttle background timers.
 - If sync is already running, the next polling/manual refresh does not start in parallel.
 
 This is not real-time and not presence. This is "Mom will see the message soon enough".

@@ -114,6 +114,7 @@ async function testPollingContract(browser) {
 
   assert(intervals.withToken === 30000, "GitHub polling interval with token is wrong");
   assert(intervals.readOnly === 60000, "GitHub read-only polling interval is wrong");
+  assert(!fs.readFileSync(messengerPath, "utf8").includes("document.hidden"), "polling must not pause hidden tabs");
 
   await context.close();
 }
