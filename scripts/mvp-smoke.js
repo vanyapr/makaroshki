@@ -172,8 +172,8 @@ async function testOutboxAndRetry(browser) {
   outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 0, "retry did not clear outbox");
 
-  const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles("inbox/").then((files) => files.map((file) => file.path)));
-  assert(inboxFiles.some((file) => file.startsWith("inbox/K2XM/")), "retry did not write recipient inbox");
+  const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/inbox/").then((files) => files.map((file) => file.path)));
+  assert(inboxFiles.some((file) => file.startsWith(".macaroni/inbox/K2XM/")), "retry did not write recipient inbox");
 
   await context.close();
 }
@@ -183,9 +183,9 @@ async function testGitHubInboxReindex(browser) {
   await context.addInitScript(() => {
     const chatId = "chat_remote_inbox";
     const messageId = "2026-06-09T04-00-00.000Z_K2XM_remote1";
-    const messagePath = "chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
+    const messagePath = ".macaroni/chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
     const files = {
-      "protocol.json": {
+      ".macaroni/protocol.json": {
         name: "Macaroni Protocol",
         version: 1,
         created_at: "2026-06-09T04:00:00.000Z",
@@ -193,14 +193,14 @@ async function testGitHubInboxReindex(browser) {
         privacy: "public_by_design",
         features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
       },
-      "users/SA6E.json": {
+      ".macaroni/users/SA6E.json": {
         version: 1,
         id: "SA6E",
         display_name: "Я",
         created_at: "2026-06-09T04:00:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
-      ["chats/" + chatId + "/meta.json"]: {
+      [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
         title: "МАМА",
@@ -209,7 +209,7 @@ async function testGitHubInboxReindex(browser) {
         visibility: "repo",
         privacy: "public_by_design"
       },
-      ["chats/" + chatId + "/members.json"]: {
+      [".macaroni/chats/" + chatId + "/members.json"]: {
         version: 1,
         chat_id: chatId,
         members: [
@@ -217,7 +217,7 @@ async function testGitHubInboxReindex(browser) {
           { id: "K2XM", display_name: "K2XM", role: "owner" }
         ]
       },
-      ["inbox/SA6E/" + messageId + ".json"]: {
+      [".macaroni/inbox/SA6E/" + messageId + ".json"]: {
         version: 1,
         recipient: "SA6E",
         message_id: messageId,
@@ -256,16 +256,16 @@ async function testGitHubInboxReindex(browser) {
     }
 
     function listResponse(repoPath) {
-      if (repoPath === "chats") {
-        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      if (repoPath === ".macaroni/chats") {
+        return [{ path: ".macaroni/chats/" + chatId, type: "dir", sha: "sha-chat" }];
       }
 
-      if (repoPath === "chats/" + chatId + "/messages") {
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages") {
         return [];
       }
 
-      if (repoPath === "inbox/SA6E") {
-        return [{ path: "inbox/SA6E/" + messageId + ".json", type: "file", sha: "sha-inbox" }];
+      if (repoPath === ".macaroni/inbox/SA6E") {
+        return [{ path: ".macaroni/inbox/SA6E/" + messageId + ".json", type: "file", sha: "sha-inbox" }];
       }
 
       return null;
@@ -314,9 +314,9 @@ async function testGitHubReadOnlyMode(browser) {
   await context.addInitScript(() => {
     const chatId = "chat_readonly";
     const messageId = "2026-06-09T06-30-00.000Z_K2XM_readonly";
-    const messagePath = "chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
+    const messagePath = ".macaroni/chats/" + chatId + "/messages/2026/06/09/" + messageId + ".json";
     const files = {
-      "protocol.json": {
+      ".macaroni/protocol.json": {
         name: "Macaroni Protocol",
         version: 1,
         created_at: "2026-06-09T06:30:00.000Z",
@@ -324,7 +324,7 @@ async function testGitHubReadOnlyMode(browser) {
         privacy: "public_by_design",
         features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
       },
-      ["chats/" + chatId + "/meta.json"]: {
+      [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
         title: "PUBLIC_READONLY",
@@ -333,7 +333,7 @@ async function testGitHubReadOnlyMode(browser) {
         visibility: "repo",
         privacy: "public_by_design"
       },
-      ["chats/" + chatId + "/members.json"]: {
+      [".macaroni/chats/" + chatId + "/members.json"]: {
         version: 1,
         chat_id: chatId,
         members: [
@@ -367,22 +367,22 @@ async function testGitHubReadOnlyMode(browser) {
     }
 
     function listResponse(repoPath) {
-      if (repoPath === "chats") {
-        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      if (repoPath === ".macaroni/chats") {
+        return [{ path: ".macaroni/chats/" + chatId, type: "dir", sha: "sha-chat" }];
       }
-      if (repoPath === "chats/" + chatId + "/messages") {
-        return [{ path: "chats/" + chatId + "/messages/2026", type: "dir", sha: "sha-y" }];
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026", type: "dir", sha: "sha-y" }];
       }
-      if (repoPath === "chats/" + chatId + "/messages/2026") {
-        return [{ path: "chats/" + chatId + "/messages/2026/06", type: "dir", sha: "sha-m" }];
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026/06", type: "dir", sha: "sha-m" }];
       }
-      if (repoPath === "chats/" + chatId + "/messages/2026/06") {
-        return [{ path: "chats/" + chatId + "/messages/2026/06/09", type: "dir", sha: "sha-d" }];
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026/06") {
+        return [{ path: ".macaroni/chats/" + chatId + "/messages/2026/06/09", type: "dir", sha: "sha-d" }];
       }
-      if (repoPath === "chats/" + chatId + "/messages/2026/06/09") {
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages/2026/06/09") {
         return [{ path: messagePath, type: "file", sha: "sha-message" }];
       }
-      if (repoPath === "inbox/SA6E") {
+      if (repoPath === ".macaroni/inbox/SA6E") {
         return [];
       }
       return null;
@@ -431,7 +431,7 @@ async function testGitHubSendWrites(browser) {
   await context.addInitScript(() => {
     const chatId = "chat_remote_send";
     const files = {
-      "protocol.json": {
+      ".macaroni/protocol.json": {
         name: "Macaroni Protocol",
         version: 1,
         created_at: "2026-06-09T04:30:00.000Z",
@@ -439,14 +439,14 @@ async function testGitHubSendWrites(browser) {
         privacy: "public_by_design",
         features: { encryption: "optional", attachments: "url_only", deletion: "markers_only" }
       },
-      "users/SA6E.json": {
+      ".macaroni/users/SA6E.json": {
         version: 1,
         id: "SA6E",
         display_name: "Я",
         created_at: "2026-06-09T04:30:00.000Z",
         meta: { client: "Macaroni Messenger JS 0.1.0" }
       },
-      ["chats/" + chatId + "/meta.json"]: {
+      [".macaroni/chats/" + chatId + "/meta.json"]: {
         version: 1,
         id: chatId,
         title: "МАМА",
@@ -455,7 +455,7 @@ async function testGitHubSendWrites(browser) {
         visibility: "repo",
         privacy: "public_by_design"
       },
-      ["chats/" + chatId + "/members.json"]: {
+      [".macaroni/chats/" + chatId + "/members.json"]: {
         version: 1,
         chat_id: chatId,
         members: [
@@ -488,15 +488,15 @@ async function testGitHubSendWrites(browser) {
     }
 
     function listResponse(repoPath) {
-      if (repoPath === "chats") {
-        return [{ path: "chats/" + chatId, type: "dir", sha: "sha-chat" }];
+      if (repoPath === ".macaroni/chats") {
+        return [{ path: ".macaroni/chats/" + chatId, type: "dir", sha: "sha-chat" }];
       }
 
-      if (repoPath === "chats/" + chatId + "/messages") {
+      if (repoPath === ".macaroni/chats/" + chatId + "/messages") {
         return [];
       }
 
-      if (repoPath === "inbox/SA6E") {
+      if (repoPath === ".macaroni/inbox/SA6E") {
         return [];
       }
 
@@ -544,8 +544,8 @@ async function testGitHubSendWrites(browser) {
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
 
   const writes = await page.evaluate(() => window.__macaroniWrites);
-  const messageWrite = writes.find((write) => /^chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
-  const inboxWrite = writes.find((write) => /^inbox\/K2XM\/.+\.json$/.test(write.path));
+  const messageWrite = writes.find((write) => /^\.macaroni\/chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
+  const inboxWrite = writes.find((write) => /^\.macaroni\/inbox\/K2XM\/.+\.json$/.test(write.path));
 
   assert(messageWrite, "GitHub send did not write message file");
   assert(inboxWrite, "GitHub send did not write recipient inbox");
@@ -569,7 +569,7 @@ async function testTwoClientRecipients(browser) {
   const page = await openMessenger(context, "file://" + k2xmPath);
   await installProfile(page, { clientId: "K2XM", displayName: "K2XM" });
 
-  const members = await page.evaluate(() => window.MacaroniTestRepo.listFiles("chats/").then((files) => {
+  const members = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/chats/").then((files) => {
     const membersFile = files.find((file) => /members\.json$/.test(file.path));
     return membersFile ? JSON.parse(membersFile.content).members.map((member) => member.id) : [];
   }));
@@ -579,8 +579,8 @@ async function testTwoClientRecipients(browser) {
   await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("K2XM to SA6E")));
 
-  const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles("inbox/").then((files) => files.map((file) => file.path)));
-  assert(inboxFiles.some((file) => file.startsWith("inbox/SA6E/")), "K2XM did not write SA6E inbox");
+  const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/inbox/").then((files) => files.map((file) => file.path)));
+  assert(inboxFiles.some((file) => file.startsWith(".macaroni/inbox/SA6E/")), "K2XM did not write SA6E inbox");
 
   await context.close();
 }

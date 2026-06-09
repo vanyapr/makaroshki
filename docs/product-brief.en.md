@@ -167,36 +167,37 @@ Repository shape:
 
 ```text
 repo/
-  protocol.json
+  .macaroni/
+    protocol.json
 
-  users/
-    alice.json
-    bob.json
-    mom.json
+    users/
+      alice.json
+      bob.json
+      mom.json
 
-  chats/
-    chat_01HXYZ/
-      meta.json
-      members.json
+    chats/
+      chat_01HXYZ/
+        meta.json
+        members.json
 
-      messages/
-        2026/
-          06/
-            08/
-              2026-06-08T12-30-01.123Z_alice_a8f1c2.json
-              2026-06-08T12-31-10.812Z_mom_9b4a11.json
+        messages/
+          2026/
+            06/
+              08/
+                2026-06-08T12-30-01.123Z_alice_a8f1c2.json
+                2026-06-08T12-31-10.812Z_mom_9b4a11.json
 
-      receipts/
-        alice.json
-        bob.json
-        mom.json
+        receipts/
+          alice.json
+          bob.json
+          mom.json
 
-  inbox/
-    alice/
-      2026-06-08T12-31-10.812Z_mom_9b4a11.json
+    inbox/
+      alice/
+        2026-06-08T12-31-10.812Z_mom_9b4a11.json
 
-    mom/
-      2026-06-08T12-30-01.123Z_alice_a8f1c2.json
+      mom/
+        2026-06-08T12-30-01.123Z_alice_a8f1c2.json
 ```
 
 ## Message
@@ -260,8 +261,8 @@ Sending:
 
 1. User writes a message.
 2. Client creates a JSON file.
-3. Client places it into `chats/<chat_id>/messages/...`.
-4. Client also places a notification into `inbox/<recipient>/...`.
+3. Client places it into `.macaroni/chats/<chat_id>/messages/...`.
+4. Client also places a notification into `.macaroni/inbox/<recipient>/...`.
 5. Client commits.
 6. Client pushes.
 
@@ -278,7 +279,7 @@ Receiving:
 
 Scanning the whole history every time is dumb.
 
-`inbox/<user>` is a simple notification queue.
+`.macaroni/inbox/<user>` is a simple notification queue.
 
 The message still lives in the chat, but inbox lets the client quickly answer:
 
@@ -552,7 +553,7 @@ Not required.
 Possible later:
 
 ```text
-chats/<chat_id>/receipts/alice.json
+.macaroni/chats/<chat_id>/receipts/alice.json
 ```
 
 ```json
@@ -676,7 +677,7 @@ But that is already too much.
 
 ## Protocol Format
 
-Need `protocol.json`:
+Need `.macaroni/protocol.json`:
 
 ```json
 {

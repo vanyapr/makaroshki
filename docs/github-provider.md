@@ -12,7 +12,7 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - listing директории;
 - запись файла через Contents API;
 - запись JSON-файла;
-- refresh/reindex читает все chat meta, messages по датам и `inbox/<CLIENT_ID>` как receive hint;
+- refresh/reindex читает все chat meta, messages по датам и `.macaroni/inbox/<CLIENT_ID>` как receive hint;
 - GitHub repo без token работает в read-only режиме для публичных repo;
 - smoke harness проверяет GitHub send, reindex и read-only через fake Contents API без реального token;
 - human-readable ошибки для auth, permissions, missing repo/file и conflict.
@@ -71,7 +71,7 @@ Reindex читает:
 
 1. все найденные chat meta;
 2. сообщения чатов по `YYYY/MM/DD`;
-3. `inbox/<CLIENT_ID>/*.json`;
+3. `.macaroni/inbox/<CLIENT_ID>/*.json`;
 4. `message_path` из inbox notifications.
 
 Это нужно, чтобы второй экземпляр видел адресованные ему сообщения даже если они пришли через inbox notification.

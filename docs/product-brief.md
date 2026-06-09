@@ -158,36 +158,37 @@ Backend всё ещё не нужен. Нужны только браузер, J
 
 ```text
 repo/
-  protocol.json
+  .macaroni/
+    protocol.json
 
-  users/
-    alice.json
-    bob.json
-    mom.json
+    users/
+      alice.json
+      bob.json
+      mom.json
 
-  chats/
-    chat_01HXYZ/
-      meta.json
-      members.json
+    chats/
+      chat_01HXYZ/
+        meta.json
+        members.json
 
-      messages/
-        2026/
-          06/
-            08/
-              2026-06-08T12-30-01.123Z_alice_a8f1c2.json
-              2026-06-08T12-31-10.812Z_mom_9b4a11.json
+        messages/
+          2026/
+            06/
+              08/
+                2026-06-08T12-30-01.123Z_alice_a8f1c2.json
+                2026-06-08T12-31-10.812Z_mom_9b4a11.json
 
-      receipts/
-        alice.json
-        bob.json
-        mom.json
+        receipts/
+          alice.json
+          bob.json
+          mom.json
 
-  inbox/
-    alice/
-      2026-06-08T12-31-10.812Z_mom_9b4a11.json
+    inbox/
+      alice/
+        2026-06-08T12-31-10.812Z_mom_9b4a11.json
 
-    mom/
-      2026-06-08T12-30-01.123Z_alice_a8f1c2.json
+      mom/
+        2026-06-08T12-30-01.123Z_alice_a8f1c2.json
 ```
 
 ## Сообщение
@@ -251,8 +252,8 @@ repo/
 
 1. Пользователь пишет сообщение.
 2. Клиент создает JSON-файл.
-3. Кладет его в `chats/<chat_id>/messages/...`.
-4. Дополнительно кладет уведомление в `inbox/<recipient>/...`.
+3. Кладет его в `.macaroni/chats/<chat_id>/messages/...`.
+4. Дополнительно кладет уведомление в `.macaroni/inbox/<recipient>/...`.
 5. Делает commit.
 6. Делает push.
 
@@ -269,7 +270,7 @@ repo/
 
 Потому что сканировать всю историю каждый раз тупо.
 
-`inbox/<user>` — это простая очередь уведомлений.
+`.macaroni/inbox/<user>` — это простая очередь уведомлений.
 
 Сообщение всё равно лежит в чате, но inbox позволяет быстро понять:
 
@@ -544,7 +545,7 @@ Git — источник истины.
 Но можно сделать:
 
 ```text
-chats/<chat_id>/receipts/alice.json
+.macaroni/chats/<chat_id>/receipts/alice.json
 ```
 
 ```json
@@ -669,7 +670,7 @@ main
 
 ## Формат протокола
 
-Нужен `protocol.json`:
+Нужен `.macaroni/protocol.json`:
 
 ```json
 {

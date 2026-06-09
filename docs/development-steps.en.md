@@ -153,16 +153,16 @@ Done when:
 
 Goal: define message file model.
 
-Status: basically implemented in `messenger.html` and documented in `docs/protocol-v1.en.md`. `window.MacaroniProtocol` provides helpers for `protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, `chat_id`/`message_id` generation, and minimal validation without a dependency.
+Status: basically implemented in `messenger.html` and documented in `docs/protocol-v1.en.md`. `window.MacaroniProtocol` provides helpers for `.macaroni/protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, `chat_id`/`message_id` generation, and minimal validation without a dependency.
 
 Steps:
 
-1. Describe `protocol.json`.
-2. Describe `users/<client_id>.json`.
-3. Describe `chats/<chat_id>/meta.json`.
-4. Describe `chats/<chat_id>/members.json`.
-5. Describe `chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
-6. Describe `inbox/<recipient>/<message_id>.json`.
+1. Describe `.macaroni/protocol.json`.
+2. Describe `.macaroni/users/<client_id>.json`.
+3. Describe `.macaroni/chats/<chat_id>/meta.json`.
+4. Describe `.macaroni/chats/<chat_id>/members.json`.
+5. Describe `.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
+6. Describe `.macaroni/inbox/<recipient>/<message_id>.json`.
 7. Implement `chat_id` generation.
 8. Implement `message_id` generation.
 9. Implement minimal runtime validation without a heavy dependency.
@@ -223,7 +223,7 @@ Done when:
 
 Goal: connect first real remote flow.
 
-Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token the GitHub repo works as a read-only public repo. UI shows current transport, sync state, and outbox count. Sync is still simple: all chat meta, messages walked by `YYYY/MM/DD`, plus `inbox/<CLIENT_ID>` as a receive hint, no Git Trees API.
+Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. If the profile has a GitHub token, the composer writes through GitHub Contents API; without a token the GitHub repo works as a read-only public repo. UI shows current transport, sync state, and outbox count. Sync is still simple: all chat meta, messages walked by `YYYY/MM/DD`, plus `.macaroni/inbox/<CLIENT_ID>` as a receive hint, no Git Trees API.
 
 Steps:
 

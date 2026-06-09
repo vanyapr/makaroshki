@@ -930,6 +930,7 @@
       const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       const CLIENT_NAME = "Macaroni Messenger JS 0.1.0";
       const PROTOCOL_VERSION = 1;
+      const MACARONI_ROOT = ".macaroni";
 
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
@@ -1024,6 +1025,11 @@
         return String(path || "").replace(/^\/+|\/+$/g, "");
       }
 
+      function macaroniPath(path) {
+        var cleanPath = normalizeRepoPath(path);
+        return cleanPath ? MACARONI_ROOT + "/" + cleanPath : MACARONI_ROOT;
+      }
+
       function createProtocolDocument(createdAt) {
         return {
           name: "Macaroni Protocol",
@@ -1070,7 +1076,7 @@
 
       function messagePath(chatId, message) {
         var parts = dateParts(message.created_at);
-        return [
+        return macaroniPath([
           "chats",
           chatId,
           "messages",
@@ -1078,11 +1084,11 @@
           parts.month,
           parts.day,
           message.id + ".json"
-        ].join("/");
+        ].join("/"));
       }
 
       function inboxPath(recipientId, messageId) {
-        return ["inbox", recipientId, messageId + ".json"].join("/");
+        return macaroniPath(["inbox", recipientId, messageId + ".json"].join("/"));
       }
 
       function createChatMeta(options) {
@@ -1384,14 +1390,14 @@
         var config = createGitHubConfig(profile);
         var now = new Date().toISOString();
         return Promise.all([
-          githubEnsureJson(config, "protocol.json", createProtocolDocument(now), "Macaroni: init protocol"),
-          githubEnsureJson(config, "users/" + (profile.clientId || CLIENT_ID) + ".json", createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID))
+          githubEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol"),
+          githubEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID))
         ]);
       }
 
       function githubFindFirstChatMeta(profile) {
         var config = createGitHubConfig(profile);
-        return githubListFiles(config, "chats").then(function (entries) {
+        return githubListFiles(config, macaroniPath("chats")).then(function (entries) {
           var dirs = entries.filter(function (entry) {
             return entry.type === "dir";
           });
@@ -1415,7 +1421,7 @@
 
       function githubListChatMetas(profile) {
         var config = createGitHubConfig(profile);
-        return githubListFiles(config, "chats").then(function (entries) {
+        return githubListFiles(config, macaroniPath("chats")).then(function (entries) {
           var chain = Promise.resolve([]);
 
           entries.filter(function (entry) {
@@ -1452,8 +1458,8 @@
         var chatMembers = createChatMembers(chatMeta.id, members);
 
         return Promise.all([
-          githubWriteJson(config, "chats/" + chatMeta.id + "/meta.json", chatMeta, "Macaroni: create chat " + chatMeta.title),
-          githubWriteJson(config, "chats/" + chatMeta.id + "/members.json", chatMembers, "Macaroni: update chat members " + chatMeta.id)
+          githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title),
+          githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id)
         ]).then(function () {
           return {
             meta: chatMeta,
@@ -1495,7 +1501,7 @@
       }
 
       function listGitHubMessageFiles(config, chatId) {
-        return githubListFiles(config, "chats/" + chatId + "/messages").then(function (years) {
+        return githubListFiles(config, macaroniPath("chats/" + chatId + "/messages")).then(function (years) {
           var chain = Promise.resolve([]);
           years.filter(function (entry) {
             return entry.type === "dir";
@@ -1545,7 +1551,7 @@
       }
 
       function listGitHubInboxMessageFiles(config, clientId) {
-        return githubListFiles(config, "inbox/" + clientId).then(function (entries) {
+        return githubListFiles(config, macaroniPath("inbox/" + clientId)).then(function (entries) {
           var chain = Promise.resolve([]);
 
           entries.filter(function (entry) {
@@ -1588,7 +1594,7 @@
             writes.push(putRecord("chats", chatMeta));
           });
 
-          return readGitHubJsonSafe(config, "protocol.json").then(function (protocol) {
+          return readGitHubJsonSafe(config, macaroniPath("protocol.json")).then(function (protocol) {
             writes[0] = putRecord("meta", { key: "protocol", value: protocol });
             var targetChatIds = chatId ? [chatId] : chatMetas.map(function (chatMeta) {
               return chatMeta.id;
@@ -1889,8 +1895,8 @@
           displayName: "Я"
         };
         return Promise.all([
-          repoWriteJson("protocol.json", createProtocolDocument(now)),
-          repoWriteJson("users/" + (value.clientId || CLIENT_ID) + ".json", createUserDocument(value, now))
+          repoWriteJson(macaroniPath("protocol.json"), createProtocolDocument(now)),
+          repoWriteJson(macaroniPath("users/" + (value.clientId || CLIENT_ID) + ".json"), createUserDocument(value, now))
         ]);
       }
 
@@ -1913,8 +1919,8 @@
         var chatMembers = createChatMembers(chatMeta.id, members);
 
         return Promise.all([
-          repoWriteJson("chats/" + chatMeta.id + "/meta.json", chatMeta),
-          repoWriteJson("chats/" + chatMeta.id + "/members.json", chatMembers)
+          repoWriteJson(macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta),
+          repoWriteJson(macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers)
         ]).then(function () {
           return {
             meta: chatMeta,
@@ -1975,12 +1981,12 @@
               return;
             }
 
-            if (entry.path === "protocol.json") {
+            if (entry.path === macaroniPath("protocol.json")) {
               writes.push(putRecord("meta", { key: "protocol", value: entry.value }));
               return;
             }
 
-            if (/^chats\/[^/]+\/meta\.json$/.test(entry.path)) {
+            if (/^\.macaroni\/chats\/[^/]+\/meta\.json$/.test(entry.path)) {
               try {
                 validateChatMeta(entry.value);
                 writes.push(putRecord("chats", entry.value));
@@ -1990,7 +1996,7 @@
               return;
             }
 
-            if (/^chats\/[^/]+\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(entry.path)) {
+            if (/^\.macaroni\/chats\/[^/]+\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(entry.path)) {
               try {
                 validateMessage(entry.value);
                 writes.push(putMessage(Object.assign({}, entry.value, { raw_json_path: entry.path })));
@@ -2450,7 +2456,7 @@
           return Promise.resolve(null);
         }
 
-        var path = "chats/" + chatId + "/members.json";
+        var path = macaroniPath("chats/" + chatId + "/members.json");
         if (canReadGitHub(profile)) {
           return readGitHubJsonSafe(createGitHubConfig(profile), path);
         }
@@ -2468,9 +2474,9 @@
       }
 
       function findFirstChatMeta() {
-        return repoListFiles("chats/").then(function (files) {
+        return repoListFiles(macaroniPath("chats/")).then(function (files) {
           var metaFile = files.find(function (file) {
-            return /^chats\/[^/]+\/meta\.json$/.test(file.path);
+            return /^\.macaroni\/chats\/[^/]+\/meta\.json$/.test(file.path);
           });
 
           return metaFile ? JSON.parse(metaFile.content) : null;
@@ -2814,6 +2820,8 @@
 
       window.MacaroniProtocol = {
         version: PROTOCOL_VERSION,
+        root: MACARONI_ROOT,
+        path: macaroniPath,
         clientName: CLIENT_NAME,
         createProtocolDocument: createProtocolDocument,
         createUserDocument: createUserDocument,

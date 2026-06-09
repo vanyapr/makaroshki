@@ -6,9 +6,9 @@ The token lets the client read and write message files in the selected repositor
 
 If the repository is public, the GitHub adapter can read it without a token in read-only mode. This is enough to view a public Macaroni repository, but not enough to send messages.
 
-To write messages, create chats, and update `users/<client_id>.json`, the client needs a token with write permissions.
+To write messages, create chats, and update `.macaroni/users/<client_id>.json`, the client needs a token with write permissions.
 
-The token does not create the user. In Macaroni, the user is the local `CLIENT_ID` plus `users/<client_id>.json`; the token only grants repository access. One shared token for a small trusted group is technically possible, but anyone with that token can change repository files.
+The token does not create the user. In Macaroni, the user is the local `CLIENT_ID` plus `.macaroni/users/<client_id>.json`; the token only grants repository access. One shared token for a small trusted group is technically possible, but anyone with that token can change repository files.
 
 Important:
 

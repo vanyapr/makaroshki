@@ -153,16 +153,16 @@
 
 Цель: определить файловую модель сообщений.
 
-Статус: базово реализовано в `messenger.html` и описано в `docs/protocol-v1.md`. Есть helpers `window.MacaroniProtocol` для `protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, генерации `chat_id`/`message_id` и минимальной validation без dependency.
+Статус: базово реализовано в `messenger.html` и описано в `docs/protocol-v1.md`. Есть helpers `window.MacaroniProtocol` для `.macaroni/protocol.json`, user document, chat meta, members, text message, inbox notification, repo paths, генерации `chat_id`/`message_id` и минимальной validation без dependency.
 
 Шаги:
 
-1. Описать `protocol.json`.
-2. Описать `users/<client_id>.json`.
-3. Описать `chats/<chat_id>/meta.json`.
-4. Описать `chats/<chat_id>/members.json`.
-5. Описать `chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
-6. Описать `inbox/<recipient>/<message_id>.json`.
+1. Описать `.macaroni/protocol.json`.
+2. Описать `.macaroni/users/<client_id>.json`.
+3. Описать `.macaroni/chats/<chat_id>/meta.json`.
+4. Описать `.macaroni/chats/<chat_id>/members.json`.
+5. Описать `.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
+6. Описать `.macaroni/inbox/<recipient>/<message_id>.json`.
 7. Реализовать генерацию `chat_id`.
 8. Реализовать генерацию `message_id`.
 9. Реализовать минимальную runtime validation без тяжёлой dependency.
@@ -223,7 +223,7 @@
 
 Цель: подключить первый реальный remote flow.
 
-Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token GitHub repo работает как read-only public repo. UI показывает текущий transport, sync state и outbox count. Sync пока простой: все chat meta, обход messages по `YYYY/MM/DD`, плюс чтение `inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
+Статус: частично реализовано в `messenger.html` как `window.MacaroniGitHub` и описано в `docs/github-provider.md`. Первый provider - GitHub через REST Contents API. Adapter умеет parse repo URL, read file/json, list directory, write file/json с Base64 content и `sha` при update. Если в профиле есть GitHub token, composer пишет через GitHub Contents API; без token GitHub repo работает как read-only public repo. UI показывает текущий transport, sync state и outbox count. Sync пока простой: все chat meta, обход messages по `YYYY/MM/DD`, плюс чтение `.macaroni/inbox/<CLIENT_ID>` как receive hint, без Git Trees API.
 
 Шаги:
 

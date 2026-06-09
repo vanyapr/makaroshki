@@ -179,12 +179,12 @@ Git является источником истины.
    - Privacy warning modal/first-run screen.
 
 3. Protocol v1.
-   - `protocol.json`.
-   - `users/<user>.json`.
-   - `chats/<chat_id>/meta.json`.
-   - `chats/<chat_id>/members.json`.
-   - `chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
-   - `inbox/<user>/<message_id>.json`.
+   - `.macaroni/protocol.json`.
+   - `.macaroni/users/<user>.json`.
+   - `.macaroni/chats/<chat_id>/meta.json`.
+   - `.macaroni/chats/<chat_id>/members.json`.
+   - `.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json`.
+   - `.macaroni/inbox/<user>/<message_id>.json`.
    - Поле автора использует `CLIENT_ID` или профиль, привязанный к `CLIENT_ID`.
    - Минимальные validators без тяжёлой dependency.
 

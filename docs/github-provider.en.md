@@ -12,7 +12,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - list a directory;
 - write a file through the Contents API;
 - write a JSON file;
-- refresh/reindex reads all chat meta, messages by date, and `inbox/<CLIENT_ID>` as a receive hint;
+- refresh/reindex reads all chat meta, messages by date, and `.macaroni/inbox/<CLIENT_ID>` as a receive hint;
 - GitHub repo without a token works in read-only mode for public repos;
 - the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
 - human-readable errors for auth, permissions, missing repo/file, and conflict.
@@ -71,7 +71,7 @@ Reindex reads:
 
 1. all found chat meta;
 2. chat messages by `YYYY/MM/DD`;
-3. `inbox/<CLIENT_ID>/*.json`;
+3. `.macaroni/inbox/<CLIENT_ID>/*.json`;
 4. `message_path` from inbox notifications.
 
 This lets the second instance see messages addressed to it through inbox notifications.

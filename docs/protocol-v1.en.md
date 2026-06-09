@@ -10,28 +10,30 @@ If the local index breaks, it is rebuilt from these files.
 
 ## Repository Layout
 
-Any git repository with this layout can be a Macaroni repository. The repository that serves `messenger.html` and the repository that stores messages may be the same repository or different repositories.
+Any git repository with a `.macaroni/` directory using this layout can be a Macaroni repository. The repository that serves `messenger.html` and the repository that stores messages may be the same repository or different repositories.
 
 Chats can be attached to any git repository as long as the client can read and write Macaroni Protocol files there and the user has the required repository permissions.
+
+All Macaroni service files live under `.macaroni/` so they do not pollute the root of someone else's repository.
 
 For a public repository without a token, read-only mode is supported: the client can read chats and messages, but it cannot send new messages. With a token, the same repository becomes read/write.
 
 The token is not the user. The token is the access right to the repository.
 
 ```text
-protocol.json
-users/<client_id>.json
-chats/<chat_id>/meta.json
-chats/<chat_id>/members.json
-chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
-inbox/<recipient>/<message_id>.json
+.macaroni/protocol.json
+.macaroni/users/<client_id>.json
+.macaroni/chats/<chat_id>/meta.json
+.macaroni/chats/<chat_id>/members.json
+.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
+.macaroni/inbox/<recipient>/<message_id>.json
 ```
 
 MVP does not store binary attachments in git.
 
 MVP does not edit or delete messages in place.
 
-## protocol.json
+## .macaroni/protocol.json
 
 ```json
 {
@@ -48,7 +50,7 @@ MVP does not edit or delete messages in place.
 }
 ```
 
-## users/<client_id>.json
+## .macaroni/users/<client_id>.json
 
 ```json
 {
@@ -66,7 +68,7 @@ MVP does not edit or delete messages in place.
 
 It is four characters. We tried.
 
-## chats/<chat_id>/meta.json
+## .macaroni/chats/<chat_id>/meta.json
 
 ```json
 {
@@ -80,7 +82,7 @@ It is four characters. We tried.
 }
 ```
 
-## chats/<chat_id>/members.json
+## .macaroni/chats/<chat_id>/members.json
 
 ```json
 {
@@ -106,7 +108,7 @@ It is four characters. We tried.
 Path:
 
 ```text
-chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
+.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
 ```
 
 Body:
@@ -138,7 +140,7 @@ Body:
 
 Git conflicts are rare because every message is a new file.
 
-## inbox/<recipient>/<message_id>.json
+## .macaroni/inbox/<recipient>/<message_id>.json
 
 Inbox is a notification queue, not a second copy of the message.
 
@@ -148,7 +150,7 @@ Inbox is a notification queue, not a second copy of the message.
   "recipient": "K2XM",
   "message_id": "2026-06-08T12-30-01.123Z_SA6E_a8f1c2",
   "chat_id": "chat_20260608_sa6e_k2xm",
-  "message_path": "chats/chat_20260608_sa6e_k2xm/messages/2026/06/08/2026-06-08T12-30-01.123Z_SA6E_a8f1c2.json",
+  "message_path": ".macaroni/chats/chat_20260608_sa6e_k2xm/messages/2026/06/08/2026-06-08T12-30-01.123Z_SA6E_a8f1c2.json",
   "created_at": "2026-06-08T12:30:01.123Z"
 }
 ```
