@@ -270,6 +270,8 @@ Reindex/reset controls live in settings. `Reset` deletes the profile, index, and
 
 Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
 
+Joining a chat means the current `CLIENT_ID` is added to `members.json`. If the user opens a chat but their ID is not there, `Chat info` offers to join and writes the current user to `members.json`.
+
 If the user adds a GitHub token after read-only mode, saving settings automatically retries outbox. The `Refresh` button remains the manual retry path.
 
 The sidebar is rendered from the local `chats` store after init/reindex. Clicking a chat changes the current `chat_id`, title, and message list; the static HTML list is only a startup placeholder before initialization.

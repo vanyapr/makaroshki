@@ -84,6 +84,8 @@ It is four characters. We tried.
 
 ## .macaroni/chats/<chat_id>/members.json
 
+A user is considered a chat member if their `client_id` is present in this file. Joining a chat is an update to `members.json`, not a separate registration flow.
+
 ```json
 {
   "version": 1,

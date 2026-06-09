@@ -2457,9 +2457,61 @@
         }).join(", ");
       }
 
+      function chatHasCurrentClient(membersDocument) {
+        return !!(membersDocument && Array.isArray(membersDocument.members) && membersDocument.members.some(function (member) {
+          return member && member.id === CLIENT_ID;
+        }));
+      }
+
+      function addCurrentClientToMembersDocument(membersDocument, profile, chatId) {
+        var document = membersDocument && Array.isArray(membersDocument.members)
+          ? JSON.parse(JSON.stringify(membersDocument))
+          : createChatMembers(chatId, []);
+
+        if (!document.chat_id) {
+          document.chat_id = chatId;
+        }
+
+        if (!chatHasCurrentClient(document)) {
+          document.members.push({
+            id: CLIENT_ID,
+            display_name: (profile && profile.displayName) || CLIENT_ID,
+            role: "member"
+          });
+        }
+
+        return document;
+      }
+
+      function writeChatMembers(profile, chatId, membersDocument) {
+        var path = macaroniPath("chats/" + chatId + "/members.json");
+        if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+          return Promise.reject(new Error("Для вступления в чат нужен GitHub token. Без token это read-only repo."));
+        }
+
+        if (canWriteGitHub(profile)) {
+          return githubWriteJson(createGitHubConfig(profile), path, membersDocument, "Macaroni: join chat " + chatId);
+        }
+
+        return repoWriteJson(path, membersDocument);
+      }
+
+      function joinCurrentChat(profile, membersDocument) {
+        var value = profile || loadProfile() || {};
+        var joinedMembers = addCurrentClientToMembersDocument(membersDocument, value, currentChatId);
+        updateSyncStatus("chat: " + transportLabel(value) + " · вступаем");
+        return writeChatMembers(value, currentChatId, joinedMembers).then(function () {
+          clearAppError();
+          return updateSyncStatusFromState(value, "chat: joined");
+        }).then(function () {
+          return joinedMembers;
+        });
+      }
+
       function showChatInfo(profile) {
         var value = profile || loadProfile() || {};
         var chat;
+        var membersDocument;
 
         if (!currentChatId) {
           window.alert("Чат не выбран. Даже git не знает, куда смотреть.");
@@ -2469,7 +2521,8 @@
         return getCurrentChat().then(function (currentChat) {
           chat = currentChat || { id: currentChatId, title: currentChatId };
           return readChatMembers(value, currentChatId);
-        }).then(function (membersDocument) {
+        }).then(function (document) {
+          membersDocument = document;
           return listOutbox().then(function (outboxItems) {
             var lines = [
               "Чат: " + (chat.title || chat.id),
@@ -2479,6 +2532,19 @@
               "outbox: " + outboxItems.length
             ];
             window.alert(lines.join("\\n"));
+            return chat;
+          });
+        }).then(function () {
+          if (chatHasCurrentClient(membersDocument)) {
+            return chat;
+          }
+
+          if (!window.confirm("Вас нет в members.json этого чата. Вступить в чат?")) {
+            return chat;
+          }
+
+          return joinCurrentChat(value, membersDocument).then(function () {
+            window.alert("Вы добавлены в members.json. Git теперь знает, что вы тут.");
             return chat;
           });
         });

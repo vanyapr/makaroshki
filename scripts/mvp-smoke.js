@@ -171,6 +171,50 @@ async function testLocalMvpFlow(browser) {
   assert(infoText.includes("transport:"), "chat info transport is missing");
   assert(infoText.includes("outbox:"), "chat info outbox is missing");
 
+  await page.evaluate(async () => {
+    const chat = await window.MacaroniTestRepo.createChat({
+      title: "ЧУЖОЙ_ЧАТ",
+      owner_id: "K2XM",
+      owner_name: "K2XM",
+      members: [
+        { id: "K2XM", display_name: "K2XM", role: "owner" }
+      ]
+    });
+    await window.MacaroniTestRepo.sendMessage({
+      chat_id: chat.meta.id,
+      from: "K2XM",
+      to: [],
+      text: "MVP smoke: чужой чат"
+    });
+  });
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("ЧУЖОЙ_ЧАТ")));
+  await page.locator("#chat-list .chat-item", { hasText: "ЧУЖОЙ_ЧАТ" }).click();
+  let dialogIndex = 0;
+  page.on("dialog", async (dialog) => {
+    dialogIndex += 1;
+    if (dialogIndex === 1) {
+      assert(dialog.message().includes("Чат: ЧУЖОЙ_ЧАТ"), "join info dialog title is missing");
+      await dialog.accept();
+      return;
+    }
+    if (dialogIndex === 2) {
+      assert(dialog.message().includes("Вас нет в members.json"), "join confirm text is missing");
+      await dialog.accept();
+      return;
+    }
+    assert(dialog.message().includes("Вы добавлены в members.json"), "join success text is missing");
+    await dialog.accept();
+  });
+  await page.locator("#chat-info").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
+  const joinedMembers = await page.evaluate(async () => {
+    const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "ЧУЖОЙ_ЧАТ");
+    const members = await window.MacaroniTestRepo.readJson(".macaroni/chats/" + chat.id + "/members.json");
+    return members;
+  });
+  assert(joinedMembers, "join did not add current client to members.json");
+
   await context.close();
 }
 
