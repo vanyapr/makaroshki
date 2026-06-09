@@ -268,6 +268,8 @@
 
 Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `GitHub read-only`, `local test repo`), действие и размер outbox.
 
+Sidebar дополнительно показывает локальный per-chat outbox indicator: если в `outbox` есть исходящие сообщения для чата, рядом с названием чата появляется отдельный бейдж. Это локальный UI state; git не хранит delivery/read status.
+
 Search input находится в header текущего чата и фильтрует локальный индекс текущего чата.
 
 Reindex/reset controls находятся в настройках. `Сбросить` удаляет профиль, индекс и local test repo; `Пересобрать индекс` пересобирает только локальный кеш из выбранного provider/repo и не создаёт новые remote-файлы.

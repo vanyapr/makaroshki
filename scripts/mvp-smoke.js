@@ -550,7 +550,17 @@ async function testLocalMvpFlow(browser) {
 async function testOutboxAndRetry(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
-  await installProfile(page, { provider: "github", token: "bad-token-for-smoke" });
+  await installProfile(page, { provider: "other" });
+  await page.locator("#message-input").fill("MVP smoke: create local chat before outbox");
+  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("create local chat before outbox")));
+
+  await page.evaluate(() => {
+    const profile = JSON.parse(localStorage.getItem("macaroni.profile.v1"));
+    profile.provider = "github";
+    profile.token = "bad-token-for-smoke";
+    localStorage.setItem("macaroni.profile.v1", JSON.stringify(profile));
+  });
 
   await page.evaluate(() => {
     window.fetch = () => Promise.reject(new Error("smoke network fail"));
@@ -561,6 +571,8 @@ async function testOutboxAndRetry(browser) {
 
   let outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 1, "failed send was not stored in outbox");
+  const outboxBadge = await page.locator("#chat-list .outbox-badge").textContent();
+  assert(outboxBadge === ">1", "failed send did not create chat outbox indicator");
 
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("macaroni.profile.v1"));
@@ -573,6 +585,7 @@ async function testOutboxAndRetry(browser) {
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 0"));
   outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 0, "retry did not clear outbox");
+  assert(await page.locator("#chat-list .outbox-badge").count() === 0, "retry did not clear chat outbox indicator");
 
   const inboxFiles = await page.evaluate(() => window.MacaroniTestRepo.listFiles(".macaroni/inbox/").then((files) => files.map((file) => file.path)));
   assert(inboxFiles.some((file) => file.startsWith(".macaroni/inbox/K2XM/")), "retry did not write recipient inbox");
@@ -1062,6 +1075,7 @@ async function testGitHubReadOnlyMode(browser) {
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 1"));
   const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 1, "read-only send was not kept in outbox");
+  assert(await page.locator("#chat-list .outbox-badge").textContent() === ">1", "read-only send did not create chat outbox indicator");
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
@@ -1074,6 +1088,7 @@ async function testGitHubReadOnlyMode(browser) {
     writes: window.__macaroniReadOnlyWrites
   }));
   assert(retried.outbox.length === 0, "token save did not drain outbox");
+  assert(await page.locator("#chat-list .outbox-badge").count() === 0, "token save did not clear chat outbox indicator");
   assert(retried.writes.some((write) => /^\.macaroni\/chats\/chat_readonly\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path)), "token save did not write queued message");
 
   await context.close();

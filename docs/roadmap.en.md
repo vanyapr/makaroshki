@@ -157,6 +157,7 @@ Features:
 - local message indexing;
 - chat list;
 - local new-message indicators in the chat list;
+- local outgoing-message indicators per chat;
 - message history;
 - local search;
 - outbox on network/sync error;

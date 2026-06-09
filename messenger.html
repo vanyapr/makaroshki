@@ -168,7 +168,15 @@
       text-overflow: ellipsis;
     }
 
-    .unread-badge {
+    .chat-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .unread-badge,
+    .outbox-badge {
       min-width: 28px;
       height: 28px;
       padding: 0 8px;
@@ -181,6 +189,11 @@
       font-weight: 700;
       line-height: 1;
       flex: 0 0 auto;
+    }
+
+    .outbox-badge {
+      border-style: dashed;
+      font-size: 14px;
     }
 
     .emoji {
@@ -1094,6 +1107,7 @@
           repoSilent: "There are no chats in the repo yet. Git is silent.",
           nothingFound: "Nothing found. Git remembers, but not this.",
           unreadMessages: "{count} unread messages",
+          outboxMessages: "{count} pending outgoing messages",
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
           transportLocal: "local test repo",
@@ -1195,6 +1209,7 @@
           repoSilent: "В репозитории пока нет чатов. Git молчит.",
           nothingFound: "Ничего не найдено. Git помнит, но не это.",
           unreadMessages: "{count} новых сообщений",
+          outboxMessages: "{count} исходящих сообщений ждут отправки",
           transportGithub: "GitHub",
           transportGithubReadOnly: "GitHub read-only",
           transportLocal: "локальный test repo",
@@ -3593,7 +3608,31 @@
         return total;
       }
 
-      function drawChatList(chats, unreadByChat) {
+      function outboxChatId(item) {
+        return item && item.payload && (
+          item.payload.chat_id ||
+          (item.payload.message && item.payload.message.chat_id)
+        );
+      }
+
+      function outboxCountsByChat(chats, outboxItems) {
+        var counts = {};
+
+        (chats || []).forEach(function (chat) {
+          counts[chat.id] = 0;
+        });
+
+        (outboxItems || []).forEach(function (item) {
+          var chatId = outboxChatId(item);
+          if (chatId && Object.prototype.hasOwnProperty.call(counts, chatId)) {
+            counts[chatId] += 1;
+          }
+        });
+
+        return counts;
+      }
+
+      function drawChatList(chats, unreadByChat, outboxByChat) {
         var list = get("chat-list");
         updateDocumentTitle(unreadByChat || {});
         list.innerHTML = "";
@@ -3610,18 +3649,33 @@
           var item = document.createElement("button");
           var name = document.createElement("span");
           var unread = unreadByChat && unreadByChat[chat.id] ? unreadByChat[chat.id] : 0;
+          var pending = outboxByChat && outboxByChat[chat.id] ? outboxByChat[chat.id] : 0;
           item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
           item.type = "button";
           name.className = "chat-name";
           name.textContent = chat.title || chat.id;
           item.appendChild(name);
 
+          if (unread > 0 || pending > 0) {
+            var badges = document.createElement("span");
+            badges.className = "chat-badges";
+            item.appendChild(badges);
+          }
+
           if (unread > 0) {
             var badge = document.createElement("span");
             badge.className = "unread-badge";
             badge.textContent = unread > 99 ? "99+" : String(unread);
             badge.setAttribute("aria-label", t("unreadMessages", { count: unread }));
-            item.appendChild(badge);
+            item.querySelector(".chat-badges").appendChild(badge);
+          }
+
+          if (pending > 0) {
+            var outboxBadge = document.createElement("span");
+            outboxBadge.className = "outbox-badge";
+            outboxBadge.textContent = ">" + (pending > 99 ? "99+" : String(pending));
+            outboxBadge.setAttribute("aria-label", t("outboxMessages", { count: pending }));
+            item.querySelector(".chat-badges").appendChild(outboxBadge);
           }
 
           item.addEventListener("click", function () {
@@ -3643,9 +3697,14 @@
         return Promise.all([
           listChats(),
           listMessages(),
-          listRecords("meta")
+          listRecords("meta"),
+          listOutbox()
         ]).then(function (result) {
-          return drawChatList(result[0], unreadCountsByChat(result[0], result[1], result[2]));
+          return drawChatList(
+            result[0],
+            unreadCountsByChat(result[0], result[1], result[2]),
+            outboxCountsByChat(result[0], result[3])
+          );
         });
       }
 
@@ -4273,7 +4332,9 @@
                 error: error.message
               }).then(function () {
                 setAppError(t("messageOutboxGit", { message: error.message }));
-                return updateSyncStatusFromState(profile, "send: outbox");
+                return renderChatList().then(function () {
+                  return updateSyncStatusFromState(profile, "send: outbox");
+                });
               });
             });
 
@@ -4323,7 +4384,9 @@
               error: error.message
             }).then(function () {
               setAppError(t("messageOutboxImmediate", { message: error.message }));
-              updateSyncStatusFromState(profile, "send: outbox");
+              return renderChatList();
+            }).then(function () {
+              return updateSyncStatusFromState(profile, "send: outbox");
             });
           });
         });
