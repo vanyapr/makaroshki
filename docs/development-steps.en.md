@@ -307,14 +307,14 @@ Done when:
 
 Goal: local search over index.
 
-Status: basically implemented in `messenger.html`. Search input runs simple substring search over `text`, `from`, `from_name`, rendered author name from `users/members`, `chat_id`, `created_at`, filters the current chat, and survives reload/reindex. Jump-to-result is not needed yet: the list is small and results are rendered directly.
+Status: basically implemented in `messenger.html`. Search input runs simple substring search over `text`, `from`, `from_name`, rendered author name from `users/members`, `chat_id`, `created_at`, filters the current chat, highlights the first result, moves focus/scroll to it, and survives reload/reindex.
 
 Steps:
 
 1. Index `text`, `from`, `from_name`, rendered author name, `chat_id`, `created_at`.
 2. Implement simple substring search.
 3. Add filter by current chat.
-4. Add jump to found message.
+4. Add jump to found message. Done: the first result receives focus and `search-hit`.
 5. Do not add a full-text engine until there is a real need.
 
 Done when:

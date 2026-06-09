@@ -261,7 +261,7 @@
 
     .messages {
       padding: 30px 70px 0 38px;
-      overflow: hidden;
+      overflow-y: auto;
       min-height: 0;
     }
 
@@ -273,6 +273,16 @@
       margin-bottom: 35px;
       font-size: 24px;
       line-height: 1.25;
+    }
+
+    .message-row.search-hit {
+      outline: var(--thin-line) solid var(--ink);
+      outline-offset: 8px;
+    }
+
+    .message-row:focus {
+      outline: var(--thin-line) solid var(--ink);
+      outline-offset: 8px;
     }
 
     .message-empty {
@@ -2968,8 +2978,21 @@
         }
       }
 
-      function drawMessages(messages, emptyText, users, members) {
+      function focusFirstSearchHit() {
+        var hit = document.querySelector("#message-list .search-hit");
+        if (!hit) {
+          return;
+        }
+
+        window.requestAnimationFrame(function () {
+          hit.scrollIntoView({ block: "center" });
+          hit.focus();
+        });
+      }
+
+      function drawMessages(messages, emptyText, users, members, options) {
           var list = get("message-list");
+          var value = options || {};
           list.innerHTML = "";
 
           if (!messages.length) {
@@ -2987,6 +3010,11 @@
             var time = document.createElement("div");
 
             row.className = "message-row";
+            if (value.highlightFirst && message === messages[0]) {
+              row.className += " search-hit";
+              row.tabIndex = -1;
+            }
+            row.dataset.messageId = message.id || "";
             author.className = "author";
             text.className = "text";
             time.className = "time";
@@ -3000,6 +3028,10 @@
             row.appendChild(time);
             list.appendChild(row);
           });
+
+          if (value.highlightFirst) {
+            focusFirstSearchHit();
+          }
 
           return messages;
       }
@@ -3324,7 +3356,7 @@
           var messages = result[0].filter(function (message) {
             return messageMatchesSearch(message, query, users, members);
           });
-          drawMessages(messages, t("nothingFound"), users, members);
+          drawMessages(messages, t("nothingFound"), users, members, { highlightFirst: true });
           return updateSyncStatusFromState(profile, "search: " + messages.length).then(function () {
             return messages;
           });

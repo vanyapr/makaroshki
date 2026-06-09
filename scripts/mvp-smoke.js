@@ -187,6 +187,21 @@ async function testLocalMvpFlow(browser) {
 
   await page.locator("#search-input").fill("macaroni");
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("search: 1"));
+  await page.waitForFunction(() => {
+    const hit = document.querySelector("#message-list .search-hit");
+    return hit && document.activeElement === hit;
+  });
+  const searchHit = await page.evaluate(() => {
+    const hit = document.querySelector("#message-list .search-hit");
+    return {
+      exists: !!hit,
+      focused: document.activeElement === hit,
+      text: hit ? hit.textContent : ""
+    };
+  });
+  assert(searchHit.exists, "search did not mark first result");
+  assert(searchHit.focused, "search did not jump focus to first result");
+  assert(searchHit.text.includes("macaroni"), "search highlighted the wrong result");
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
