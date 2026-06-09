@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "id": "2026-06-09T07-33-24.296Z_F6WT_asd0rg",
+  "chat_id": "chat_20260609_f6wt_k2xm_i71u",
+  "type": "text",
+  "from": "F6WT",
+  "to": [
+    "K2XM"
+  ],
+  "created_at": "2026-06-09T07:33:24.296Z",
+  "text": "Тест тест",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "client": "Macaroni Messenger JS 0.1.0"
+  },
+  "signature": null
+}
