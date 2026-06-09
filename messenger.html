@@ -825,6 +825,12 @@
           <p class="field-note">Токен хранится локально в этом браузере. Секретность уровня "ну мы предупреждали". <a href="docs/access-token.md" target="_blank" rel="noreferrer">Как получить токен доступа</a>.</p>
         </div>
 
+        <div class="field">
+          <span class="field-label">Локальный индекс</span>
+          <p class="field-note" id="settings-index-status">IndexedDB является кешем. Если он поехал, его можно пересобрать из git-репозитория.</p>
+          <button class="button" id="settings-reindex" type="button">Пересобрать индекс</button>
+        </div>
+
         <label class="checkbox-row">
           <input id="settings-privacy" name="privacyAccepted" type="checkbox" required>
           <span class="checkbox-label">Я понимаю, что сообщения не приватны по умолчанию.</span>
@@ -2014,12 +2020,35 @@
         setView("setup");
       }
 
+      function rebuildIndex(profile) {
+        var value = profile || loadProfile() || {};
+        var reindex = canUseGitHub(value) ? reindexFromGitHub(value, currentChatId) : reindexFromTestRepo();
+        updateSyncStatus("reindex: " + transportLabel(value) + " · пересборка");
+
+        return reindex.then(function (result) {
+          return findFirstChatMeta().then(function (chat) {
+            if (chat) {
+              currentChatId = chat.id;
+              return renderMessages(currentChatId);
+            }
+
+            return drawMessages([], "Чатов пока нет. Git помнит, но сейчас молчит.");
+          }).then(function () {
+            return updateSyncStatusFromState(value, "reindex: ok").then(function () {
+              return result;
+            });
+          });
+        });
+      }
+
       function bindProfileForms() {
         var setupForm = get("setup-form");
         var settingsForm = get("settings-form");
         var openSettings = get("open-settings");
         var settingsBack = get("settings-back");
         var settingsReset = get("settings-reset");
+        var settingsReindex = get("settings-reindex");
+        var settingsIndexStatus = get("settings-index-status");
 
         setupForm.addEventListener("submit", function (event) {
           event.preventDefault();
@@ -2042,6 +2071,28 @@
         openSettings.addEventListener("click", function () {
           fillSettingsForm(loadProfile());
           setView("settings");
+        });
+
+        settingsReindex.addEventListener("click", function () {
+          var profile = loadProfile();
+          if (!isReadyProfile(profile)) {
+            settingsIndexStatus.textContent = "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.";
+            return;
+          }
+
+          settingsReindex.disabled = true;
+          settingsIndexStatus.textContent = "Пересобираем индекс. Если git большой, можно успеть поставить чайник.";
+
+          rebuildIndex(profile).then(function (result) {
+            var skipped = result && result.skipped ? result.skipped.length : 0;
+            settingsIndexStatus.textContent = "Индекс пересобран. Пропущено файлов: " + skipped + ".";
+          }).catch(function (error) {
+            settingsIndexStatus.textContent = "Индекс не пересобрался: " + error.message;
+            setStorageError("Индекс не пересобрался: " + error.message);
+            updateSyncStatusFromState(profile, "reindex: error");
+          }).then(function () {
+            settingsReindex.disabled = false;
+          });
         });
 
         settingsBack.addEventListener("click", function () {

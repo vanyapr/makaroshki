@@ -266,6 +266,8 @@ Sync/outbox status is shown in the current chat header: transport (`GitHub`, `lo
 
 Search input lives in the current chat header and filters the local index for the current chat.
 
+Reindex/reset controls live in settings. `Reset` deletes the profile, index, and local test repo; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.
+
 Done when:
 
 - main actions are visible without instructions;
