@@ -916,6 +916,28 @@
           .replace(/^_+|_+$/g, "");
       }
 
+      function utf8ToBase64(value) {
+        var bytes = new TextEncoder().encode(String(value));
+        var binary = "";
+        bytes.forEach(function (byte) {
+          binary += String.fromCharCode(byte);
+        });
+        return window.btoa(binary);
+      }
+
+      function base64ToUtf8(value) {
+        var binary = window.atob(String(value || "").replace(/\n/g, ""));
+        var bytes = new Uint8Array(binary.length);
+        for (var index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+        return new TextDecoder().decode(bytes);
+      }
+
+      function normalizeRepoPath(path) {
+        return String(path || "").replace(/^\/+|\/+$/g, "");
+      }
+
       function createProtocolDocument(createdAt) {
         return {
           name: "Macaroni Protocol",
@@ -1091,6 +1113,167 @@
         requireString(meta.created_by, "chat.created_by");
         requireIsoDate(meta.created_at, "chat.created_at");
         return true;
+      }
+
+      function parseGitHubRepo(repoUrl) {
+        var value = String(repoUrl || "").trim();
+        var match = value.match(/^https:\/\/github\.com\/([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/?#].*)?$/i);
+
+        if (!match) {
+          match = value.match(/^([^/\s]+)\/([^/\s]+?)(?:\.git)?$/);
+        }
+
+        if (!match) {
+          throw new Error("GitHub repo URL must look like https://github.com/owner/repo");
+        }
+
+        return {
+          owner: match[1],
+          repo: match[2].replace(/\.git$/i, "")
+        };
+      }
+
+      function createGitHubConfig(profile) {
+        var repo = parseGitHubRepo(profile.repo);
+        return {
+          owner: repo.owner,
+          repo: repo.repo,
+          branch: profile.branch || "main",
+          token: profile.token || "",
+          transport: profile.transport || window.fetch.bind(window)
+        };
+      }
+
+      function githubHeaders(config) {
+        var headers = {
+          "Accept": "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28"
+        };
+
+        if (config.token) {
+          headers.Authorization = "Bearer " + config.token;
+        }
+
+        return headers;
+      }
+
+      function githubContentUrl(config, path) {
+        return "https://api.github.com/repos/" +
+          encodeURIComponent(config.owner) +
+          "/" +
+          encodeURIComponent(config.repo) +
+          "/contents/" +
+          normalizeRepoPath(path).split("/").map(encodeURIComponent).join("/");
+      }
+
+      function githubError(response, data) {
+        var message = data && data.message ? data.message : response.statusText;
+        if (response.status === 401) {
+          message = "GitHub token не принят. Проверьте токен доступа.";
+        } else if (response.status === 403) {
+          message = "GitHub не дал доступ. Нужен token с Contents: Read and write.";
+        } else if (response.status === 404) {
+          message = "GitHub не нашёл repo или файл. Проверьте URL репозитория и доступ токена.";
+        } else if (response.status === 409) {
+          message = "GitHub увидел конфликт записи. Нажмите Обновить и попробуйте ещё раз.";
+        }
+
+        return new Error(message);
+      }
+
+      function githubRequest(config, path, options) {
+        var requestOptions = Object.assign({
+          method: "GET",
+          headers: githubHeaders(config)
+        }, options || {});
+
+        return config.transport(githubContentUrl(config, path), requestOptions).then(function (response) {
+          return response.text().then(function (text) {
+            var data = text ? JSON.parse(text) : null;
+            if (!response.ok) {
+              if (response.status === 404 && requestOptions.method === "GET") {
+                return null;
+              }
+              throw githubError(response, data);
+            }
+            return data;
+          });
+        });
+      }
+
+      function githubReadFile(config, path) {
+        return githubRequest(config, path, {
+          method: "GET"
+        }).then(function (data) {
+          if (!data || data.type !== "file") {
+            return null;
+          }
+
+          return {
+            path: data.path,
+            content: base64ToUtf8(data.content),
+            sha: data.sha
+          };
+        });
+      }
+
+      function githubReadJson(config, path) {
+        return githubReadFile(config, path).then(function (file) {
+          return file ? JSON.parse(file.content) : null;
+        });
+      }
+
+      function githubListFiles(config, path) {
+        return githubRequest(config, path || "", {
+          method: "GET"
+        }).then(function (data) {
+          if (!data) {
+            return [];
+          }
+
+          if (Array.isArray(data)) {
+            return data.map(function (entry) {
+              return {
+                path: entry.path,
+                type: entry.type,
+                sha: entry.sha
+              };
+            });
+          }
+
+          return [{
+            path: data.path,
+            type: data.type,
+            sha: data.sha
+          }];
+        });
+      }
+
+      function githubWriteFile(config, path, content, message) {
+        var normalizedPath = normalizeRepoPath(path);
+        return githubReadFile(config, normalizedPath).then(function (existingFile) {
+          var body = {
+            message: message || "Macaroni Messenger: write " + normalizedPath,
+            content: utf8ToBase64(content),
+            branch: config.branch
+          };
+
+          if (existingFile && existingFile.sha) {
+            body.sha = existingFile.sha;
+          }
+
+          return githubRequest(config, normalizedPath, {
+            method: "PUT",
+            headers: Object.assign({}, githubHeaders(config), {
+              "Content-Type": "application/json"
+            }),
+            body: JSON.stringify(body)
+          });
+        });
+      }
+
+      function githubWriteJson(config, path, value, message) {
+        return githubWriteFile(config, path, JSON.stringify(value, null, 2), message);
       }
 
       function loadProfile() {
@@ -1876,6 +2059,16 @@
         createChat: createTestChat,
         sendMessage: sendTestMessage,
         reindex: reindexFromTestRepo
+      };
+
+      window.MacaroniGitHub = {
+        parseRepo: parseGitHubRepo,
+        createConfig: createGitHubConfig,
+        readFile: githubReadFile,
+        readJson: githubReadJson,
+        listFiles: githubListFiles,
+        writeFile: githubWriteFile,
+        writeJson: githubWriteJson
       };
 
       setClientIdText();

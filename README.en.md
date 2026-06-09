@@ -17,6 +17,7 @@ Documents:
 - [docs/roadmap.en.md](docs/roadmap.en.md) - current roadmap.
 - [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
+- [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
 - [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
 
@@ -28,6 +29,7 @@ Russian versions:
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/development-steps.md](docs/development-steps.md)
 - [docs/protocol-v1.md](docs/protocol-v1.md)
+- [docs/github-provider.md](docs/github-provider.md)
 - [docs/access-token.md](docs/access-token.md)
 - [docs/gitverse-token.md](docs/gitverse-token.md)
 

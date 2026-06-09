@@ -223,6 +223,8 @@ Done when:
 
 Goal: connect first real remote flow.
 
+Status: partially implemented in `messenger.html` as `window.MacaroniGitHub` and documented in `docs/github-provider.en.md`. The first provider is GitHub through the REST Contents API. The adapter can parse repo URLs, read file/json, list directories, and write file/json with Base64 content and `sha` for updates. The composer still uses the local test repo; remote send/refresh is the next step.
+
 Steps:
 
 1. Pick one provider for the first real adapter.
