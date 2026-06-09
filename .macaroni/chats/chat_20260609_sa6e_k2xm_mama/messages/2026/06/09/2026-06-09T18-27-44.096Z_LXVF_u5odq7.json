@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "2026-06-09T18-27-44.096Z_LXVF_u5odq7",
+  "chat_id": "chat_20260609_sa6e_k2xm_mama",
+  "type": "text",
+  "from": "LXVF",
+  "from_name": "Мама",
+  "to": [
+    "SA6E",
+    "K2XM"
+  ],
+  "created_at": "2026-06-09T18:27:44.096Z",
+  "text": "Спишь?",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "client": "Macaroni Messenger JS 0.1.0"
+  },
+  "signature": null
+}
