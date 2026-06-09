@@ -199,6 +199,8 @@ Done when:
 
 Goal: vertical message flow inside MVP.
 
+Status: basically implemented for the local test repo in `messenger.html`. The composer creates a draft, writes a text message into `repoFiles`, creates an inbox notification for test recipient `K2XM`, indexes the message, renders it in the UI, survives reload through reindex, and retries outbox through the "Refresh" button. Remote provider sync is not connected yet.
+
 Steps:
 
 1. Composer creates message draft.

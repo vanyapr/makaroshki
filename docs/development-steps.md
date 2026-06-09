@@ -199,6 +199,8 @@
 
 Цель: вертикальный поток сообщения внутри MVP.
 
+Статус: базово реализовано для local test repo в `messenger.html`. Composer создаёт draft, пишет text message в `repoFiles`, создаёт inbox notification для тестового получателя `K2XM`, индексирует сообщение, показывает его в UI, переживает reload через reindex и умеет retry outbox через кнопку "Обновить". Remote provider пока не подключён.
+
 Шаги:
 
 1. Composer создаёт message draft.

@@ -206,6 +206,12 @@
       line-height: 1.25;
     }
 
+    .message-empty {
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.35;
+    }
+
     .author {
       white-space: nowrap;
     }
@@ -234,9 +240,14 @@
       height: 86px;
       border: var(--line) solid var(--ink);
       padding: 0 18px;
-      color: var(--muted);
+      color: var(--ink);
       font-size: 24px;
       outline: none;
+    }
+
+    .message-input::placeholder {
+      color: var(--muted);
+      opacity: 1;
     }
 
     .send {
@@ -785,7 +796,7 @@
         </nav>
 
         <div class="sidebar-footer">
-          <button class="button refresh" type="button">Обновить</button>
+          <button class="button refresh" id="sync-refresh" type="button">Обновить</button>
         </div>
       </aside>
 
@@ -795,7 +806,7 @@
           <button class="button chat-info" type="button">Инфо о чате</button>
         </div>
 
-        <div class="messages" aria-label="Сообщения">
+        <div class="messages" id="message-list" aria-label="Сообщения">
           <div class="message-row">
             <div class="author">Я:</div>
             <div class="text">Мам, свари макарошки</div>
@@ -818,9 +829,9 @@
           </div>
         </div>
 
-        <form class="composer" action="#" aria-label="Отправка сообщения">
-          <input class="message-input" type="text" value="Введите сообщение..." aria-label="Введите сообщение" readonly>
-          <button class="button send" type="button">Отправить</button>
+        <form class="composer" id="composer-form" action="#" aria-label="Отправка сообщения">
+          <input class="message-input" id="message-input" name="message" type="text" placeholder="Введите сообщение..." aria-label="Введите сообщение" autocomplete="off" required>
+          <button class="button send" type="submit">Отправить</button>
           <p class="storage-status" data-storage-status aria-live="polite"></p>
         </form>
       </section>
@@ -840,6 +851,8 @@
       var DB_VERSION = 2;
       var PROFILE_KEY = "macaroni.profile.v1";
       var dbPromise = null;
+      var currentChatId = null;
+      var composerBound = false;
 
       function get(id) {
         return document.getElementById(id);
@@ -1456,6 +1469,14 @@
         document.body.dataset.storage = "ready";
       }
 
+      function setAppError(message) {
+        setStorageError(message);
+      }
+
+      function clearAppError() {
+        clearStorageError();
+      }
+
       function isReadyProfile(profile) {
         return !!(
           profile &&
@@ -1500,6 +1521,7 @@
         if (isReadyProfile(profile)) {
           fillSettingsForm(profile);
           setView("app");
+          initMessengerApp(profile);
           return;
         }
 
@@ -1519,6 +1541,7 @@
           saveProfile(profile);
           fillSettingsForm(profile);
           setView("app");
+          initMessengerApp(profile);
         });
 
         settingsForm.addEventListener("submit", function (event) {
@@ -1527,6 +1550,7 @@
           saveProfile(profile);
           fillSettingsForm(profile);
           setView("app");
+          initMessengerApp(profile);
         });
 
         openSettings.addEventListener("click", function () {
@@ -1540,7 +1564,7 @@
 
         settingsReset.addEventListener("click", function () {
           resetProfile();
-          resetIndex().catch(function (error) {
+          Promise.all([resetIndex(), repoDeleteAll()]).catch(function (error) {
             setStorageError("Локальный индекс не сбросился. Git помнит, но браузер сопротивляется: " + error.message);
           });
           get("setup-display-name").value = "Я";
@@ -1549,6 +1573,179 @@
           get("setup-token").value = "";
           get("setup-privacy").checked = false;
           setView("setup");
+        });
+      }
+
+      function formatMessageTime(isoDate) {
+        var date = new Date(isoDate);
+        if (Number.isNaN(date.getTime())) {
+          return "";
+        }
+
+        return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+      }
+
+      function renderMessages(chatId) {
+        return listMessages(chatId).then(function (messages) {
+          var list = get("message-list");
+          list.innerHTML = "";
+
+          if (!messages.length) {
+            var empty = document.createElement("div");
+            empty.className = "message-empty";
+            empty.textContent = "Сообщений пока нет. Самое время попросить макарошки.";
+            list.appendChild(empty);
+            return messages;
+          }
+
+          messages.forEach(function (message) {
+            var row = document.createElement("div");
+            var author = document.createElement("div");
+            var text = document.createElement("div");
+            var time = document.createElement("div");
+
+            row.className = "message-row";
+            author.className = "author";
+            text.className = "text";
+            time.className = "time";
+
+            author.textContent = (message.from === CLIENT_ID ? "Я" : message.from) + ":";
+            text.textContent = message.text;
+            time.textContent = formatMessageTime(message.created_at);
+
+            row.appendChild(author);
+            row.appendChild(text);
+            row.appendChild(time);
+            list.appendChild(row);
+          });
+
+          return messages;
+        });
+      }
+
+      function findFirstChatMeta() {
+        return repoListFiles("chats/").then(function (files) {
+          var metaFile = files.find(function (file) {
+            return /^chats\/[^/]+\/meta\.json$/.test(file.path);
+          });
+
+          return metaFile ? JSON.parse(metaFile.content) : null;
+        });
+      }
+
+      function ensureDefaultChat(profile) {
+        return initTestRepo(profile).then(function () {
+          return findFirstChatMeta();
+        }).then(function (existingChat) {
+          if (existingChat) {
+            currentChatId = existingChat.id;
+            return existingChat;
+          }
+
+          return createTestChat({
+            title: "МАМА",
+            owner_id: CLIENT_ID,
+            owner_name: profile.displayName || "Я",
+            members: [
+              { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
+              { id: "K2XM", display_name: "МАМА", role: "member" }
+            ]
+          }).then(function (chat) {
+            currentChatId = chat.meta.id;
+            return chat.meta;
+          });
+        });
+      }
+
+      function refreshFromTestRepo(profile) {
+        return ensureDefaultChat(profile || loadProfile() || {}).then(function (chat) {
+          return reindexFromTestRepo().then(function () {
+            currentChatId = chat.id;
+            return renderMessages(currentChatId);
+          });
+        });
+      }
+
+      function retryOutbox(profile) {
+        return listOutbox().then(function (items) {
+          var chain = Promise.resolve();
+          items.forEach(function (item) {
+            chain = chain.then(function () {
+              if (item.type !== "send_message" || !item.payload) {
+                return null;
+              }
+
+              return sendTestMessage(item.payload).then(function () {
+                return deleteOutbox(item.id);
+              });
+            });
+          });
+
+          return chain.then(function () {
+            return refreshFromTestRepo(profile);
+          });
+        });
+      }
+
+      function sendComposerMessage(profile, text) {
+        var payload = {
+          chat_id: currentChatId,
+          from: CLIENT_ID,
+          to: ["K2XM"],
+          text: text
+        };
+
+        return sendTestMessage(payload).then(function () {
+          clearAppError();
+          return renderMessages(currentChatId);
+        }).catch(function (error) {
+          return putOutbox({
+            type: "send_message",
+            payload: payload,
+            error: error.message
+          }).then(function () {
+            setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
+          });
+        });
+      }
+
+      function bindComposer() {
+        if (composerBound) {
+          return;
+        }
+
+        composerBound = true;
+        get("composer-form").addEventListener("submit", function (event) {
+          event.preventDefault();
+          var input = get("message-input");
+          var text = input.value.trim();
+          var profile = loadProfile() || {};
+
+          if (!text) {
+            return;
+          }
+
+          ensureDefaultChat(profile).then(function () {
+            return sendComposerMessage(profile, text);
+          }).then(function () {
+            input.value = "";
+          }).catch(function (error) {
+            setAppError("Не удалось отправить сообщение: " + error.message);
+          });
+        });
+
+        get("sync-refresh").addEventListener("click", function () {
+          var profile = loadProfile() || {};
+          retryOutbox(profile).catch(function (error) {
+            setAppError("Обновление не получилось: " + error.message);
+          });
+        });
+      }
+
+      function initMessengerApp(profile) {
+        bindComposer();
+        refreshFromTestRepo(profile).catch(function (error) {
+          setAppError("Локальный test repo не поднялся: " + error.message);
         });
       }
 
