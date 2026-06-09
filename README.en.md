@@ -10,6 +10,49 @@
 
 Russian version: [README.ru.md](README.ru.md).
 
+## Try It
+
+- Live demo: [open Macaroni Messenger](https://vanyapr.github.io/makaroshki/messenger.html?demo=1).
+- Download: [messenger.html](https://raw.githubusercontent.com/vanyapr/makaroshki/main/messenger.html).
+- Source repo: [github.com/vanyapr/makaroshki](https://github.com/vanyapr/makaroshki).
+
+The demo opens the public `vanyapr/makaroshki` repository in read-only mode.
+
+No token.
+
+No registration.
+
+No backend.
+
+You can read public `.macaroni` chats immediately. To write messages, you need a GitHub token with repository Contents read/write access, because GitHub is the backend we refused to build.
+
+## Run Locally
+
+1. Download `messenger.html`.
+2. Open it in Chrome, Chromium, or Edge.
+3. Use the default public repository in read-only mode, or open Settings and connect your own repository.
+
+`localhost` is not part of the product. Double click is.
+
+## Send A Real Message
+
+1. Create or choose a GitHub repository.
+2. Create a fine-grained GitHub token with `Contents: Read and write` for that repository.
+3. Open `messenger.html`.
+4. Put your name, repository URL, and token into Settings.
+5. Write something worth committing.
+
+Detailed guide: [How to get an access token](docs/access-token.en.md).
+
+## Honest Limitations
+
+- Macaroni Messenger is not private. Public repository means public messages.
+- The working write provider is GitHub. Other providers are protocol targets, not finished write adapters yet.
+- Messages are polled, not realtime.
+- GitHub API rate limits exist. Git will not run away, but GitHub sometimes asks everyone to calm down.
+- Tokens are stored in browser `localStorage`. This is convenient, not military-grade anything.
+- Large repositories will be slow. If a chat gets too large, create another repository. This is called scaling.
+
 Documents:
 
 - [PHILOSOPHY.en.md](PHILOSOPHY.en.md) - the main project principle.

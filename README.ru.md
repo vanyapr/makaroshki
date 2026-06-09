@@ -16,6 +16,49 @@ Macaroni Messenger - это мессенджер без серверов, без
 
 Если вы умеете скачивать веб-страницы, вы уже умеете устанавливать Macaroni Messenger.
 
+## Попробовать
+
+- Живое demo: [открыть Macaroni Messenger](https://vanyapr.github.io/makaroshki/messenger.html?demo=1).
+- Скачать: [messenger.html](https://raw.githubusercontent.com/vanyapr/makaroshki/main/messenger.html).
+- Исходный repo: [github.com/vanyapr/makaroshki](https://github.com/vanyapr/makaroshki).
+
+Demo открывает публичный репозиторий `vanyapr/makaroshki` в read-only режиме.
+
+Без токена.
+
+Без регистрации.
+
+Без backend.
+
+Публичные `.macaroni` чаты можно читать сразу. Чтобы писать сообщения, нужен GitHub token с правами `Contents: Read and write` на репозиторий, потому что GitHub - это backend, который мы отказались писать.
+
+## Запустить локально
+
+1. Скачайте `messenger.html`.
+2. Откройте его в Chrome, Chromium или Edge.
+3. Используйте публичный репозиторий по умолчанию в read-only режиме или подключите свой repo в настройках.
+
+`localhost` не является частью продукта. Двойной клик является.
+
+## Отправить настоящее сообщение
+
+1. Создайте или выберите GitHub repository.
+2. Создайте fine-grained GitHub token с правами `Contents: Read and write` для этого repository.
+3. Откройте `messenger.html`.
+4. Укажите имя, URL репозитория и token в настройках.
+5. Напишите что-нибудь достойное commit.
+
+Подробная инструкция: [как получить токен доступа](docs/access-token.md).
+
+## Честные ограничения
+
+- Macaroni Messenger не является приватным. Публичный repository означает публичные сообщения.
+- Рабочий write provider сейчас GitHub. Остальные provider - цели протокола, а не готовые write adapters.
+- Сообщения приходят через polling, не realtime.
+- GitHub API rate limits существуют. Git не убежит, но GitHub иногда просит всех успокоиться.
+- Токены хранятся в browser `localStorage`. Это удобно, а не криптография военного уровня.
+- Большие репозитории будут медленными. Если чат стал слишком большим, создайте новый repository. Это называется масштабирование.
+
 Документы:
 
 - [PHILOSOPHY.md](PHILOSOPHY.md) - главный принцип проекта.
