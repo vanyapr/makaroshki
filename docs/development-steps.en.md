@@ -131,7 +131,7 @@ Done when:
 
 Goal: store message index and outbox locally.
 
-Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `3`, stores `messages`, `chats`, `users`, `members`, `outbox`, `meta`, `repoFiles`, and operations for messages, search, outbox, index reset, and the local test repo. Until the Send/Receive Loop, this is infrastructure, not a full user-facing send flow.
+Status: basically implemented in `messenger.html`. There is a small IndexedDB wrapper, schema version `3`, stores `messages`, `chats`, `users`, `members`, `outbox`, `meta`, `repoFiles`, and operations for messages, search, outbox, local chat read-state, index reset, and the local test repo. Until the Send/Receive Loop, this is infrastructure, not a full user-facing send flow.
 
 Steps:
 
@@ -146,6 +146,7 @@ Done when:
 
 - messages survive reload;
 - outbox survives reload;
+- local new-message indicators survive reload/reindex but are not written to git;
 - index can be rebuilt;
 - storage layer remains small and readable.
 
@@ -283,6 +284,8 @@ If `members.json` is missing, `Chat info` shows a fallback member from `meta.cre
 If the user adds a GitHub token after read-only mode, saving settings automatically retries outbox. The `Refresh` button remains the manual retry path.
 
 The sidebar is rendered from the local `chats` store after init/reindex. Clicking a chat changes the current `chat_id`, title, and message list; the static HTML list is only a startup placeholder before initialization.
+
+New-message indicators are local: `meta` stores the last read message marker for each chat, the sidebar shows a count of incoming messages newer than that marker, and opening a chat marks it as read. Git does not store read receipts.
 
 Sync/reindex preserves the selected chat if that `chat_id` still exists in the index. The client must not jump to another chat before sending a message.
 

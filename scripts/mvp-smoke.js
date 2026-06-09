@@ -189,9 +189,29 @@ async function testLocalMvpFlow(browser) {
   });
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("WORK")));
+  const workUnreadBeforeOpen = await page.evaluate(() => {
+    const item = [...document.querySelectorAll("#chat-list .chat-item")].find((node) => node.textContent.includes("WORK"));
+    const badge = item && item.querySelector(".unread-badge");
+    return badge ? badge.textContent : null;
+  });
+  assert(workUnreadBeforeOpen === "1", "new incoming message did not create unread chat indicator");
   await page.locator("#chat-list .chat-item", { hasText: "WORK" }).click();
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("WORK"));
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("work chat")));
+  const workUnreadAfterOpen = await page.evaluate(() => {
+    const item = [...document.querySelectorAll("#chat-list .chat-item")].find((node) => node.textContent.includes("WORK"));
+    const badge = item && item.querySelector(".unread-badge");
+    return badge ? badge.textContent : null;
+  });
+  assert(workUnreadAfterOpen === null, "opening a chat did not clear unread indicator");
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  const workUnreadAfterReindex = await page.evaluate(() => {
+    const item = [...document.querySelectorAll("#chat-list .chat-item")].find((node) => node.textContent.includes("WORK"));
+    const badge = item && item.querySelector(".unread-badge");
+    return badge ? badge.textContent : null;
+  });
+  assert(workUnreadAfterReindex === null, "reindex did not preserve read chat marker");
   texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("work chat")), "dynamic chat selection did not render chat messages");
   await page.locator("#search-input").fill("mom");

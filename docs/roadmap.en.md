@@ -146,6 +146,7 @@ Features:
 - polling/manual refresh;
 - local message indexing;
 - chat list;
+- local new-message indicators in the chat list;
 - message history;
 - local search;
 - outbox on network/sync error;
@@ -160,6 +161,7 @@ Done when:
 - Two profiles in one test repository see each other's messages.
 - Reindexing does not create duplicates.
 - Send errors do not lose messages.
+- New incoming messages in inactive chats are visible in the sidebar and clear when the chat is opened.
 - Privacy warning is shown before the first message.
 - README, product brief, and roadmap match actual behavior.
 

@@ -146,6 +146,8 @@
       height: 58px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       padding: 0 20px;
       margin-bottom: 4px;
       font-weight: 400;
@@ -158,6 +160,27 @@
       border: var(--thin-line) solid var(--ink);
       border-radius: 3px;
       font-weight: 700;
+    }
+
+    .chat-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .unread-badge {
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      border: var(--thin-line) solid var(--ink);
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      flex: 0 0 auto;
     }
 
     .emoji {
@@ -1997,6 +2020,70 @@
         });
       }
 
+      function putMeta(key, value) {
+        return putRecord("meta", {
+          key: key,
+          value: value
+        });
+      }
+
+      function chatReadMetaKey(chatId) {
+        return "read:" + chatId;
+      }
+
+      function compareMessageMarkers(left, right) {
+        var createdCompare = String((left && left.created_at) || "").localeCompare(String((right && right.created_at) || ""));
+        if (createdCompare !== 0) {
+          return createdCompare;
+        }
+
+        return String((left && left.id) || "").localeCompare(String((right && right.id) || ""));
+      }
+
+      function latestMessageMarker(messages) {
+        var latest = null;
+        (messages || []).forEach(function (message) {
+          var marker = {
+            id: message.id || "",
+            created_at: message.created_at || ""
+          };
+
+          if (!latest || compareMessageMarkers(latest, marker) < 0) {
+            latest = marker;
+          }
+        });
+
+        return latest;
+      }
+
+      function isMessageUnread(message, marker) {
+        if (!message || message.from === CLIENT_ID) {
+          return false;
+        }
+
+        if (!marker) {
+          return true;
+        }
+
+        return compareMessageMarkers(marker, {
+          id: message.id || "",
+          created_at: message.created_at || ""
+        }) < 0;
+      }
+
+      function markChatRead(chatId, messages) {
+        if (!chatId) {
+          return Promise.resolve(null);
+        }
+
+        var latest = latestMessageMarker(messages || []);
+        if (!latest) {
+          return Promise.resolve(null);
+        }
+
+        return putMeta(chatReadMetaKey(chatId), latest);
+      }
+
       function getMembers(chatId) {
         if (!chatId) {
           return Promise.resolve(null);
@@ -2038,7 +2125,17 @@
       }
 
       function resetIndex() {
-        return clearStores(["messages", "chats", "users", "members", "meta"]);
+        return listRecords("meta").then(function (records) {
+          var localReadState = records.filter(function (record) {
+            return record && record.key && record.key.indexOf("read:") === 0;
+          });
+
+          return clearStores(["messages", "chats", "users", "members", "meta"]).then(function () {
+            return Promise.all(localReadState.map(function (record) {
+              return putRecord("meta", record);
+            }));
+          });
+        });
       }
 
       function repoWriteFile(path, content) {
@@ -2568,7 +2665,14 @@
           listUsers(),
           getMembers(chatId)
         ]).then(function (result) {
-          return drawMessages(result[0], null, usersById(result[1]), membersById(result[2]));
+          var messages = drawMessages(result[0], null, usersById(result[1]), membersById(result[2]));
+          if (chatId === currentChatId) {
+            return markChatRead(chatId, messages).then(function () {
+              return messages;
+            });
+          }
+
+          return messages;
         });
       }
 
@@ -2585,7 +2689,30 @@
         return renderMessages(currentChatId);
       }
 
-      function drawChatList(chats) {
+      function unreadCountsByChat(chats, messages, metaRecords) {
+        var readByChat = {};
+        var counts = {};
+
+        (metaRecords || []).forEach(function (record) {
+          if (record && record.key && record.key.indexOf("read:") === 0) {
+            readByChat[record.key.slice(5)] = record.value;
+          }
+        });
+
+        (chats || []).forEach(function (chat) {
+          counts[chat.id] = 0;
+        });
+
+        (messages || []).forEach(function (message) {
+          if (message && Object.prototype.hasOwnProperty.call(counts, message.chat_id) && isMessageUnread(message, readByChat[message.chat_id])) {
+            counts[message.chat_id] += 1;
+          }
+        });
+
+        return counts;
+      }
+
+      function drawChatList(chats, unreadByChat) {
         var list = get("chat-list");
         list.innerHTML = "";
 
@@ -2599,9 +2726,22 @@
 
         chats.forEach(function (chat) {
           var item = document.createElement("button");
+          var name = document.createElement("span");
+          var unread = unreadByChat && unreadByChat[chat.id] ? unreadByChat[chat.id] : 0;
           item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
           item.type = "button";
-          item.textContent = chat.title || chat.id;
+          name.className = "chat-name";
+          name.textContent = chat.title || chat.id;
+          item.appendChild(name);
+
+          if (unread > 0) {
+            var badge = document.createElement("span");
+            badge.className = "unread-badge";
+            badge.textContent = unread > 99 ? "99+" : String(unread);
+            badge.setAttribute("aria-label", unread + " unread messages");
+            item.appendChild(badge);
+          }
+
           item.addEventListener("click", function () {
             selectChat(chat).then(function () {
               return renderChatList();
@@ -2618,7 +2758,13 @@
       }
 
       function renderChatList() {
-        return listChats().then(drawChatList);
+        return Promise.all([
+          listChats(),
+          listMessages(),
+          listRecords("meta")
+        ]).then(function (result) {
+          return drawChatList(result[0], unreadCountsByChat(result[0], result[1], result[2]));
+        });
       }
 
       function chooseActiveChatAfterSync(chats, ensuredChat, previousChatId) {
@@ -2966,7 +3112,7 @@
         return ensureChat.then(function (chat) {
           var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
           return reindex.then(function () {
-            return renderChatList();
+            return listChats();
           }).then(function (chats) {
             var activeChat = chooseActiveChatAfterSync(chats, chat, previousChatId);
 
@@ -2974,13 +3120,15 @@
               currentChatId = null;
               updateChatTitle({ title: "No chats", id: "none" });
               drawMessages([], "There are no chats in the repo yet. Git is silent.");
-              return updateSyncStatusFromState(value, "sync: ok");
+              return renderChatList().then(function () {
+                return updateSyncStatusFromState(value, "sync: ok");
+              });
             }
 
             currentChatId = activeChat.id;
             updateChatTitle(activeChat);
-            return renderChatList().then(function () {
-              return renderMessages(currentChatId);
+            return renderMessages(currentChatId).then(function () {
+              return renderChatList();
             }).then(function () {
               return updateSyncStatusFromState(value, "sync: ok");
             });
