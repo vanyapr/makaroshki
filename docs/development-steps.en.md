@@ -314,7 +314,7 @@ Chat switching must stay fast: title, active state, and selected chat messages u
 
 The `+` button creates a new chat through a simple title prompt, adds the current `CLIENT_ID` and default peer to `members.json`, and immediately opens the created chat.
 
-`Chat info` shows a short current-chat summary: title, `chat_id`, members from `members.json`, transport, and outbox size. This is the minimal debug UI before the real remote roundtrip.
+`Chat info` opens an in-app panel instead of `alert`: title, `chat_id`, members from `members.json`, current `CLIENT_ID` membership status, transport, and outbox size. If the current user is not in `members.json`, the panel shows an explicit `Join Chat` button.
 
 Done when:
 

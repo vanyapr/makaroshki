@@ -37,6 +37,10 @@
       min-width: 320px;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     button,
     input,
     select {
@@ -240,6 +244,102 @@
 
     .chat-export {
       min-width: 120px;
+    }
+
+    .chat-info-dialog {
+      width: min(720px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      border: var(--line) solid var(--ink);
+      border-radius: 0;
+      padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .chat-info-dialog::backdrop {
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .chat-info-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-height: calc(100vh - 40px);
+    }
+
+    .chat-info-header,
+    .chat-info-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px;
+    }
+
+    .chat-info-header {
+      border-bottom: var(--thin-line) solid var(--ink);
+    }
+
+    .chat-info-actions {
+      border-top: var(--thin-line) solid var(--ink);
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .chat-info-title {
+      font-weight: 700;
+      font-size: 24px;
+    }
+
+    .chat-info-body {
+      padding: 18px 22px 22px;
+      overflow: auto;
+      display: grid;
+      gap: 16px;
+      font-size: 18px;
+    }
+
+    .chat-info-row {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .chat-info-label {
+      color: var(--muted);
+    }
+
+    .chat-info-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .member-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .member-item {
+      border: var(--thin-line) solid var(--ink);
+      padding: 8px 10px;
+      display: grid;
+      gap: 3px;
+    }
+
+    .member-name {
+      font-weight: 700;
+    }
+
+    .member-meta {
+      color: var(--muted);
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-info-close {
+      min-width: 48px;
+      padding: 0 14px;
     }
 
     .conversation-actions {
@@ -746,6 +846,25 @@
         height: 54px;
       }
 
+      .chat-info-dialog {
+        width: calc(100vw - 20px);
+      }
+
+      .chat-info-header,
+      .chat-info-actions {
+        padding: 14px 16px;
+      }
+
+      .chat-info-body {
+        padding: 14px 16px 16px;
+        font-size: 16px;
+      }
+
+      .chat-info-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
       .send {
         min-height: 44px;
       }
@@ -1014,6 +1133,20 @@
     </div>
   </main>
 
+  <dialog class="chat-info-dialog" id="chat-info-dialog" aria-labelledby="chat-info-title">
+    <div class="chat-info-panel">
+      <div class="chat-info-header">
+        <div class="chat-info-title" id="chat-info-title">Chat Info</div>
+        <button class="button chat-info-close" id="chat-info-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="chat-info-body" id="chat-info-body"></div>
+      <div class="chat-info-actions">
+        <button class="button" id="chat-info-copy" type="button">Copy chat_id</button>
+        <button class="button" id="chat-info-join" type="button">Join Chat</button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     (function () {
       const CLIENT_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1139,6 +1272,19 @@
           membersPrefix: "members: ",
           transportPrefix: "transport: ",
           outboxPrefix: "outbox: ",
+          chatInfoTitle: "Chat Info",
+          chatInfoNameLabel: "name",
+          chatInfoIdLabel: "chat_id",
+          chatInfoMembersLabel: "members",
+          chatInfoTransportLabel: "transport",
+          chatInfoOutboxLabel: "outbox",
+          chatInfoMembershipLabel: "you",
+          chatInfoMemberYes: "in members.json",
+          chatInfoMemberNo: "not in members.json",
+          chatInfoJoin: "Join Chat",
+          chatInfoClose: "Close",
+          chatInfoCopy: "Copy chat_id",
+          chatInfoCopied: "chat_id copied.",
           joinChatQuestion: "You are not in this chat's members.json. Join the chat?",
           joinedChat: "You were added to members.json. Git now knows you are here.",
           chatTitlePrompt: "Chat title",
@@ -1245,6 +1391,19 @@
           membersPrefix: "участники: ",
           transportPrefix: "transport: ",
           outboxPrefix: "outbox: ",
+          chatInfoTitle: "Инфо о чате",
+          chatInfoNameLabel: "название",
+          chatInfoIdLabel: "chat_id",
+          chatInfoMembersLabel: "участники",
+          chatInfoTransportLabel: "transport",
+          chatInfoOutboxLabel: "outbox",
+          chatInfoMembershipLabel: "вы",
+          chatInfoMemberYes: "есть в members.json",
+          chatInfoMemberNo: "нет в members.json",
+          chatInfoJoin: "Вступить в чат",
+          chatInfoClose: "Закрыть",
+          chatInfoCopy: "Скопировать chat_id",
+          chatInfoCopied: "chat_id скопирован.",
           joinChatQuestion: "Вас нет в members.json этого чата. Вступить в чат?",
           joinedChat: "Вы добавлены в members.json. Теперь git знает, что вы здесь.",
           chatTitlePrompt: "Название чата",
@@ -1382,6 +1541,10 @@
         setText("#sync-refresh", t("refresh"));
         setText("#chat-info", t("chatInfo"));
         setText("#chat-export", t("exportChat"));
+        setText("#chat-info-title", t("chatInfoTitle"));
+        setText("#chat-info-copy", t("chatInfoCopy"));
+        setText("#chat-info-join", t("chatInfoJoin"));
+        setAttribute("#chat-info-close", "aria-label", t("chatInfoClose"));
         setAttribute("#message-list", "aria-label", t("messages"));
         setAttribute("#composer-form", "aria-label", t("sendMessage"));
         setAttribute("#search-input", "placeholder", t("search"));
@@ -4010,6 +4173,8 @@
           var meta = chat.meta || chat;
           currentChatId = meta.id;
           return putRecord("chats", meta).then(function () {
+            return chat.members ? putRecord("members", chat.members) : null;
+          }).then(function () {
             return renderChatList();
           }).then(function () {
             return selectChat(meta);
@@ -4038,6 +4203,10 @@
         return t("membersPrefix") + members.map(function (member) {
           return (member.display_name || member.id) + " (" + member.id + ")";
         }).join(", ");
+      }
+
+      function chatMembersList(membersDocument) {
+        return membersDocument && Array.isArray(membersDocument.members) ? membersDocument.members : [];
       }
 
       function fallbackChatMembers(chat) {
@@ -4107,13 +4276,116 @@
         });
       }
 
+      function chatInfoRow(label, value) {
+        var row = document.createElement("div");
+        var labelNode = document.createElement("div");
+        var valueNode = document.createElement("div");
+
+        row.className = "chat-info-row";
+        labelNode.className = "chat-info-label";
+        valueNode.className = "chat-info-value";
+        labelNode.textContent = label;
+        valueNode.textContent = value;
+        row.appendChild(labelNode);
+        row.appendChild(valueNode);
+        return row;
+      }
+
+      function chatInfoMembersRow(membersDocument) {
+        var row = document.createElement("div");
+        var labelNode = document.createElement("div");
+        var valueNode = document.createElement("div");
+        var members = chatMembersList(membersDocument);
+
+        row.className = "chat-info-row";
+        labelNode.className = "chat-info-label";
+        valueNode.className = "chat-info-value member-list";
+        labelNode.textContent = t("chatInfoMembersLabel");
+
+        if (!members.length) {
+          valueNode.textContent = t("membersUnknown");
+        } else {
+          members.forEach(function (member) {
+            var item = document.createElement("div");
+            var name = document.createElement("div");
+            var meta = document.createElement("div");
+
+            item.className = "member-item";
+            name.className = "member-name";
+            meta.className = "member-meta";
+            name.textContent = member.display_name || member.id || "???";
+            meta.textContent = [member.id, member.role].filter(Boolean).join(" · ");
+            item.appendChild(name);
+            item.appendChild(meta);
+            valueNode.appendChild(item);
+          });
+        }
+
+        row.appendChild(labelNode);
+        row.appendChild(valueNode);
+        return row;
+      }
+
+      function openDialog(dialog) {
+        if (dialog && typeof dialog.showModal === "function") {
+          dialog.showModal();
+          return;
+        }
+
+        if (dialog) {
+          dialog.setAttribute("open", "");
+        }
+      }
+
+      function closeChatInfoDialog() {
+        var dialog = get("chat-info-dialog");
+        if (!dialog) {
+          return;
+        }
+
+        if (typeof dialog.close === "function" && dialog.open) {
+          dialog.close();
+          return;
+        }
+
+        dialog.removeAttribute("open");
+      }
+
+      function renderChatInfoDialog(state) {
+        var dialog = get("chat-info-dialog");
+        var body = get("chat-info-body");
+        var joinButton = get("chat-info-join");
+        var copyButton = get("chat-info-copy");
+        var membersDocument = state.membersDocument;
+        var chat = state.chat;
+        var outboxItems = state.outboxItems || [];
+        var isMember = chatHasCurrentClient(membersDocument);
+
+        get("chat-info-title").textContent = t("chatInfoTitle");
+        body.innerHTML = "";
+        body.appendChild(chatInfoRow(t("chatInfoNameLabel"), chat.title || chat.id));
+        body.appendChild(chatInfoRow(t("chatInfoIdLabel"), chat.id));
+        body.appendChild(chatInfoMembersRow(membersDocument));
+        body.appendChild(chatInfoRow(t("chatInfoMembershipLabel"), isMember ? t("chatInfoMemberYes") : t("chatInfoMemberNo")));
+        body.appendChild(chatInfoRow(t("chatInfoTransportLabel"), transportLabel(state.profile)));
+        body.appendChild(chatInfoRow(t("chatInfoOutboxLabel"), String(outboxItems.length)));
+
+        joinButton.hidden = isMember;
+        joinButton.disabled = isMember;
+        joinButton.textContent = t("chatInfoJoin");
+        copyButton.textContent = t("chatInfoCopy");
+        dialog.dataset.chatId = chat.id;
+        dialog._macaroniChatInfoState = state;
+        openDialog(dialog);
+      }
+
       function showChatInfo(profile) {
         var value = profile || loadProfile() || {};
         var chat;
         var membersDocument;
 
         if (!currentChatId) {
-          window.alert(t("noChatSelected"));
+          setAppError(t("noChatSelected"));
           return Promise.resolve(null);
         }
 
@@ -4123,27 +4395,12 @@
         }).then(function (document) {
           membersDocument = document || fallbackChatMembers(chat);
           return listOutbox().then(function (outboxItems) {
-            var lines = [
-              t("chatPrefix") + (chat.title || chat.id),
-              "chat_id: " + chat.id,
-              formatChatMembers(membersDocument),
-              t("transportPrefix") + transportLabel(value),
-              t("outboxPrefix") + outboxItems.length
-            ];
-            window.alert(lines.join("\\n"));
-            return chat;
-          });
-        }).then(function () {
-          if (chatHasCurrentClient(membersDocument)) {
-            return chat;
-          }
-
-          if (!window.confirm(t("joinChatQuestion"))) {
-            return chat;
-          }
-
-          return joinCurrentChat(value, membersDocument).then(function () {
-            window.alert(t("joinedChat"));
+            renderChatInfoDialog({
+              profile: value,
+              chat: chat,
+              membersDocument: membersDocument,
+              outboxItems: outboxItems
+            });
             return chat;
           });
         });
@@ -4698,6 +4955,49 @@
           var profile = loadProfile() || {};
           showChatInfo(profile).catch(function (error) {
             setAppError(t("chatInfoFailed", { message: error.message }));
+          });
+        });
+
+        get("chat-info-close").addEventListener("click", closeChatInfoDialog);
+
+        get("chat-info-copy").addEventListener("click", function () {
+          var state = get("chat-info-dialog")._macaroniChatInfoState;
+          var chatId = state && state.chat && state.chat.id;
+          if (!chatId) {
+            return;
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(chatId).then(function () {
+              updateSyncStatusFromState(loadProfile() || {}, t("chatInfoCopied"));
+            }).catch(function () {
+              updateSyncStatusFromState(loadProfile() || {}, "chat_id: " + chatId);
+            });
+            return;
+          }
+
+          updateSyncStatusFromState(loadProfile() || {}, "chat_id: " + chatId);
+        });
+
+        get("chat-info-join").addEventListener("click", function () {
+          var dialog = get("chat-info-dialog");
+          var state = dialog._macaroniChatInfoState;
+          if (!state || !state.membersDocument) {
+            return;
+          }
+
+          get("chat-info-join").disabled = true;
+          joinCurrentChat(state.profile, state.membersDocument).then(function (membersDocument) {
+            state.membersDocument = membersDocument;
+            state.outboxItems = [];
+            return listOutbox().then(function (outboxItems) {
+              state.outboxItems = outboxItems;
+              renderChatInfoDialog(state);
+              return renderChatList();
+            });
+          }).catch(function (error) {
+            setAppError(t("chatInfoFailed", { message: error.message }));
+            get("chat-info-join").disabled = false;
           });
         });
 

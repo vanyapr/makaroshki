@@ -477,18 +477,17 @@ async function testLocalMvpFlow(browser) {
   const chats = await page.evaluate(() => window.MacaroniStorage.listChats());
   assert(chats.some((chat) => chat.title === "NEW_CHAT"), "created chat was not stored");
 
-  const infoTextPromise = page.waitForEvent("dialog").then(async (dialog) => {
-    const message = dialog.message();
-    await dialog.accept();
-    return message;
-  });
   await page.locator("#chat-info").click();
-  const infoText = await infoTextPromise;
-  assert(infoText.includes("Chat: NEW_CHAT"), "chat info title is missing");
-  assert(infoText.includes("chat_id:"), "chat info id is missing");
-  assert(infoText.includes("members:"), "chat info members are missing");
-  assert(infoText.includes("transport:"), "chat info transport is missing");
-  assert(infoText.includes("outbox:"), "chat info outbox is missing");
+  await page.waitForFunction(() => document.querySelector("#chat-info-dialog").open);
+  let infoText = await page.locator("#chat-info-dialog").textContent();
+  assert(infoText.includes("NEW_CHAT"), "chat info title is missing");
+  assert(infoText.includes("chat_id"), "chat info id is missing");
+  assert(infoText.includes("members"), "chat info members are missing");
+  assert(infoText.includes("transport"), "chat info transport is missing");
+  assert(infoText.includes("outbox"), "chat info outbox is missing");
+  assert(await page.locator("#chat-info-join").isHidden(), "join button should be hidden for current member");
+  await page.locator("#chat-info-close").click();
+  await page.waitForFunction(() => !document.querySelector("#chat-info-dialog").open);
 
   await page.evaluate(async () => {
     const chat = await window.MacaroniTestRepo.createChat({
@@ -509,23 +508,13 @@ async function testLocalMvpFlow(browser) {
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("FOREIGN_CHAT")));
   await page.locator("#chat-list .chat-item", { hasText: "FOREIGN_CHAT" }).click();
-  let dialogIndex = 0;
-  page.on("dialog", async (dialog) => {
-    dialogIndex += 1;
-    if (dialogIndex === 1) {
-      assert(dialog.message().includes("Chat: FOREIGN_CHAT"), "join info dialog title is missing");
-      await dialog.accept();
-      return;
-    }
-    if (dialogIndex === 2) {
-      assert(dialog.message().includes("You are not in this chat"), "join confirm text is missing");
-      await dialog.accept();
-      return;
-    }
-    assert(dialog.message().includes("You were added to members.json"), "join success text is missing");
-    await dialog.accept();
-  });
   await page.locator("#chat-info").click();
+  await page.waitForFunction(() => document.querySelector("#chat-info-dialog").open);
+  infoText = await page.locator("#chat-info-dialog").textContent();
+  assert(infoText.includes("FOREIGN_CHAT"), "join info panel title is missing");
+  assert(infoText.includes("not in members.json"), "join membership text is missing");
+  assert(await page.locator("#chat-info-join").isVisible(), "join button is missing for foreign chat");
+  await page.locator("#chat-info-join").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
   const joinedMembers = await page.evaluate(async () => {
     const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "FOREIGN_CHAT");
@@ -533,7 +522,9 @@ async function testLocalMvpFlow(browser) {
     return members;
   });
   assert(joinedMembers, "join did not add current client to members.json");
-  page.removeAllListeners("dialog");
+  infoText = await page.locator("#chat-info-dialog").textContent();
+  assert(infoText.includes("in members.json"), "joined panel did not show membership");
+  await page.locator("#chat-info-close").click();
 
   await page.evaluate(async () => {
     const chat = await window.MacaroniTestRepo.createChat({
@@ -569,21 +560,11 @@ async function testLocalMvpFlow(browser) {
   await page.locator("#sync-refresh").click();
   await page.waitForFunction(() => [...document.querySelectorAll("#chat-list .chat-item")].some((node) => node.textContent.includes("MISSING_MEMBERS")));
   await page.locator("#chat-list .chat-item", { hasText: "MISSING_MEMBERS" }).click();
-  dialogIndex = 0;
-  page.on("dialog", async (dialog) => {
-    dialogIndex += 1;
-    if (dialogIndex === 1) {
-      assert(dialog.message().includes("K2XM (K2XM)"), "missing members fallback did not show creator");
-      await dialog.accept();
-      return;
-    }
-    if (dialogIndex === 2) {
-      await dialog.accept();
-      return;
-    }
-    await dialog.accept();
-  });
   await page.locator("#chat-info").click();
+  await page.waitForFunction(() => document.querySelector("#chat-info-dialog").open);
+  infoText = await page.locator("#chat-info-dialog").textContent();
+  assert(infoText.includes("K2XM"), "missing members fallback did not show creator");
+  await page.locator("#chat-info-join").click();
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("chat: joined"));
   const repairedMembers = await page.evaluate(async () => {
     const chat = (await window.MacaroniStorage.listChats()).find((item) => item.title === "MISSING_MEMBERS");
