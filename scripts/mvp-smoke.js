@@ -1152,6 +1152,65 @@ async function testTwoClientRecipients(browser) {
   await context.close();
 }
 
+async function testPluginBoundary(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+  await installProfile(page);
+
+  const pluginState = await page.evaluate(async () => {
+    window.MacaroniPlugins.clear();
+    window.MacaroniPlugins.register({
+      id: "smoke-plugin",
+      name: "Smoke Plugin",
+      transformOutgoingMessage(message) {
+        message.text = message.text + " [plugin]";
+        message.meta.plugin_smoke = true;
+        return message;
+      }
+    });
+
+    let duplicateRejected = false;
+    try {
+      window.MacaroniPlugins.register({ id: "smoke-plugin" });
+    } catch (error) {
+      duplicateRejected = true;
+    }
+
+    const preview = await window.MacaroniPlugins.applyOutgoingMessage(window.MacaroniProtocol.createTextMessage({
+      chat_id: "chat_plugin_preview",
+      from: "SA6E",
+      to: [],
+      text: "Preview"
+    }));
+
+    return {
+      plugins: window.MacaroniPlugins.list(),
+      duplicateRejected,
+      previewText: preview.text
+    };
+  });
+
+  assert(pluginState.plugins.length === 1, "plugin registry did not list registered plugin");
+  assert(pluginState.plugins[0].id === "smoke-plugin", "plugin registry listed the wrong plugin");
+  assert(pluginState.duplicateRejected, "plugin registry accepted duplicate plugin id");
+  assert(pluginState.previewText === "Preview [plugin]", "plugin boundary did not transform outgoing preview");
+
+  await page.locator("#message-input").fill("Plugin boundary hello");
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Plugin boundary hello [plugin]")));
+  const stored = await page.evaluate(async () => {
+    const chats = await window.MacaroniStorage.listChats();
+    const mom = chats.find((chat) => chat.title === "MOM");
+    const messages = await window.MacaroniStorage.listMessages(mom.id);
+    return messages.find((message) => message.text.includes("Plugin boundary hello"));
+  });
+
+  assert(stored && stored.text === "Plugin boundary hello [plugin]", "plugin transform was not stored in message index");
+  assert(stored.meta && stored.meta.plugin_smoke === true, "plugin transform did not preserve message meta");
+
+  await context.close();
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   try {
@@ -1166,6 +1225,7 @@ async function testTwoClientRecipients(browser) {
     await testGitHubSkipsUnchangedReindex(browser);
     await testGitHubReadOnlyMode(browser);
     await testGitHubSendWrites(browser);
+    await testPluginBoundary(browser);
     await testTwoClientRecipients(browser);
     console.log("MVP smoke passed");
   } finally {

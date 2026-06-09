@@ -1678,6 +1678,70 @@
         return true;
       }
 
+      var pluginRegistry = [];
+
+      function cloneJson(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function registerPlugin(plugin) {
+        if (!plugin || typeof plugin.id !== "string" || !plugin.id.trim()) {
+          throw new Error("plugin.id is required");
+        }
+
+        if (pluginRegistry.some(function (item) {
+          return item.id === plugin.id;
+        })) {
+          throw new Error("Plugin already registered: " + plugin.id);
+        }
+
+        pluginRegistry.push({
+          id: plugin.id,
+          name: plugin.name || plugin.id,
+          transformOutgoingMessage: typeof plugin.transformOutgoingMessage === "function" ? plugin.transformOutgoingMessage : null,
+          transformIncomingMessage: typeof plugin.transformIncomingMessage === "function" ? plugin.transformIncomingMessage : null
+        });
+        return plugin;
+      }
+
+      function listPlugins() {
+        return pluginRegistry.map(function (plugin) {
+          return {
+            id: plugin.id,
+            name: plugin.name
+          };
+        });
+      }
+
+      function clearPlugins() {
+        pluginRegistry = [];
+      }
+
+      function applyMessagePlugins(direction, message, context) {
+        var hookName = direction === "incoming" ? "transformIncomingMessage" : "transformOutgoingMessage";
+        var chain = Promise.resolve(cloneJson(message));
+
+        pluginRegistry.forEach(function (plugin) {
+          chain = chain.then(function (current) {
+            if (!plugin[hookName]) {
+              return current;
+            }
+
+            return Promise.resolve(plugin[hookName](cloneJson(current), Object.assign({}, context || {}, {
+              direction: direction,
+              plugin_id: plugin.id
+            }))).then(function (next) {
+              return next || current;
+            });
+          });
+        });
+
+        return chain.then(function (current) {
+          validateMessage(current);
+          return current;
+        });
+      }
+
       function parseGitHubRepo(repoUrl) {
         var value = String(repoUrl || "").trim();
         var match = value.match(/^https:\/\/github\.com\/([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/?#].*)?$/i);
@@ -3927,13 +3991,21 @@
       function sendComposerMessage(profile, text, chatId) {
         var targetChatId = chatId || currentChatId;
         return getChatRecipientIds(profile, targetChatId).then(function (recipients) {
-          var message = createTextMessage({
+          return applyMessagePlugins("outgoing", createTextMessage({
             chat_id: targetChatId,
             from: CLIENT_ID,
             from_name: (profile && profile.displayName) || CLIENT_ID,
             to: recipients,
             text: text
+          }), {
+            profile: {
+              clientId: CLIENT_ID,
+              displayName: (profile && profile.displayName) || CLIENT_ID,
+              provider: profile && profile.provider
+            },
+            chat_id: targetChatId
           });
+        }).then(function (message) {
           var payload = {
             message: message
           };
@@ -4229,6 +4301,18 @@
       window.MacaroniExport = {
         buildCurrentChat: buildCurrentChatExport,
         downloadCurrentChat: downloadCurrentChatExport
+      };
+
+      window.MacaroniPlugins = {
+        register: registerPlugin,
+        list: listPlugins,
+        clear: clearPlugins,
+        applyOutgoingMessage: function (message, context) {
+          return applyMessagePlugins("outgoing", message, context);
+        },
+        applyIncomingMessage: function (message, context) {
+          return applyMessagePlugins("incoming", message, context);
+        }
       };
 
       window.MacaroniI18n = {

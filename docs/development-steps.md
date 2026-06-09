@@ -373,7 +373,7 @@ node scripts/mvp-smoke.js
 7. Receipts как append-only события: частично сделано как `read` receipt files в `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, которые пишутся только при продвижении последнего прочитанного message marker.
 8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML.
-10. Plugin boundary.
+10. Plugin boundary: частично сделано как browser-side `window.MacaroniPlugins` registry с outbound/inbound message transform hooks; composer применяет outbound hook перед записью сообщения.
 
 ## Что Не Делаем До MVP
 

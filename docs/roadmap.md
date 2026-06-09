@@ -116,6 +116,8 @@ Git является источником истины.
 - `docs/protocol-v1.en.md` - файловая модель Macaroni Protocol v1 на английском.
 - `docs/github-provider.md` - ограничения и контракт первого реального GitHub adapter.
 - `docs/github-provider.en.md` - GitHub adapter guide на английском.
+- `docs/plugin-boundary.md` - browser-side plugin boundary.
+- `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/access-token.md` - основная инструкция получения токена доступа, GitHub по умолчанию.
 - `docs/access-token.en.md` - основная инструкция получения токена доступа на английском.
 - `docs/gitverse-token.md` - инструкция получения токена GitVerse.

@@ -116,6 +116,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/protocol-v1.en.md` - Macaroni Protocol v1 file model in English.
 - `docs/github-provider.md` - first real GitHub adapter limits and contract in Russian.
 - `docs/github-provider.en.md` - GitHub adapter guide in English.
+- `docs/plugin-boundary.md` - browser-side plugin boundary in Russian.
+- `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
 - `docs/access-token.md` - default access token guide in Russian, with GitHub first.
 - `docs/access-token.en.md` - default access token guide in English.
 - `docs/gitverse-token.md` - GitVerse token guide in Russian.
