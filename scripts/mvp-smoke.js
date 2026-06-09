@@ -361,6 +361,10 @@ async function testGitHubReadOnlyMode(browser) {
       return btoa(unescape(encodeURIComponent(JSON.stringify(value))));
     }
 
+    function decodeJson(value) {
+      return JSON.parse(decodeURIComponent(escape(atob(value))));
+    }
+
     function fileResponse(repoPath) {
       const value = files[repoPath];
       return value ? { path: repoPath, type: "file", sha: "sha-" + repoPath, content: encodeJson(value) } : null;
@@ -388,11 +392,25 @@ async function testGitHubReadOnlyMode(browser) {
       return null;
     }
 
+    window.__macaroniReadOnlyWrites = [];
     window.fetch = (url, options = {}) => {
       const marker = "/contents/";
       const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
       const repoPath = decodeURIComponent(rawPath);
       if (options.method === "PUT") {
+        if (options.headers && options.headers.Authorization) {
+          const body = JSON.parse(options.body || "{}");
+          const value = decodeJson(body.content || "");
+          files[repoPath] = value;
+          window.__macaroniReadOnlyWrites.push({ path: repoPath, value });
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            text: () => Promise.resolve(JSON.stringify({ content: { path: repoPath, sha: "sha-written-" + repoPath } }))
+          });
+        }
+
         return Promise.resolve({
           ok: false,
           status: 403,
@@ -422,6 +440,19 @@ async function testGitHubReadOnlyMode(browser) {
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 1"));
   const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 1, "read-only send was not kept in outbox");
+
+  await page.locator("#open-settings").click();
+  await page.waitForFunction(() => document.body.dataset.view === "settings");
+  await page.locator("#settings-token").fill("fake-token-after-readonly");
+  await page.locator("#settings-form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 0"));
+
+  const retried = await page.evaluate(async () => ({
+    outbox: await window.MacaroniStorage.listOutbox(),
+    writes: window.__macaroniReadOnlyWrites
+  }));
+  assert(retried.outbox.length === 0, "token save did not drain outbox");
+  assert(retried.writes.some((write) => /^\.macaroni\/chats\/chat_readonly\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path)), "token save did not write queued message");
 
   await context.close();
 }

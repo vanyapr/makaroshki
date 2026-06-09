@@ -63,9 +63,11 @@ GitHub Contents API не является raw git push.
 
 Попытка отправки без token сохраняет draft в outbox. Retry ждёт token.
 
+Если пользователь добавил token в настройках, а в outbox уже есть сообщения, клиент автоматически пробует отправить очередь после сохранения профиля.
+
 При ошибках auth/network draft сохраняется в outbox.
 
-Кнопка "Обновить" делает retry outbox и reindex.
+Кнопка "Обновить" тоже делает retry outbox и reindex.
 
 Reindex читает:
 

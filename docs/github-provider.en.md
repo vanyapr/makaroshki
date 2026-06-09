@@ -63,9 +63,11 @@ If the token is empty, the GitHub repo works as a read-only public repo: the cli
 
 Sending without a token keeps the draft in outbox. Retry waits for a token.
 
+If the user adds a token in settings while outbox already has messages, the client automatically tries to send the queue after saving the profile.
+
 On auth/network errors, the draft is saved to outbox.
 
-The "Refresh" button retries outbox and reindexes.
+The "Refresh" button also retries outbox and reindexes.
 
 Reindex reads:
 

@@ -2137,6 +2137,36 @@
         });
       }
 
+      function shouldRetryOutboxAfterProfileSave(previousProfile, profile) {
+        return !canWriteGitHub(previousProfile || {}) && canWriteGitHub(profile || {});
+      }
+
+      function retryOutboxAfterToken(profile) {
+        return listOutbox().then(function (items) {
+          if (!items.length) {
+            return items;
+          }
+
+          updateSyncStatus("sync: " + transportLabel(profile) + " · token added, retry outbox");
+          return retryOutbox(profile).catch(function (error) {
+            setAppError("Токен сохранён, но outbox пока не отправился: " + error.message);
+            return updateSyncStatusFromState(profile, "sync: error");
+          });
+        });
+      }
+
+      function saveProfileAndOpenApp(profile, previousProfile) {
+        saveProfile(profile);
+        fillSettingsForm(profile);
+        setView("app");
+        var boot = initMessengerApp(profile);
+        if (shouldRetryOutboxAfterProfileSave(previousProfile, profile)) {
+          boot.then(function () {
+            return retryOutboxAfterToken(profile);
+          });
+        }
+      }
+
       function bindProfileForms() {
         var setupForm = get("setup-form");
         var settingsForm = get("settings-form");
@@ -2148,20 +2178,16 @@
 
         setupForm.addEventListener("submit", function (event) {
           event.preventDefault();
+          var previousProfile = loadProfile();
           var profile = readProfileForm(setupForm);
-          saveProfile(profile);
-          fillSettingsForm(profile);
-          setView("app");
-          initMessengerApp(profile);
+          saveProfileAndOpenApp(profile, previousProfile);
         });
 
         settingsForm.addEventListener("submit", function (event) {
           event.preventDefault();
+          var previousProfile = loadProfile();
           var profile = readProfileForm(settingsForm);
-          saveProfile(profile);
-          fillSettingsForm(profile);
-          setView("app");
-          initMessengerApp(profile);
+          saveProfileAndOpenApp(profile, previousProfile);
         });
 
         openSettings.addEventListener("click", function () {
@@ -2712,7 +2738,7 @@
 
       function initMessengerApp(profile) {
         bindComposer();
-        refreshFromTestRepo(profile).catch(function (error) {
+        return refreshFromTestRepo(profile).catch(function (error) {
           setAppError("Локальный test repo не поднялся: " + error.message);
           updateSyncStatusFromState(profile, "sync: error");
         });
