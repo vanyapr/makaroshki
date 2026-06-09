@@ -226,6 +226,10 @@ async function testLocalMvpFlow(browser) {
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
+  assert(await page.locator("#settings-import").textContent() === "Import Repo", "import repo action is missing");
+  await page.locator("#settings-import").click();
+  await page.waitForFunction(() => document.querySelector("#settings-index-status").textContent.includes("Index rebuilt"));
+  assert(await page.locator("#settings-import").isDisabled() === false, "import repo button stayed disabled");
   await page.locator("#settings-reindex").click();
   await page.waitForFunction(() => document.querySelector("#settings-index-status").textContent.includes("Index rebuilt"));
   await page.locator("#settings-back").click();

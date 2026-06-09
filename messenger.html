@@ -901,6 +901,7 @@
         <div class="field">
           <span class="field-label">Local Index</span>
           <p class="field-note" id="settings-index-status">IndexedDB is a cache. If it breaks, rebuild it from the git repository.</p>
+          <button class="button" id="settings-import" type="button">Import Repo</button>
           <button class="button" id="settings-reindex" type="button">Rebuild Index</button>
         </div>
 
@@ -1049,6 +1050,7 @@
           settings: "Settings",
           localIndex: "Local Index",
           indexStatusDefault: "IndexedDB is a cache. If it breaks, rebuild it from the git repository.",
+          importRepo: "Import Repo",
           rebuildIndex: "Rebuild Index",
           back: "Back",
           reset: "Reset",
@@ -1139,6 +1141,7 @@
           settings: "Настройки",
           localIndex: "Локальный индекс",
           indexStatusDefault: "IndexedDB - это кеш. Если он сломался, пересоберите его из git-репозитория.",
+          importRepo: "Импорт repo",
           rebuildIndex: "Пересобрать индекс",
           back: "Назад",
           reset: "Сбросить",
@@ -1302,6 +1305,7 @@
         if (get("settings-index-status") && !get("settings-index-status").dataset.state) {
           get("settings-index-status").textContent = t("indexStatusDefault");
         }
+        setText("#settings-import", t("importRepo"));
         setText("#settings-reindex", t("rebuildIndex"));
         setText("#settings-back", t("back"));
         setText("#settings-reset", t("reset"));
@@ -2991,6 +2995,7 @@
         var openSettings = get("open-settings");
         var settingsBack = get("settings-back");
         var settingsReset = get("settings-reset");
+        var settingsImport = get("settings-import");
         var settingsReindex = get("settings-reindex");
         var settingsIndexStatus = get("settings-index-status");
         var setupLanguage = get("setup-language");
@@ -3024,7 +3029,7 @@
           });
         });
 
-        settingsReindex.addEventListener("click", function () {
+        function runSettingsImport() {
           var profile = loadProfile();
           if (!isReadyProfile(profile)) {
             settingsIndexStatus.dataset.state = "busy";
@@ -3032,6 +3037,7 @@
             return;
           }
 
+          settingsImport.disabled = true;
           settingsReindex.disabled = true;
           settingsIndexStatus.dataset.state = "busy";
           settingsIndexStatus.textContent = t("rebuildingIndex");
@@ -3046,9 +3052,13 @@
             setStorageError(t("indexRebuildFailed", { message: error.message }));
             updateSyncStatusFromState(profile, "reindex: error");
           }).then(function () {
+            settingsImport.disabled = false;
             settingsReindex.disabled = false;
           });
-        });
+        }
+
+        settingsImport.addEventListener("click", runSettingsImport);
+        settingsReindex.addEventListener("click", runSettingsImport);
 
         settingsBack.addEventListener("click", function () {
           showAppOrSetup();

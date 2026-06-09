@@ -365,8 +365,8 @@ Done when:
 Only after working `messenger.html`:
 
 1. Second git provider adapter.
-2. Import existing repo.
-3. Read-only public repo mode.
+2. Import existing repo: partially done as an explicit `Import Repo` button in settings; it rebuilds the local IndexedDB cache from the selected `.macaroni/` repo and does not write remote files.
+3. Read-only public repo mode: partially done for GitHub public repos without a token; the client reads history, shows `GitHub read-only`, but does not create chats or send messages without a write token.
 4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
 5. Markdown rendering: partially done as safe inline rendering for `**bold**`, `*italic*`, and `` `code` `` in the message UI, without HTML passthrough and without a full CommonMark engine.
 6. Basic notifications: partially done as unread count in `document.title`, without Browser Notification API or permission prompts.
