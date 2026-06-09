@@ -4,6 +4,31 @@
 
 Russian version: [README.ru.md](README.ru.md).
 
+Documents:
+
+- [PHILOSOPHY.en.md](PHILOSOPHY.en.md) - the main project principle.
+- [docs/product-brief.en.md](docs/product-brief.en.md) - detailed product and architecture brief.
+- [docs/roadmap.en.md](docs/roadmap.en.md) - current implementation roadmap.
+- [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
+- [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
+- [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
+- [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
+- [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
+
+Russian documents:
+
+- [README.ru.md](README.ru.md)
+- [PHILOSOPHY.md](PHILOSOPHY.md)
+- [docs/product-brief.md](docs/product-brief.md)
+- [docs/roadmap.md](docs/roadmap.md)
+- [docs/development-steps.md](docs/development-steps.md)
+- [docs/protocol-v1.md](docs/protocol-v1.md)
+- [docs/github-provider.md](docs/github-provider.md)
+- [docs/access-token.md](docs/access-token.md)
+- [docs/gitverse-token.md](docs/gitverse-token.md)
+
+---
+
 Macaroni Messenger is a distributed messaging system implemented as a single HTML file.
 
 Messages are stored in Git repositories.
