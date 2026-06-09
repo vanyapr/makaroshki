@@ -1204,12 +1204,25 @@ async function testGitHubSendWrites(browser) {
 
     window.__macaroniWrites = [];
     window.__macaroniActivePut = false;
+    window.__macaroniConflictOnce = true;
+    window.__macaroniConflictCount = 0;
     window.fetch = (url, options = {}) => {
       const marker = "/contents/";
       const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
       const repoPath = decodeURIComponent(rawPath);
 
       if (options.method === "PUT") {
+        if (window.__macaroniConflictOnce) {
+          window.__macaroniConflictOnce = false;
+          window.__macaroniConflictCount += 1;
+          return Promise.resolve({
+            ok: false,
+            status: 409,
+            statusText: "Conflict",
+            text: () => Promise.resolve(JSON.stringify({ message: "branch changed before write" }))
+          });
+        }
+
         if (window.__macaroniActivePut) {
           return Promise.resolve({
             ok: false,
@@ -1268,9 +1281,11 @@ async function testGitHubSendWrites(browser) {
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("send: ok"));
 
   const writes = await page.evaluate(() => window.__macaroniWrites);
+  const conflictCount = await page.evaluate(() => window.__macaroniConflictCount);
   const messageWrite = writes.find((write) => /^\.macaroni\/chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
   const inboxWrite = writes.find((write) => /^\.macaroni\/inbox\/K2XM\/.+\.json$/.test(write.path));
 
+  assert(conflictCount === 1, "GitHub conflict retry smoke did not trigger one conflict");
   assert(messageWrite, "GitHub send did not write message file");
   assert(inboxWrite, "GitHub send did not write recipient inbox");
   assert(messageWrite.value.text === "Remote send hello", "GitHub message text is wrong");

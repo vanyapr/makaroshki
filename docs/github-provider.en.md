@@ -17,6 +17,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - GitHub repo without a token works in read-only mode for public repos;
 - the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
 - the client stores a local snapshot of `x-ratelimit-*` headers and shows `api: remaining/limit` in the status line;
+- the write path automatically retries a GitHub `409 Conflict` once, rereading file metadata before retry;
 - human-readable errors for auth, permissions, rate limit, missing repo/file, and conflict.
 
 ## Required Token Permission
@@ -48,6 +49,8 @@ File write flow:
 This is the provider API equivalent for commit/push.
 
 If one action creates several files, the client writes them sequentially. The GitHub Contents API creates a separate commit for every `PUT`, so parallel writes to the same branch may conflict.
+
+If GitHub returns `409 Conflict` during a write, the client rereads file metadata and retries the `PUT` once. If the retry also fails, the prepared message stays in outbox and retry continues through the normal "Refresh"/polling path.
 
 ## Limits
 

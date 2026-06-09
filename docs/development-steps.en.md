@@ -292,6 +292,8 @@ If `members.json` is missing, `Chat info` shows a fallback member from `meta.cre
 
 If the user adds a GitHub token after read-only mode, saving settings automatically retries outbox. The `Refresh` button remains the manual retry path.
 
+GitHub `409 Conflict` during a write is retried once after a fresh file metadata read. If the retry also fails, the message remains in outbox.
+
 The sidebar is rendered from the local `chats` store after init/reindex. Clicking a chat changes the current `chat_id`, title, and message list; the static HTML list is only a startup placeholder before initialization.
 
 New-message indicators are local: `meta` stores the last read message marker for each chat, the sidebar shows a count of incoming messages newer than that marker, and opening a chat marks it as read. Git does not store read receipts.
