@@ -136,6 +136,7 @@ async function testDemoReadOnlyAutoprofile(browser) {
   assert(state.fetchCount === 0, "demo launch called fetch and may burn GitHub API rate limit");
   assert(state.chats.length === 3, "demo launch did not index hardcoded chats");
   assert(state.messages.length === 6, "demo launch did not index hardcoded messages");
+  assert(await page.locator("#open-demo-repo").getAttribute("href") === "https://github.com/vanyapr/makaroshki/tree/main/.macaroni", "demo repo link points to the wrong place");
 
   const status = await page.locator("#sync-status").textContent();
   assert(status.includes("demo read-only"), "demo launch did not show demo read-only status");

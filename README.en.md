@@ -13,6 +13,8 @@ Russian version: [README.ru.md](README.ru.md).
 
 License: [DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](LICENSE).
 
+![Macaroni Messenger demo](docs/assets/macaroni-demo.png)
+
 ## Try It
 
 - Live demo: [open Macaroni Messenger](https://vanyapr.github.io/makaroshki/messenger.html?demo=1).
@@ -47,6 +49,22 @@ You can read demo `.macaroni` chats immediately. To read or write a real reposit
 
 Detailed guide: [How to get an access token](docs/access-token.en.md).
 
+## Demo Repository Structure
+
+Macaroni files live under `.macaroni/`, so the messenger can be attached to any repository without turning the root into pasta.
+
+```text
+.macaroni/
+  protocol.json
+  users/<client_id>.json
+  chats/<chat_id>/meta.json
+  chats/<chat_id>/members.json
+  chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
+  inbox/<client_id>/<message_id>.json
+```
+
+The demo data is hardcoded inside `messenger.html`; a real connected repository uses the same layout.
+
 ## Honest Limitations
 
 - Macaroni Messenger is not private. Public repository means public messages. Private repository means readable by everyone with repository access.
@@ -71,6 +89,8 @@ Documents:
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
 - [docs/portable-mom.en.md](docs/portable-mom.en.md) - portable HTML file for mom with a preconfigured profile.
+- [CONTRIBUTING.md](CONTRIBUTING.md) - contribution rules: one HTML file, no backend cosplay.
+- [docs/show-hn.md](docs/show-hn.md) - Show HN pitch and FAQ.
 - [docs/browser-support.en.md](docs/browser-support.en.md) - supported browser feature matrix.
 - [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
 - [docs/gitverse-token.en.md](docs/gitverse-token.en.md) - how to get a GitVerse access token.
@@ -88,6 +108,7 @@ Russian documents:
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)
 - [docs/portable-mom.md](docs/portable-mom.md)
+- [docs/show-hn.ru.md](docs/show-hn.ru.md)
 - [docs/browser-support.md](docs/browser-support.md)
 - [docs/access-token.md](docs/access-token.md)
 - [docs/gitverse-token.md](docs/gitverse-token.md)

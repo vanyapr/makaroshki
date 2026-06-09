@@ -103,6 +103,11 @@
       min-width: 180px;
     }
 
+    .repo-link {
+      text-decoration: none;
+      min-width: 190px;
+    }
+
     .main {
       display: grid;
       grid-template-columns: var(--sidebar) 1fr;
@@ -697,6 +702,10 @@
         min-width: 140px;
       }
 
+      .repo-link {
+        min-width: 130px;
+      }
+
       .client-id {
         font-size: 19px;
       }
@@ -752,7 +761,13 @@
 
       .top-actions {
         width: 100%;
+        gap: 8px;
         justify-content: space-between;
+      }
+
+      .top-actions .button {
+        min-width: 0;
+        padding: 0 10px;
       }
 
       .main {
@@ -1072,6 +1087,7 @@
       <div class="brand">Macaroni Messenger</div>
       <div class="top-actions">
         <div class="client-id">ID: <span data-client-id>SA6E</span></div>
+        <a class="button repo-link" id="open-demo-repo" href="https://github.com/vanyapr/makaroshki/tree/main/.macaroni" target="_blank" rel="noreferrer">Demo Repo</a>
         <button class="button settings" id="open-settings" type="button">Settings</button>
       </div>
     </header>
@@ -1257,6 +1273,7 @@
           privacySettings: "I understand that messages are not private by default.",
           save: "Save",
           settings: "Settings",
+          openDemoRepo: "Demo Repo",
           settingsFile: "Settings File",
           settingsFileStatus: "Settings export includes your access token. This is still not a bank vault.",
           exportSettings: "Export Settings",
@@ -1388,6 +1405,7 @@
           privacySettings: "Я понимаю, что сообщения по умолчанию не приватны.",
           save: "Сохранить",
           settings: "Настройки",
+          openDemoRepo: "Demo Repo",
           settingsFile: "Файл настроек",
           settingsFileStatus: "Экспорт настроек включает токен доступа. Это всё ещё не банковская ячейка.",
           exportSettings: "Экспорт настроек",
@@ -1609,6 +1627,7 @@
         setAttribute("#reset-close", "aria-label", t("chatInfoClose"));
 
         setText("#open-settings", t("settings"));
+        setText("#open-demo-repo", t("openDemoRepo"));
         setAttribute(".sidebar", "aria-label", t("chats"));
         setText(".section-title", t("chats"));
         setAttribute("#chat-list", "aria-label", t("chatList"));
