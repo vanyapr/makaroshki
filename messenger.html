@@ -4462,6 +4462,16 @@
         };
       }
 
+      function supportMatrix() {
+        return {
+          requiredFeatures: ["file:// or https:// origin storage", "localStorage", "IndexedDB", "WebCrypto"],
+          recommendedBrowsers: ["Chrome", "Chromium", "Edge"],
+          unsupportedBrowsers: ["Browsers without persistent file:// or https:// origin storage"],
+          localhostFallback: false,
+          decision: "Feature detection decides support. Browser names are recommendations, not a bypass."
+        };
+      }
+
       function renderSupportChecks(checks) {
         Object.keys(checks).forEach(function (key) {
           var node = document.querySelector('[data-check="' + key + '"]');
@@ -4473,6 +4483,7 @@
 
       window.MacaroniSupport = {
         checkSupport: checkSupport,
+        supportMatrix: supportMatrix,
         createClientId: createClientId,
         clientId: CLIENT_ID
       };

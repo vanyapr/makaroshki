@@ -62,7 +62,7 @@
 
 Цель: сразу отделить поддерживаемые браузеры от неподдерживаемых.
 
-Статус: реализовано в `messenger.html`. Клиент проверяет `file://` или `https://`, `localStorage`, `IndexedDB` и `WebCrypto`; неподдерживаемый браузер получает экран несовместимости. `http://localhost` не считается поддерживаемым fallback.
+Статус: реализовано в `messenger.html`. Клиент проверяет `file://` или `https://`, `localStorage`, `IndexedDB` и `WebCrypto`; неподдерживаемый браузер получает экран несовместимости. `http://localhost` не считается поддерживаемым fallback. Support matrix зафиксирован в `docs/browser-support.md` и `window.MacaroniSupport.supportMatrix()`.
 
 Шаги:
 

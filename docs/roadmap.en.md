@@ -122,6 +122,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/electron-wrapper.en.md` - optional Electron/WebView wrapper contract in English.
 - `docs/settings-export-import.md` - manual settings export/import in Russian.
 - `docs/settings-export-import.en.md` - manual settings export/import in English.
+- `docs/browser-support.md` - browser support matrix in Russian.
+- `docs/browser-support.en.md` - browser support matrix in English.
 - `docs/access-token.md` - default access token guide in Russian, with GitHub first.
 - `docs/access-token.en.md` - default access token guide in English.
 - `docs/gitverse-token.md` - GitVerse token guide in Russian.
@@ -340,7 +342,7 @@ Recommended:
 0.2:
 
 - GitHub/GitLab/GitVerse provider adapters;
-- verified support matrix for Chrome/Chromium/Edge;
+- verified support matrix for Chrome/Chromium/Edge: partially done as `docs/browser-support.en.md` and runtime `window.MacaroniSupport.supportMatrix()`;
 - import existing repo;
 - read-only public repo mode;
 - normal onboarding;

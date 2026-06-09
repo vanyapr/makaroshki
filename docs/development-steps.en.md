@@ -62,7 +62,7 @@ Done when:
 
 Goal: separate supported browsers from unsupported browsers immediately.
 
-Status: implemented in `messenger.html`. The client checks `file://` or `https://`, `localStorage`, `IndexedDB`, and `WebCrypto`; unsupported browsers get the incompatibility screen. `http://localhost` is not a supported fallback.
+Status: implemented in `messenger.html`. The client checks `file://` or `https://`, `localStorage`, `IndexedDB`, and `WebCrypto`; unsupported browsers get the incompatibility screen. `http://localhost` is not a supported fallback. The support matrix is recorded in `docs/browser-support.en.md` and `window.MacaroniSupport.supportMatrix()`.
 
 Steps:
 

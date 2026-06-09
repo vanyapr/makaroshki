@@ -88,11 +88,17 @@ async function testGeneratedClientIdPersists(browser) {
   const firstId = await page.evaluate(() => ({
     support: window.MacaroniSupport.clientId,
     stored: localStorage.getItem("macaroni.client_id.v1"),
-    rendered: document.querySelector("[data-client-id]").textContent
+    rendered: document.querySelector("[data-client-id]").textContent,
+    matrix: window.MacaroniSupport.supportMatrix()
   }));
   assert(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(firstId.support), "generated CLIENT_ID has wrong shape");
   assert(firstId.support === firstId.stored, "generated CLIENT_ID was not saved to localStorage");
   assert(firstId.support === firstId.rendered, "generated CLIENT_ID was not rendered");
+  assert(firstId.matrix.requiredFeatures.includes("IndexedDB"), "support matrix must list IndexedDB");
+  assert(firstId.matrix.recommendedBrowsers.includes("Chrome"), "support matrix must recommend Chrome");
+  assert(firstId.matrix.recommendedBrowsers.includes("Chromium"), "support matrix must recommend Chromium");
+  assert(firstId.matrix.recommendedBrowsers.includes("Edge"), "support matrix must recommend Edge");
+  assert(firstId.matrix.localhostFallback === false, "support matrix must reject localhost fallback");
 
   await page.reload();
   await page.waitForFunction(() => document.body.dataset.support === "supported");

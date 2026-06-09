@@ -122,6 +122,8 @@ Git является источником истины.
 - `docs/electron-wrapper.en.md` - Electron/WebView wrapper contract на английском.
 - `docs/settings-export-import.md` - ручной export/import настроек.
 - `docs/settings-export-import.en.md` - settings export/import на английском.
+- `docs/browser-support.md` - browser support matrix.
+- `docs/browser-support.en.md` - browser support matrix на английском.
 - `docs/access-token.md` - основная инструкция получения токена доступа, GitHub по умолчанию.
 - `docs/access-token.en.md` - основная инструкция получения токена доступа на английском.
 - `docs/gitverse-token.md` - инструкция получения токена GitVerse.
@@ -340,7 +342,7 @@ async function checkSupport() {
 0.2:
 
 - GitHub/GitLab/GitVerse provider adapters;
-- проверенный support matrix для Chrome/Chromium/Edge;
+- проверенный support matrix для Chrome/Chromium/Edge: частично сделано как `docs/browser-support.md` и runtime `window.MacaroniSupport.supportMatrix()`;
 - импорт существующего repo;
 - read-only public repo mode;
 - нормальный onboarding;
