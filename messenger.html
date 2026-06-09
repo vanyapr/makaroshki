@@ -4226,6 +4226,7 @@
       function refreshFromTestRepo(profile) {
         var value = profile || loadProfile() || {};
         var previousChatId = currentChatId;
+        var reindexResult = null;
         if (isUnsupportedRemoteProvider(value)) {
           return Promise.reject(unsupportedProviderError(value));
         }
@@ -4234,17 +4235,19 @@
         var ensureChat = currentChatId ? Promise.resolve(null) : ensureDefaultChat(value);
         return ensureChat.then(function (chat) {
           var reindex = canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
-          return reindex.then(function () {
+          return reindex.then(function (result) {
+            reindexResult = result;
             return listChats();
           }).then(function (chats) {
             var activeChat = chooseActiveChatAfterSync(chats, chat, previousChatId);
+            var syncAction = reindexResult && reindexResult.unchanged ? "sync: unchanged" : "sync: ok";
 
             if (!activeChat) {
               currentChatId = null;
               updateChatTitle({ title: t("noChatsTitle"), id: "none" });
               drawMessages([], t("repoSilent"));
               return renderChatList().then(function () {
-                return updateLastSyncStatus(value, "sync: ok");
+                return updateLastSyncStatus(value, syncAction);
               });
             }
 
@@ -4253,7 +4256,7 @@
             return renderMessages(currentChatId).then(function () {
               return renderChatList();
             }).then(function () {
-              return updateLastSyncStatus(value, "sync: ok");
+              return updateLastSyncStatus(value, syncAction);
             });
           });
         });

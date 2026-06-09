@@ -75,6 +75,8 @@ GitHub Contents API не является raw git push.
 
 Reindex сначала читает последний commit SHA branch через GitHub API. Если SHA совпадает с локально сохранённым значением, полный обход Contents API пропускается и клиент оставляет текущий IndexedDB index.
 
+В таком случае status line показывает `sync: unchanged`, а не обычный `sync: ok`. Это означает: remote branch HEAD проверен, изменений не найдено, Contents API scan не запускался.
+
 Если SHA изменился или проверка HEAD недоступна, reindex читает:
 
 1. все найденные chat meta;

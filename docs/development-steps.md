@@ -274,6 +274,8 @@ Sidebar дополнительно показывает локальный per-c
 
 Для GitHub transport status line также показывает последний известный API rate-limit snapshot `api: remaining/limit`, если provider вернул `x-ratelimit-*` headers.
 
+Если GitHub branch HEAD не изменился и Contents API scan пропущен, status line показывает `sync: unchanged`.
+
 Search input находится в header текущего чата и фильтрует локальный индекс текущего чата.
 
 Reindex/reset controls находятся в настройках. `Сбросить` удаляет профиль, индекс и local test repo; `Пересобрать индекс` пересобирает только локальный кеш из выбранного provider/repo и не создаёт новые remote-файлы.

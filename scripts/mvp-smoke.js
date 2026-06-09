@@ -944,7 +944,7 @@ async function testGitHubSkipsUnchangedReindex(browser) {
 
   await page.locator("#sync-refresh").click();
   await page.waitForFunction((count) => window.__macaroniRequestLog.filter((url) => url.includes("/commits/main")).length > count, before.commits);
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: ok"));
+  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync: unchanged"));
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("api: 4998/5000"));
 
   const after = await page.evaluate(async () => ({

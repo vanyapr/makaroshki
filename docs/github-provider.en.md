@@ -75,6 +75,8 @@ The "Refresh" button also retries outbox and reindexes.
 
 Reindex first reads the latest branch commit SHA through the GitHub API. If the SHA matches the locally saved value, the full Contents API walk is skipped and the client keeps the current IndexedDB index.
 
+In that case, the status line shows `sync: unchanged` instead of plain `sync: ok`. It means: the remote branch HEAD was checked, no changes were found, and the Contents API scan did not run.
+
 If the SHA changed or the HEAD check is unavailable, reindex reads:
 
 1. all found chat meta;

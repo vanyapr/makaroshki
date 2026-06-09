@@ -274,6 +274,8 @@ Successful sync/send/reindex operations update local `sync:last_success_at` in t
 
 For GitHub transport, the status line also shows the last known API rate-limit snapshot `api: remaining/limit` if the provider returned `x-ratelimit-*` headers.
 
+If the GitHub branch HEAD has not changed and the Contents API scan was skipped, the status line shows `sync: unchanged`.
+
 Search input lives in the current chat header and filters the local index for the current chat.
 
 Reindex/reset controls live in settings. `Reset` deletes the profile, index, and local test repo; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.
