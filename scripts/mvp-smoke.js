@@ -179,6 +179,25 @@ async function testLocalMvpFlow(browser) {
   assert(linkInfo.target === "_blank", "message URL link target is wrong");
   assert(linkInfo.rel.includes("noreferrer"), "message URL link rel is wrong");
 
+  await page.locator("#message-input").fill("MVP smoke: **bold** *italic* `code` <img src=x onerror=alert(1)>");
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text strong")].some((node) => node.textContent === "bold"));
+  const markdownInfo = await page.evaluate(() => {
+    const row = [...document.querySelectorAll(".message-row")].find((node) => node.textContent.includes("MVP smoke: bold italic code"));
+    return row ? {
+      strong: row.querySelector("strong") ? row.querySelector("strong").textContent : "",
+      em: row.querySelector("em") ? row.querySelector("em").textContent : "",
+      code: row.querySelector("code") ? row.querySelector("code").textContent : "",
+      hasImage: !!row.querySelector("img"),
+      text: row.textContent
+    } : null;
+  });
+  assert(markdownInfo && markdownInfo.strong === "bold", "bold markdown was not rendered");
+  assert(markdownInfo.em === "italic", "italic markdown was not rendered");
+  assert(markdownInfo.code === "code", "inline code markdown was not rendered");
+  assert(!markdownInfo.hasImage, "message markdown rendered unsafe HTML");
+  assert(markdownInfo.text.includes("<img src=x onerror=alert(1)>"), "unsafe HTML was not preserved as text");
+
   let texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("MVP smoke")), "sent message is not visible");
 

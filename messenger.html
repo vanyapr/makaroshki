@@ -311,6 +311,14 @@
       text-underline-offset: 3px;
     }
 
+    .text code {
+      border: var(--thin-line) solid var(--ink);
+      padding: 0 5px;
+      font: inherit;
+      font-size: 0.88em;
+      background: transparent;
+    }
+
     .time {
       text-align: right;
       white-space: nowrap;
@@ -2963,6 +2971,37 @@
         return haystack.indexOf(needle) !== -1;
       }
 
+      function appendInlineMarkdown(target, value) {
+        var text = String(value || "");
+        var markdownPattern = /(`([^`\n]+)`|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*)/g;
+        var cursor = 0;
+        var match;
+
+        while ((match = markdownPattern.exec(text))) {
+          if (match.index > cursor) {
+            target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+          }
+
+          var node;
+          if (match[2]) {
+            node = document.createElement("code");
+            node.textContent = match[2];
+          } else if (match[3]) {
+            node = document.createElement("strong");
+            node.textContent = match[3];
+          } else {
+            node = document.createElement("em");
+            node.textContent = match[4];
+          }
+          target.appendChild(node);
+          cursor = match.index + match[0].length;
+        }
+
+        if (cursor < text.length) {
+          target.appendChild(document.createTextNode(text.slice(cursor)));
+        }
+      }
+
       function appendMessageText(target, value) {
         var text = String(value || "");
         var urlPattern = /https?:\/\/[^\s<>"']+/gi;
@@ -2971,7 +3010,7 @@
 
         while ((match = urlPattern.exec(text))) {
           if (match.index > cursor) {
-            target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+            appendInlineMarkdown(target, text.slice(cursor, match.index));
           }
 
           var rawUrl = match[0];
@@ -2993,7 +3032,7 @@
         }
 
         if (cursor < text.length) {
-          target.appendChild(document.createTextNode(text.slice(cursor)));
+          appendInlineMarkdown(target, text.slice(cursor));
         }
       }
 
