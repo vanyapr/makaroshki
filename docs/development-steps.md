@@ -301,6 +301,16 @@ Composer отправляет сообщение участникам текущ
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
+Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry и двухклиентную адресацию через временную копию HTML с `CLIENT_ID = "K2XM"`.
+
+Локальная команда:
+
+```sh
+node scripts/mvp-smoke.js
+```
+
+Требуется Node.js с доступным `playwright`, например после `npm install -D playwright`.
+
 Шаги:
 
 1. Проверить двойной клик по `messenger.html`.
