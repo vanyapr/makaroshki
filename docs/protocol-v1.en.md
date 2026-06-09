@@ -31,6 +31,8 @@ The token is not the user. The token is the access right to the repository.
 
 MVP does not store binary attachments in git.
 
+The client safely turns `http://` and `https://` URLs in message text into clickable links. This is UI behavior, not a separate attachment type.
+
 MVP does not edit or delete messages in place.
 
 ## .macaroni/protocol.json

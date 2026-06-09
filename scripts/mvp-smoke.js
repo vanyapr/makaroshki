@@ -133,6 +133,17 @@ async function testLocalMvpFlow(browser) {
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("MVP smoke")));
   assert(await page.locator("#message-input").inputValue() === "", "Enter submit did not clear composer");
 
+  await page.locator("#message-input").fill("MVP smoke: ссылка https://example.com/makaroni.");
+  await page.locator("#message-input").press("Enter");
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text a")].some((node) => node.href === "https://example.com/makaroni"));
+  const linkInfo = await page.evaluate(() => {
+    const link = [...document.querySelectorAll(".message-row .text a")].find((node) => node.href === "https://example.com/makaroni");
+    return link ? { text: link.textContent, target: link.target, rel: link.rel } : null;
+  });
+  assert(linkInfo && linkInfo.text === "https://example.com/makaroni", "message URL was not linkified safely");
+  assert(linkInfo.target === "_blank", "message URL link target is wrong");
+  assert(linkInfo.rel.includes("noreferrer"), "message URL link rel is wrong");
+
   let texts = await messageTexts(page);
   assert(texts.some((text) => text.includes("MVP smoke")), "sent message is not visible");
 

@@ -361,7 +361,7 @@ Only after working `messenger.html`:
 1. Second git provider adapter.
 2. Import existing repo.
 3. Read-only public repo mode.
-4. URL attachments.
+4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
 5. Markdown rendering.
 6. Basic notifications.
 7. Receipts as append-only events.

@@ -361,7 +361,7 @@ node scripts/mvp-smoke.js
 1. Второй git provider adapter.
 2. Import existing repo.
 3. Read-only public repo mode.
-4. URL attachments.
+4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
 5. Markdown rendering.
 6. Basic notifications.
 7. Receipts как append-only события.

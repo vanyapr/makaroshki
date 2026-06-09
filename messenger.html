@@ -268,6 +268,12 @@
       overflow-wrap: anywhere;
     }
 
+    .text a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
     .time {
       text-align: right;
       white-space: nowrap;
@@ -2486,6 +2492,40 @@
         return haystack.indexOf(needle) !== -1;
       }
 
+      function appendMessageText(target, value) {
+        var text = String(value || "");
+        var urlPattern = /https?:\/\/[^\s<>"']+/gi;
+        var cursor = 0;
+        var match;
+
+        while ((match = urlPattern.exec(text))) {
+          if (match.index > cursor) {
+            target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+          }
+
+          var rawUrl = match[0];
+          var trailing = rawUrl.match(/[.,!?;:)\]]+$/);
+          var suffix = trailing ? trailing[0] : "";
+          var href = suffix ? rawUrl.slice(0, -suffix.length) : rawUrl;
+          var link = document.createElement("a");
+          link.href = href;
+          link.textContent = href;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          target.appendChild(link);
+
+          if (suffix) {
+            target.appendChild(document.createTextNode(suffix));
+          }
+
+          cursor = match.index + rawUrl.length;
+        }
+
+        if (cursor < text.length) {
+          target.appendChild(document.createTextNode(text.slice(cursor)));
+        }
+      }
+
       function drawMessages(messages, emptyText, users, members) {
           var list = get("message-list");
           list.innerHTML = "";
@@ -2510,7 +2550,7 @@
             time.className = "time";
 
             author.textContent = authorLabel(message, users, members) + ":";
-            text.textContent = message.text;
+            appendMessageText(text, message.text);
             time.textContent = formatMessageTime(message.created_at);
 
             row.appendChild(author);
