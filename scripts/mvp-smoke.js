@@ -120,7 +120,7 @@ async function testDemoReadOnlyAutoprofile(browser) {
 
   const page = await openMessenger(context, messengerUrl + "?demo=1", null);
   await page.waitForFunction(() => document.body.dataset.view === "app");
-  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Mom, please cook macaroni.")));
+  await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Production deploy is in 14 minutes.")));
 
   const state = await page.evaluate(async () => ({
     profile: JSON.parse(localStorage.getItem("macaroni.profile.v1")),

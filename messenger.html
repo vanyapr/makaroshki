@@ -1100,11 +1100,9 @@
         </div>
 
         <nav class="chat-list" id="chat-list" aria-label="Chat list">
-          <button class="chat-item active" type="button">MOM</button>
-          <button class="chat-item" type="button">DAD</button>
-          <button class="chat-item" type="button">BOTANIST</button>
-          <button class="chat-item" type="button">WORK</button>
-          <button class="chat-item" type="button">HOME_GROUP</button>
+          <button class="chat-item active" type="button">MOM_MACARONI</button>
+          <button class="chat-item" type="button">BASEMENT_SERVER</button>
+          <button class="chat-item" type="button">AGENT_ROOM</button>
         </nav>
 
         <div class="sidebar-footer">
@@ -1112,10 +1110,10 @@
         </div>
       </aside>
 
-      <section class="conversation" id="conversation" aria-label="Chat MOM">
+      <section class="conversation" id="conversation" aria-label="Chat MOM_MACARONI">
         <div class="conversation-header">
           <div class="conversation-meta">
-            <div class="chat-title" id="chat-title">Chat: MOM</div>
+            <div class="chat-title" id="chat-title">Chat: MOM_MACARONI</div>
             <div class="sync-status" id="sync-status" aria-live="polite">sync: waiting for IndexedDB</div>
           </div>
           <div class="conversation-actions">
@@ -1128,23 +1126,18 @@
         <div class="messages" id="message-list" aria-label="Messages">
           <div class="message-row">
             <div class="author">Me:</div>
-            <div class="text">Mom, please cook macaroni</div>
+            <div class="text">Mom, please cook macaroni. Production deploy is in 14 minutes.</div>
             <div class="time">12:41</div>
           </div>
           <div class="message-row">
             <div class="author">MOM:</div>
-            <div class="text">Already cooking</div>
+            <div class="text">Macaroni is boiling. Git commit when ready.</div>
             <div class="time">12:42</div>
           </div>
           <div class="message-row">
             <div class="author">Me:</div>
-            <div class="text">Thank you</div>
+            <div class="text">If dinner cannot be committed, was it worth cooking?</div>
             <div class="time">12:42</div>
-          </div>
-          <div class="message-row">
-            <div class="author">MOM:</div>
-            <div class="text">You are welcome <span class="emoji">❤</span></div>
-            <div class="time">12:43</div>
           </div>
         </div>
 
@@ -1903,28 +1896,29 @@
         var users = [
           createUserDocument({ clientId: "SA6E", displayName: "Me" }, "2026-06-09T06:40:00.000Z"),
           createUserDocument({ clientId: "K2XM", displayName: "MOM" }, "2026-06-09T06:40:00.000Z"),
-          createUserDocument({ clientId: "W8LQ", displayName: "AUNT SVETA" }, "2026-06-09T06:40:00.000Z")
+          createUserDocument({ clientId: "B4SM", displayName: "BASEMENT_SERVER" }, "2026-06-09T06:40:00.000Z"),
+          createUserDocument({ clientId: "AGNT", displayName: "AGENT" }, "2026-06-09T06:40:00.000Z")
         ];
         var chats = [
           createChatMeta({
             id: "demo_mom",
-            title: "MOM",
+            title: "MOM_MACARONI",
             created_by: "SA6E",
             member_ids: ["K2XM"],
             created_at: "2026-06-09T06:41:00.000Z"
           }),
           createChatMeta({
-            id: "demo_home",
-            title: "HOME_GROUP",
+            id: "demo_basement",
+            title: "BASEMENT_SERVER",
             created_by: "SA6E",
-            member_ids: ["K2XM", "W8LQ"],
+            member_ids: ["B4SM"],
             created_at: "2026-06-09T06:42:00.000Z"
           }),
           createChatMeta({
-            id: "demo_work",
-            title: "WORK",
-            created_by: "SA6E",
-            member_ids: ["K2XM"],
+            id: "demo_agent",
+            title: "AGENT_ROOM",
+            created_by: "AGNT",
+            member_ids: ["SA6E", "B4SM"],
             created_at: "2026-06-09T06:43:00.000Z"
           })
         ];
@@ -1933,14 +1927,14 @@
             { id: "SA6E", display_name: "Me", role: "owner" },
             { id: "K2XM", display_name: "MOM", role: "member" }
           ]),
-          createChatMembers("demo_home", [
+          createChatMembers("demo_basement", [
             { id: "SA6E", display_name: "Me", role: "owner" },
-            { id: "K2XM", display_name: "MOM", role: "member" },
-            { id: "W8LQ", display_name: "AUNT SVETA", role: "member" }
+            { id: "B4SM", display_name: "BASEMENT_SERVER", role: "member" }
           ]),
-          createChatMembers("demo_work", [
-            { id: "SA6E", display_name: "Me", role: "owner" },
-            { id: "K2XM", display_name: "MOM", role: "member" }
+          createChatMembers("demo_agent", [
+            { id: "AGNT", display_name: "AGENT", role: "owner" },
+            { id: "SA6E", display_name: "Me", role: "member" },
+            { id: "B4SM", display_name: "BASEMENT_SERVER", role: "member" }
           ])
         ];
         var messages = [
@@ -1951,7 +1945,7 @@
             from_name: "Me",
             to: ["K2XM"],
             created_at: "2026-06-09T06:46:00.000Z",
-            text: "Mom, please cook macaroni."
+            text: "Mom, please cook macaroni. Production deploy is in 14 minutes."
           }),
           createTextMessage({
             id: "2026-06-09T06-47-00.000Z_K2XM_demo_mama02",
@@ -1960,7 +1954,7 @@
             from_name: "MOM",
             to: ["SA6E"],
             created_at: "2026-06-09T06:47:00.000Z",
-            text: "Already boiling."
+            text: "Macaroni is boiling. Git commit when ready."
           }),
           createTextMessage({
             id: "2026-06-09T06-48-00.000Z_SA6E_demo_mama03",
@@ -1969,34 +1963,34 @@
             from_name: "Me",
             to: ["K2XM"],
             created_at: "2026-06-09T06:48:00.000Z",
-            text: "Git push your feelings."
+            text: "If dinner cannot be committed, was it worth cooking?"
           }),
           createTextMessage({
-            id: "2026-06-09T06-51-00.000Z_W8LQ_demo_home01",
-            chat_id: "demo_home",
-            from: "W8LQ",
-            from_name: "AUNT SVETA",
-            to: ["SA6E", "K2XM"],
+            id: "2026-06-09T06-51-00.000Z_B4SM_demo_basement01",
+            chat_id: "demo_basement",
+            from: "B4SM",
+            from_name: "BASEMENT_SERVER",
+            to: ["SA6E"],
             created_at: "2026-06-09T06:51:00.000Z",
-            text: "Who created a family chat inside a git repository?"
+            text: "Basement server is online. It stands on a chair and fears no cloud."
           }),
           createTextMessage({
-            id: "2026-06-09T06-52-00.000Z_K2XM_demo_home02",
-            chat_id: "demo_home",
-            from: "K2XM",
-            from_name: "MOM",
-            to: ["SA6E", "W8LQ"],
-            created_at: "2026-06-09T06:52:00.000Z",
-            text: "The child. Do not touch it, it works."
-          }),
-          createTextMessage({
-            id: "2026-06-09T06-54-00.000Z_SA6E_demo_work01",
-            chat_id: "demo_work",
+            id: "2026-06-09T06-52-00.000Z_SA6E_demo_basement02",
+            chat_id: "demo_basement",
             from: "SA6E",
             from_name: "Me",
-            to: ["K2XM"],
+            to: ["B4SM"],
+            created_at: "2026-06-09T06:52:00.000Z",
+            text: "Do we need Kubernetes?"
+          }),
+          createTextMessage({
+            id: "2026-06-09T06-54-00.000Z_AGNT_demo_agent01",
+            chat_id: "demo_agent",
+            from: "AGNT",
+            from_name: "AGENT",
+            to: ["SA6E", "B4SM"],
             created_at: "2026-06-09T06:54:00.000Z",
-            text: "Status: no backend, still somehow a messenger."
+            text: "Roadmap continued while the author slept. Unfortunately, it works."
           })
         ];
 
