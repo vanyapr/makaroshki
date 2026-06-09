@@ -1289,11 +1289,18 @@
       }
 
       function githubError(response, data) {
-        var message = data && data.message ? data.message : response.statusText;
+        var rawMessage = data && data.message ? data.message : response.statusText;
+        var message = rawMessage;
         if (response.status === 401) {
           message = "GitHub token не принят. Проверьте токен доступа.";
         } else if (response.status === 403) {
-          message = "GitHub не дал доступ. Нужен token с Contents: Read and write.";
+          if (/rate limit/i.test(rawMessage || "")) {
+            message = "GitHub rate limit кончился. Подождите сброса лимита или добавьте token: authenticated requests получают больший лимит.";
+          } else if (/resource not accessible|permission|forbidden/i.test(rawMessage || "")) {
+            message = "GitHub не дал доступ. Нужен token с Contents: Read and write.";
+          } else {
+            message = "GitHub вернул 403 Forbidden: " + rawMessage;
+          }
         } else if (response.status === 404) {
           message = "GitHub не нашёл repo или файл. Проверьте URL репозитория и доступ токена.";
         } else if (response.status === 409) {

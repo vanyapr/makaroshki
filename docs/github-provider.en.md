@@ -16,7 +16,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - before a full reindex, the client checks the latest branch commit SHA and skips the Contents API walk when the repo has not changed;
 - GitHub repo without a token works in read-only mode for public repos;
 - the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
-- human-readable errors for auth, permissions, missing repo/file, and conflict.
+- human-readable errors for auth, permissions, rate limit, missing repo/file, and conflict.
 
 ## Required Token Permission
 
@@ -107,3 +107,5 @@ MVP polling is intentionally dumb:
 This is not real-time and not presence. This is "Mom will see the message soon enough".
 
 GitHub rate limits remain a provider limitation. Without a token, the limit is shared by IP and can run out faster; with a token, the limit is higher, so authenticated mode is preferred for an active chat.
+
+If GitHub returns `API rate limit exceeded`, the client shows it as a rate limit, not as a `Contents: Read and write` permission error. In that case, the user should not regenerate the token; they should wait for the limit reset or use authenticated requests.

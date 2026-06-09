@@ -360,6 +360,32 @@ async function testOutboxAndRetry(browser) {
   await context.close();
 }
 
+async function testGitHubRateLimitMessage(browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await openMessenger(context);
+  await installProfile(page, { provider: "github", token: "" });
+
+  await page.evaluate(() => {
+    window.fetch = () => Promise.resolve({
+      ok: false,
+      status: 403,
+      statusText: "Forbidden",
+      text: () => Promise.resolve(JSON.stringify({
+        message: "API rate limit exceeded for 127.0.0.1.",
+        documentation_url: "https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"
+      }))
+    });
+  });
+
+  await page.locator("#sync-refresh").click();
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("rate limit"));
+  const errorText = await page.locator("[data-storage-status]").first().textContent();
+  assert(errorText.includes("rate limit"), "rate limit error was not shown");
+  assert(!errorText.includes("Contents: Read and write"), "rate limit was misreported as token permissions");
+
+  await context.close();
+}
+
 async function testGitHubInboxReindex(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addInitScript(() => {
@@ -992,6 +1018,7 @@ async function testTwoClientRecipients(browser) {
     await testPollingContract(browser);
     await testLocalMvpFlow(browser);
     await testOutboxAndRetry(browser);
+    await testGitHubRateLimitMessage(browser);
     await testGitHubInboxReindex(browser);
     await testGitHubSkipsUnchangedReindex(browser);
     await testGitHubReadOnlyMode(browser);
