@@ -101,6 +101,41 @@ Storage:
 
 ---
 
+## The Accidental Protocol
+
+One side effect of Macaroni Messenger is the `.macaroni` protocol.
+
+At first, `.macaroni` is just a boring directory inside a Git repository.
+
+It contains:
+
+- protocol metadata
+- users
+- chats
+- members
+- messages
+- inbox hints
+
+But this also makes it a universal agent protocol over Git.
+
+Not in the enterprise sense.
+
+In the practical sense:
+
+- agents can read repository state;
+- agents can append structured JSON events;
+- agents can coordinate through commits;
+- agents can rebuild local state from Git history;
+- humans can inspect and edit everything with normal Git tools.
+
+Macaroni Messenger is the first client.
+
+The `.macaroni` directory is the part that accidentally looks reusable.
+
+Unfortunately, that also works.
+
+---
+
 ## The Entire Client Is A File
 
 The client is:
