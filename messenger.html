@@ -2189,6 +2189,46 @@
         });
       }
 
+      function defaultRecipientIds() {
+        return [CLIENT_ID === "K2XM" ? "SA6E" : "K2XM"];
+      }
+
+      function memberIdsFromDocument(document) {
+        if (!document || !Array.isArray(document.members)) {
+          return [];
+        }
+
+        return document.members
+          .map(function (member) {
+            return member && member.id;
+          })
+          .filter(function (memberId) {
+            return memberId && memberId !== CLIENT_ID;
+          });
+      }
+
+      function readChatMembers(profile, chatId) {
+        if (!chatId) {
+          return Promise.resolve(null);
+        }
+
+        var path = "chats/" + chatId + "/members.json";
+        if (canUseGitHub(profile)) {
+          return readGitHubJsonSafe(createGitHubConfig(profile), path);
+        }
+
+        return repoReadJson(path).catch(function () {
+          return null;
+        });
+      }
+
+      function getChatRecipientIds(profile, chatId) {
+        return readChatMembers(profile, chatId).then(function (membersDocument) {
+          var recipients = memberIdsFromDocument(membersDocument);
+          return recipients.length ? recipients : defaultRecipientIds();
+        });
+      }
+
       function findFirstChatMeta() {
         return repoListFiles("chats/").then(function (files) {
           var metaFile = files.find(function (file) {
@@ -2200,6 +2240,7 @@
       }
 
       function ensureDefaultChat(profile) {
+        var peerId = defaultRecipientIds()[0];
         if (canUseGitHub(profile)) {
           return initGitHubRepo(profile).then(function () {
             return githubFindFirstChatMeta(profile);
@@ -2215,7 +2256,7 @@
               owner_name: profile.displayName || "Я",
               members: [
                 { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
-                { id: "K2XM", display_name: "МАМА", role: "member" }
+                { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
               ]
             }).then(function (chat) {
               currentChatId = chat.meta.id;
@@ -2238,7 +2279,7 @@
             owner_name: profile.displayName || "Я",
             members: [
               { id: CLIENT_ID, display_name: profile.displayName || "Я", role: "owner" },
-              { id: "K2XM", display_name: "МАМА", role: "member" }
+              { id: peerId, display_name: peerId === "K2XM" ? "МАМА" : peerId, role: "member" }
             ]
           }).then(function (chat) {
             currentChatId = chat.meta.id;
@@ -2289,33 +2330,35 @@
       }
 
       function sendComposerMessage(profile, text) {
-        var payload = {
-          chat_id: currentChatId,
-          from: CLIENT_ID,
-          to: ["K2XM"],
-          text: text
-        };
-
-        var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
-        updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
-        return send.then(function () {
-          var searchInput = get("search-input");
-          var refreshMessages = searchInput && searchInput.value.trim() ? applySearch : function () {
-            return renderMessages(currentChatId);
+        return getChatRecipientIds(profile, currentChatId).then(function (recipients) {
+          var payload = {
+            chat_id: currentChatId,
+            from: CLIENT_ID,
+            to: recipients,
+            text: text
           };
 
-          clearAppError();
-          return refreshMessages().then(function () {
-            return updateSyncStatusFromState(profile, "send: ok");
-          });
-        }).catch(function (error) {
-          return putOutbox({
-            type: "send_message",
-            payload: payload,
-            error: error.message
-          }).then(function () {
-            setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
-            return updateSyncStatusFromState(profile, "send: outbox");
+          var send = canUseGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+          updateSyncStatus("send: " + transportLabel(profile) + " · пишем");
+          return send.then(function () {
+            var searchInput = get("search-input");
+            var refreshMessages = searchInput && searchInput.value.trim() ? applySearch : function () {
+              return renderMessages(currentChatId);
+            };
+
+            clearAppError();
+            return refreshMessages().then(function () {
+              return updateSyncStatusFromState(profile, "send: ok");
+            });
+          }).catch(function (error) {
+            return putOutbox({
+              type: "send_message",
+              payload: payload,
+              error: error.message
+            }).then(function () {
+              setAppError("Сообщение сохранено в outbox. Git не убежит, попробуем ещё раз: " + error.message);
+              return updateSyncStatusFromState(profile, "send: outbox");
+            });
           });
         });
       }
@@ -2346,7 +2389,7 @@
               payload: {
                 chat_id: currentChatId,
                 from: CLIENT_ID,
-                to: ["K2XM"],
+                to: defaultRecipientIds(),
                 text: text
               },
               error: error.message

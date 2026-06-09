@@ -268,6 +268,8 @@ Search input lives in the current chat header and filters the local index for th
 
 Reindex/reset controls live in settings. `Reset` deletes the profile, index, and local test repo; `Rebuild index` rebuilds only the local cache from the selected provider/repo and does not create new remote files.
 
+Composer sends messages to current chat members from `members.json`, excluding the current `CLIENT_ID`. Hardcoded `K2XM` remains only as a fallback for old or broken repos.
+
 Done when:
 
 - main actions are visible without instructions;
