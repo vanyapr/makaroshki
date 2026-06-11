@@ -371,6 +371,23 @@ Recommended:
 - attachment adapters for LFS/WebDAV/S3;
 - protocol migration/versioning tools.
 
+0.5:
+
+- **Isomorphic Git**: a minimal custom git transport implementation inside `messenger.html`, so the client can work with any git remote in principle, not only through host-specific APIs. We do not bundle an existing git client; we write the small bicycle Macaroni actually needs.
+- Support only the git subset the messenger needs: read refs/HEAD, read required objects/trees, create new `.macaroni/` blobs/trees/commits, and push a branch update.
+- SSH from the browser is still not promised. Isomorphic Git targets browser-compatible HTTP(S) git flow where the remote does not block CORS/auth. If the host does not let a browser talk to the git endpoint, a wrapper or adapter is still required.
+- The goal is not "complete git in HTML". The goal is "enough git for mom to receive a message".
+
+0.6:
+
+- **Message encryption with any key**: the user clicks a button, opens an in-app modal, enters a key phrase, and the client uses that key phrase to encrypt/decrypt messages.
+- The key can be any string. Password, phrase, `macaroni123`, file contents, or a cursed shell one-liner. The only real rule is that chat participants must use the same key.
+- The key is stored in `localStorage` with a large honest warning. Convenient, not a secure enclave, not military-grade cryptography.
+- A portable version may hardcode the key next to the profile/token, so you can hand mom an HTML file that already knows everything.
+- Required buttons: `Export Key` to `SUPER_SECRET_PRIVATE_PGP_KEY.txt` and `Import Key` from any file. The filename is intentionally absurd: it is not a PGP private key, it is just a shared secret wearing a fake mustache.
+- Encryption is a mode/plugin layer over messages, not a change to the base `.macaroni/` protocol. The base client still honestly supports plaintext.
+- If the key is wrong, the message does not decrypt. The client shows a human state: "wrong key or the message is too serious".
+
 ## Cutoff Rule
 
 If a feature does not help one `messenger.html` send, receive, find, or not lose a text message in a small group, it is not in MVP.
