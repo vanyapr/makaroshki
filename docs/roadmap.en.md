@@ -90,7 +90,7 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - MVP language: English by default, English/Russian selector in settings; UI strings live in browser-side `window.MacaroniI18n`.
 - MVP compatibility: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
-- MVP transport: browser-compatible HTTPS/API/git adapter. Direct SSH from the browser is not MVP.
+- MVP transport: browser-compatible HTTPS/API/git adapter. GitHub is the first built-in adapter, but the `.macaroni/` protocol is not GitHub-specific. Direct SSH from the browser is not MVP.
 - MVP client identity: four-character `CLIENT_ID` from alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, created on first open and saved in `localStorage`.
 - HTML download stamping: cancelled. The same hosted `messenger.html` must give different browsers different local IDs.
 - Message: immutable JSON file.
@@ -116,6 +116,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/protocol-v1.en.md` - Macaroni Protocol v1 file model in English.
 - `docs/github-provider.md` - first real GitHub adapter limits and contract in Russian.
 - `docs/github-provider.en.md` - GitHub adapter guide in English.
+- `docs/generic-git-provider.md` - transport contract for non-GitHub git hosts in Russian.
+- `docs/generic-git-provider.en.md` - generic git provider contract in English.
 - `docs/plugin-boundary.md` - browser-side plugin boundary in Russian.
 - `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
 - `docs/electron-wrapper.md` - optional Electron/WebView wrapper contract in Russian.
@@ -299,6 +301,7 @@ Limits we do not hide:
 - Git hosting APIs may have CORS/permission limits.
 - Personal access tokens in the browser are sensitive, and require explicit warning.
 - GitHub/GitLab/GitVerse may differ in API and auth flow.
+- "Any git" means: the repository can store `.macaroni/`, and the host needs a browser-compatible adapter or wrapper. It does not mean magical raw git push from a browser tab.
 - If a browser does not provide persistent storage on `file://` or `https://`, it is unsupported.
 - A large repo will be slow to index.
 
@@ -343,7 +346,7 @@ Recommended:
 
 0.2:
 
-- GitHub/GitLab/GitVerse provider adapters;
+- GitHub/GitLab/GitVerse/generic git provider adapters;
 - verified support matrix for Chrome/Chromium/Edge: partially done as `docs/browser-support.en.md` and runtime `window.MacaroniSupport.supportMatrix()`;
 - import existing repo;
 - read-only public repo mode;

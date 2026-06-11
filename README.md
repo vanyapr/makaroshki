@@ -29,7 +29,9 @@ No registration.
 
 No backend.
 
-You can read demo `.macaroni` chats immediately. To read or write a real repository, open Settings and connect a GitHub repository. To write messages, you need a GitHub token with repository Contents read/write access, because GitHub is the backend we refused to build.
+You can read demo `.macaroni` chats immediately. To read or write a real repository today, open Settings and connect a GitHub repository. GitHub is the first built-in browser adapter, not a protocol requirement.
+
+The `.macaroni/` protocol can live in any git repository. A non-GitHub host needs a browser-compatible provider adapter: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge, or a wrapper that exposes native git operations to the same HTML client.
 
 ## Run Locally
 
@@ -68,8 +70,10 @@ The demo data is hardcoded inside `messenger.html`; a real connected repository 
 ## Honest Limitations
 
 - Macaroni Messenger is not private. Public repository means public messages. Private repository means readable by everyone with repository access.
-- GitHub is the only working write provider right now.
-- GitLab, GitVerse, Gitea, Forgejo, and other git hosts are protocol targets for future adapters. Today they are not finished write adapters.
+- The `.macaroni/` protocol is git-host agnostic. Any repository can store it.
+- GitHub is the only built-in write adapter right now.
+- GitLab, GitVerse, Gitea, Forgejo, self-hosted git, and other hosts need browser-compatible adapters. Today they are protocol targets, not finished built-in write adapters.
+- Plain browser tabs cannot do raw SSH git. That needs a wrapper or host API, because browsers are funny in the wrong direction.
 - Browser support is intentionally strict: persistent storage for `file://` or `https://`, `localStorage`, `IndexedDB`, and WebCrypto are required. Recommended browsers: Chrome, Chromium, Edge.
 - There is no realtime transport. New messages arrive through polling, and outgoing writes go through a local outbox.
 - GitHub API rate limits exist. The public demo is hardcoded to avoid burning unauthenticated rate limit on first load. Real connected repositories still use GitHub API.
@@ -85,6 +89,7 @@ Documents:
 - [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
 - [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
+- [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md) - how non-GitHub git hosts fit the transport contract.
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
@@ -104,6 +109,7 @@ Russian documents:
 - [docs/development-steps.md](docs/development-steps.md)
 - [docs/protocol-v1.md](docs/protocol-v1.md)
 - [docs/github-provider.md](docs/github-provider.md)
+- [docs/generic-git-provider.md](docs/generic-git-provider.md)
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)

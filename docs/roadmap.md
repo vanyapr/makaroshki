@@ -90,7 +90,7 @@ Git является источником истины.
 - Language MVP: английский по умолчанию, переключатель English/Русский в настройках; строки UI хранятся в browser-side `window.MacaroniI18n`.
 - Compatibility MVP: `file://` or `https://` origin storage, `localStorage`, `IndexedDB`, `WebCrypto`.
 - Recommended browsers: Chrome / Chromium / Edge.
-- Transport MVP: browser-compatible HTTPS/API/git adapter. Прямой SSH из браузера не является MVP.
+- Transport MVP: browser-compatible HTTPS/API/git adapter. GitHub - первый встроенный adapter, но `.macaroni/` protocol не привязан к GitHub. Прямой SSH из браузера не является MVP.
 - Client identity MVP: четырёхсимвольный `CLIENT_ID` из alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, создаётся при первом открытии и сохраняется в `localStorage`.
 - HTML download stamping: отменён. Один и тот же hosted `messenger.html` должен выдавать разным браузерам разные локальные ID.
 - Сообщение: immutable JSON-файл.
@@ -116,6 +116,8 @@ Git является источником истины.
 - `docs/protocol-v1.en.md` - файловая модель Macaroni Protocol v1 на английском.
 - `docs/github-provider.md` - ограничения и контракт первого реального GitHub adapter.
 - `docs/github-provider.en.md` - GitHub adapter guide на английском.
+- `docs/generic-git-provider.md` - transport contract для non-GitHub git hosts.
+- `docs/generic-git-provider.en.md` - generic git provider contract на английском.
 - `docs/plugin-boundary.md` - browser-side plugin boundary.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/electron-wrapper.md` - контракт optional Electron/WebView wrapper.
@@ -299,6 +301,7 @@ FAQ:
 - Git hosting API может иметь CORS/permissions ограничения.
 - Personal access token в браузере - чувствительная штука, нужен явный warning.
 - GitHub/GitLab/GitVerse могут отличаться API и auth flow.
+- "Любой git" означает: repository может хранить `.macaroni/`, а host должен иметь browser-compatible adapter или wrapper. Это не означает магический raw git push из browser tab.
 - Если браузер не даёт persistent storage на `file://` или `https://`, он не поддерживается.
 - Большой repo будет медленно индексироваться.
 
@@ -343,7 +346,7 @@ async function checkSupport() {
 
 0.2:
 
-- GitHub/GitLab/GitVerse provider adapters;
+- GitHub/GitLab/GitVerse/generic git provider adapters;
 - проверенный support matrix для Chrome/Chromium/Edge: частично сделано как `docs/browser-support.md` и runtime `window.MacaroniSupport.supportMatrix()`;
 - импорт существующего repo;
 - read-only public repo mode;

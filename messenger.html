@@ -1070,9 +1070,10 @@
           <label class="field-label" for="setup-provider">Git provider</label>
           <select class="select-field" id="setup-provider" name="provider">
             <option value="github">GitHub</option>
+            <option value="git-http">Generic Git HTTP adapter</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
-            <option value="other">Other</option>
+            <option value="other">Other / local test repo</option>
           </select>
         </div>
 
@@ -1127,9 +1128,10 @@
           <label class="field-label" for="settings-provider">Git provider</label>
           <select class="select-field" id="settings-provider" name="provider">
             <option value="github">GitHub</option>
+            <option value="git-http">Generic Git HTTP adapter</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
-            <option value="other">Other</option>
+            <option value="other">Other / local test repo</option>
           </select>
         </div>
 
@@ -1407,7 +1409,7 @@
           transportDemo: "demo read-only",
           transportLocal: "local test repo",
           transportUnsupported: "{provider} unsupported",
-          unsupportedProvider: "{provider} adapter is not implemented yet. Choose GitHub or Other/local test repo.",
+          unsupportedProvider: "{provider} adapter is not implemented in this HTML file yet. Macaroni Protocol is git-host agnostic, but browsers need a host-specific HTTPS/CORS adapter. Choose GitHub or Other/local test repo.",
           saveProfileFirst: "Save the profile first. An index without a repository is just a mood.",
           rebuildingIndex: "Rebuilding index. If git is large, you may have time to boil water.",
           indexRebuilt: "Index rebuilt. Skipped files: {count}.",
@@ -1445,8 +1447,8 @@
           newChatNote: "A chat is just a directory in git. Try not to name it Kubernetes.",
           create: "Create",
           cancel: "Cancel",
-          createChatTokenRequired: "Creating a chat requires a GitHub token. Without a token this is a read-only repo.",
-          joinChatTokenRequired: "Joining a chat requires a GitHub token. Without a token this is a read-only repo.",
+          createChatTokenRequired: "Creating a chat requires a write-capable provider token. Without a token this is a read-only repo.",
+          joinChatTokenRequired: "Joining a chat requires a write-capable provider token. Without a token this is a read-only repo.",
           pollingError: "Polling could not refresh messages: {message}",
           githubReadOnlyRetry: "GitHub repo is read-only. Retry waits for a token.",
           githubReadOnlySend: "GitHub repo is read-only. Add a token to send messages.",
@@ -1539,7 +1541,7 @@
           transportDemo: "demo read-only",
           transportLocal: "локальный test repo",
           transportUnsupported: "{provider} не поддерживается",
-          unsupportedProvider: "{provider} adapter пока не реализован. Выберите GitHub или Other/local test repo.",
+          unsupportedProvider: "{provider} adapter пока не встроен в этот HTML-файл. Macaroni Protocol не привязан к GitHub, но браузеру нужен host-specific HTTPS/CORS adapter. Выберите GitHub или Other/local test repo.",
           saveProfileFirst: "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.",
           rebuildingIndex: "Пересобираем индекс. Если git большой, можно успеть вскипятить воду.",
           indexRebuilt: "Индекс пересобран. Пропущено файлов: {count}.",
@@ -1577,8 +1579,8 @@
           newChatNote: "Чат - это просто директория в git. Постарайтесь не назвать ее Kubernetes.",
           create: "Создать",
           cancel: "Отмена",
-          createChatTokenRequired: "Для создания чата нужен GitHub token. Без token это read-only repo.",
-          joinChatTokenRequired: "Для вступления в чат нужен GitHub token. Без token это read-only repo.",
+          createChatTokenRequired: "Для создания чата нужен token provider'а с правом записи. Без token это read-only repo.",
+          joinChatTokenRequired: "Для вступления в чат нужен token provider'а с правом записи. Без token это read-only repo.",
           pollingError: "Polling не смог обновить сообщения: {message}",
           githubReadOnlyRetry: "GitHub repo read-only. Retry ждет token.",
           githubReadOnlySend: "GitHub repo read-only. Добавьте token, чтобы отправлять сообщения.",
@@ -5645,6 +5647,23 @@
         listFiles: githubListFiles,
         writeFile: githubWriteFile,
         writeJson: githubWriteJson
+      };
+
+      window.MacaroniProviderContract = {
+        protocol: "provider adapter over " + MACARONI_ROOT + "/",
+        note: "GitHub is the first built-in browser adapter, not a protocol requirement.",
+        methods: ["readFile", "readJson", "listFiles", "writeFile", "writeJson", "head"],
+        builtIn: {
+          github: { read: true, write: true, adapter: "GitHub REST Contents API" },
+          demo: { read: true, write: false, adapter: "hardcoded read-only dataset" },
+          local: { read: true, write: true, adapter: "IndexedDB test repo" }
+        },
+        needsForGenericGit: [
+          "host API or CORS-enabled HTTPS file API",
+          "write operation that becomes a git commit",
+          "browser-compatible authentication",
+          "normal error mapping for auth, permission, conflict, missing file, network, and rate limit"
+        ]
       };
 
       window.MacaroniPolling = {

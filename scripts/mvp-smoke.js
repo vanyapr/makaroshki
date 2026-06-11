@@ -694,23 +694,26 @@ async function testUnsupportedProviderGuard(browser) {
     token: "fake-token-for-unsupported-provider"
   });
 
-  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("gitverse adapter is not implemented yet"));
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("git-host agnostic"));
   const state = await page.evaluate(async () => ({
     status: document.querySelector("#sync-status").textContent,
     error: document.querySelector("[data-storage-status]").textContent,
+    providerContract: window.MacaroniProviderContract,
     repoFiles: await window.MacaroniTestRepo.listFiles(".macaroni/")
   }));
 
   assert(state.status.includes("gitverse unsupported"), "unsupported provider transport label is missing");
   assert(state.error.includes("Choose GitHub or Other/local test repo"), "unsupported provider error is not actionable");
+  assert(state.providerContract.note.includes("not a protocol requirement"), "provider contract should separate GitHub from the protocol");
+  assert(state.providerContract.methods.includes("writeJson"), "provider contract should expose writeJson");
   assert(state.repoFiles.length === 0, "unsupported remote provider silently wrote to local test repo");
 
   await page.locator("#message-input").fill("Should not go local");
   await page.locator("#message-input").press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("gitverse adapter is not implemented yet"));
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("git-host agnostic"));
   const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
   assert(outbox.length === 1, "unsupported provider failed send was not kept in outbox");
-  assert(outbox[0].error.includes("gitverse adapter is not implemented yet"), "unsupported provider outbox error is wrong");
+  assert(outbox[0].error.includes("host-specific HTTPS/CORS adapter"), "unsupported provider outbox error is wrong");
 
   await context.close();
 }

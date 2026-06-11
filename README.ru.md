@@ -35,7 +35,9 @@ Demo открывает захардкоженный read-only `.macaroni` datas
 
 Без backend.
 
-Demo `.macaroni` чаты можно читать сразу. Чтобы читать или писать настоящий repository, откройте настройки и подключите GitHub repository. Чтобы писать сообщения, нужен GitHub token с правами `Contents: Read and write` на репозиторий, потому что GitHub - это backend, который мы отказались писать.
+Demo `.macaroni` чаты можно читать сразу. Чтобы читать или писать настоящий repository сегодня, откройте настройки и подключите GitHub repository. GitHub - первый встроенный browser adapter, а не требование протокола.
+
+Протокол `.macaroni/` может жить в любом git repository. Для non-GitHub host нужен browser-compatible provider adapter: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge или wrapper, который даёт тому же HTML-клиенту native git operations.
 
 ## Запустить локально
 
@@ -74,8 +76,10 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 ## Честные ограничения
 
 - Macaroni Messenger не является приватным. Публичный repository означает публичные сообщения. Приватный repository означает, что сообщения читают все, у кого есть доступ к repository.
-- GitHub сейчас единственный рабочий write provider.
-- GitLab, GitVerse, Gitea, Forgejo и другие git-хостинги - цели протокола для будущих adapters. Сегодня это не готовые write adapters.
+- Протокол `.macaroni/` не привязан к git-hosting. Любой repository может хранить его.
+- GitHub сейчас единственный встроенный write adapter.
+- GitLab, GitVerse, Gitea, Forgejo, self-hosted git и другие hosts требуют browser-compatible adapters. Сегодня это цели протокола, а не готовые встроенные write adapters.
+- Обычная browser tab не умеет raw SSH git. Для этого нужен wrapper или host API, потому что браузеры смешные не в ту сторону.
 - Browser support намеренно жёсткий: нужны persistent storage для `file://` или `https://`, `localStorage`, `IndexedDB` и WebCrypto. Рекомендуются Chrome, Chromium, Edge.
 - Realtime transport нет. Новые сообщения приходят через polling, исходящие записи проходят через локальный outbox.
 - GitHub API rate limits существуют. Публичный demo захардкожен, чтобы не жечь unauthenticated rate limit при первом открытии. Настоящие подключённые repositories всё ещё используют GitHub API.
@@ -91,6 +95,7 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 - [docs/development-steps.md](docs/development-steps.md) - последовательный план разработки.
 - [docs/protocol-v1.md](docs/protocol-v1.md) - файловая модель Macaroni Protocol v1.
 - [docs/github-provider.md](docs/github-provider.md) - первый реальный provider adapter.
+- [docs/generic-git-provider.md](docs/generic-git-provider.md) - как non-GitHub git hosts вписываются в transport contract.
 - [docs/plugin-boundary.md](docs/plugin-boundary.md) - browser-side plugin boundary.
 - [docs/electron-wrapper.md](docs/electron-wrapper.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.md](docs/settings-export-import.md) - ручной backup и restore настроек.
@@ -110,6 +115,7 @@ English docs:
 - [docs/development-steps.en.md](docs/development-steps.en.md)
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md)
 - [docs/github-provider.en.md](docs/github-provider.en.md)
+- [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md)
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md)
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md)
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md)
