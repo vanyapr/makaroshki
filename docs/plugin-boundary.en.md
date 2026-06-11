@@ -36,6 +36,7 @@ Inbound transforms are exposed as a boundary, but automatic decrypt/render integ
 ## Rules
 
 - Plugin ids must be unique.
+- Plugins MUST be inserted immediately before the closing `</html>` tag.
 - Plugins receive a cloned message object.
 - A plugin must return a valid Protocol v1 message.
 - The core validates the final message after plugin transforms.
@@ -54,4 +55,3 @@ This is enough for future experiments like:
 It is not a framework.
 
 It is a hook point.
-
