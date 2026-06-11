@@ -397,8 +397,8 @@
 
     .message-row {
       display: grid;
-      grid-template-columns: 90px minmax(0, 1fr) 90px;
-      gap: 28px;
+      grid-template-columns: minmax(90px, max-content) minmax(0, 1fr) max-content;
+      gap: 24px;
       align-items: baseline;
       margin-bottom: 35px;
       font-size: 24px;
@@ -422,6 +422,10 @@
     }
 
     .author {
+      min-width: 0;
+      max-width: 18ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
@@ -730,10 +734,14 @@
       }
 
       .message-row {
-        grid-template-columns: 76px minmax(0, 1fr) 68px;
+        grid-template-columns: minmax(76px, max-content) minmax(0, 1fr) max-content;
         gap: 14px;
         font-size: 19px;
         margin-bottom: 28px;
+      }
+
+      .author {
+        max-width: 16ch;
       }
 
       .composer {
