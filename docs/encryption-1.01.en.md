@@ -178,6 +178,33 @@ This is not "military-grade cryptography".
 
 This is knee cryptography that at least has a knee.
 
+## Token Confetti
+
+If a local write token exists, Encryption 1.01 may use it as a local source of confetti before encryption.
+
+Token Confetti:
+
+- never leaves the browser;
+- is never written to git;
+- is never hashed into public metadata;
+- is never required for decryption;
+- may be different for every participant;
+- may be absent entirely.
+
+Token Confetti is not a second lock.
+
+It is glitter inside the locked envelope.
+
+The plugin may add confetti to the clear envelope before XOR stream encryption. After decryption, the receiver simply throws the confetti away and renders text.
+
+Different tokens do not break compatibility.
+
+No token does not disable encryption.
+
+Token Confetti makes no promises.
+
+It just makes patterns worse.
+
 ## Why Not Repeat The Key
 
 Bad version:
