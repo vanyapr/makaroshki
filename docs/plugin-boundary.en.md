@@ -52,6 +52,8 @@ This is enough for future experiments like:
 - local redaction;
 - import/export transforms.
 
+The concrete shared-secret encryption contract is documented in `docs/encryption-1.01.en.md`.
+
 It is not a framework.
 
 It is a hook point.

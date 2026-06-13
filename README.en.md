@@ -91,6 +91,7 @@ Documents:
 - [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
 - [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md) - how non-GitHub git hosts fit the transport contract.
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
+- [docs/encryption-1.01.en.md](docs/encryption-1.01.en.md) - shared-secret encryption plugin contract.
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
 - [docs/portable-mom.en.md](docs/portable-mom.en.md) - portable HTML file for mom with a preconfigured profile.
@@ -111,6 +112,7 @@ Russian documents:
 - [docs/github-provider.md](docs/github-provider.md)
 - [docs/generic-git-provider.md](docs/generic-git-provider.md)
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
+- [docs/encryption-1.01.md](docs/encryption-1.01.md)
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)
 - [docs/portable-mom.md](docs/portable-mom.md)

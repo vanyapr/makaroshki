@@ -120,6 +120,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/generic-git-provider.en.md` - generic git provider contract in English.
 - `docs/plugin-boundary.md` - browser-side plugin boundary in Russian.
 - `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
+- `docs/encryption-1.01.md` - Macaroni Encryption 1.01 contract as a plugin layer without changing Protocol v1 in Russian.
+- `docs/encryption-1.01.en.md` - Macaroni Encryption 1.01 plugin contract in English.
 - `docs/electron-wrapper.md` - optional Electron/WebView wrapper contract in Russian.
 - `docs/electron-wrapper.en.md` - optional Electron/WebView wrapper contract in English.
 - `docs/settings-export-import.md` - manual settings export/import in Russian.
@@ -380,12 +382,14 @@ Recommended:
 
 0.6:
 
-- **Message encryption with any key**: the user clicks a button, opens an in-app modal, enters a key phrase, and the client uses that key phrase to encrypt/decrypt messages.
+- **Macaroni Encryption 1.01**: message encryption with any key as a plugin layer. Macaroni Protocol v1 does not change: the plugin turns `message.text` into `MACARONI1.01:<base64-json>` and back.
+- Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
+- Encryption can be enabled/disabled in the UI. When enabled, outgoing messages are encrypted and incoming messages are decrypted. When disabled, the core works as plaintext and encrypted payload remains pasta.
 - The key can be any string. Password, phrase, `macaroni123`, file contents, or a cursed shell one-liner. The only real rule is that chat participants must use the same key.
 - The key is stored in `localStorage` with a large honest warning. Convenient, not a secure enclave, not military-grade cryptography.
 - A portable version may hardcode the key next to the profile/token, so you can hand mom an HTML file that already knows everything.
 - Required buttons: `Export Key` to `SUPER_SECRET_PRIVATE_PGP_KEY.txt` and `Import Key` from any file. The filename is intentionally absurd: it is not a PGP private key, it is just a shared secret wearing a fake mustache.
-- Encryption is a mode/plugin layer over messages, not a change to the base `.macaroni/` protocol. The base client still honestly supports plaintext.
+- Algorithm 1.01 is documented in `docs/encryption-1.01.en.md`: shared secret + salt + message context -> tiny deterministic PRNG -> XOR byte stream.
 - If the key is wrong, the message does not decrypt. The client shows a human state: "wrong key or the message is too serious".
 
 ## Cutoff Rule

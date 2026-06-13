@@ -52,6 +52,8 @@ Inbound transforms уже выставлены как boundary, но автом�
 - local redaction;
 - import/export transforms.
 
+Конкретный контракт shared-secret encryption описан в `docs/encryption-1.01.md`.
+
 Это не framework.
 
 Это hook point.

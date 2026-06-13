@@ -120,6 +120,8 @@ Git является источником истины.
 - `docs/generic-git-provider.en.md` - generic git provider contract на английском.
 - `docs/plugin-boundary.md` - browser-side plugin boundary.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
+- `docs/encryption-1.01.md` - контракт Macaroni Encryption 1.01 как plugin layer без изменения Protocol v1.
+- `docs/encryption-1.01.en.md` - Macaroni Encryption 1.01 plugin contract на английском.
 - `docs/electron-wrapper.md` - контракт optional Electron/WebView wrapper.
 - `docs/electron-wrapper.en.md` - Electron/WebView wrapper contract на английском.
 - `docs/settings-export-import.md` - ручной export/import настроек.
@@ -380,12 +382,14 @@ async function checkSupport() {
 
 0.6:
 
-- **Шифрование сообщений любым ключом**: пользователь нажимает кнопку, открывает встроенную модалку, вводит key phrase, и клиент использует этот key phrase для шифрования/расшифровки сообщений.
+- **Macaroni Encryption 1.01**: шифрование сообщений любым ключом как plugin layer. Macaroni Protocol v1 не меняется: plugin превращает `message.text` в `MACARONI1.01:<base64-json>` и обратно.
+- Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
+- Шифрование включается/выключается в UI. Когда включено - outgoing messages шифруются, incoming messages расшифровываются. Когда выключено - core работает plaintext, а encrypted payload остаётся кашей.
 - Ключ - любой набор символов. Это может быть пароль, фраза, `макароны123`, содержимое файла или проклятие на bash. Главное, чтобы у участников чата совпадал ключ.
 - Ключ хранится в `localStorage` с большим честным warning. Это удобно, но это не secure enclave и не военная криптография.
 - Portable версия может иметь ключ захардкоженным рядом с профилем/token, чтобы "дать маме HTML, который уже всё знает".
 - Обязательные кнопки: `Export Key` в файл `SUPER_SECRET_PRIVATE_PGP_KEY.txt` и `Import Key` из любого файла. Название файла специально абсурдное: это не PGP private key, это просто shared secret, который выглядит важнее, чем должен.
-- Шифрование является режимом/plugin layer поверх сообщения, а не изменением базового `.macaroni/` protocol. Базовый клиент всё ещё честно умеет plaintext.
+- Алгоритм 1.01 описан в `docs/encryption-1.01.md`: shared secret + salt + message context -> tiny deterministic PRNG -> XOR byte stream.
 - Если ключ неправильный, сообщение не расшифровывается. Клиент показывает человеческое состояние: "ключ не тот или сообщение слишком серьёзное".
 
 ## Правило Отсечения
