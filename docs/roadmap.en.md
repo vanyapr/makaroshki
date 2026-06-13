@@ -387,7 +387,8 @@ Recommended:
 - **Macaroni Encryption 1.01**: message encryption with any key as a plugin layer. Macaroni Protocol v1 does not change: the plugin turns `message.text` into `MACARONI1.01:<base64-json>` and back.
 - File-as-key model: in portable mode, `messenger.html` may be not only the client, but also a capability artifact with repo URL, token, plugin, secret, and salt. Key exchange is handing over the HTML file.
 - Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
-- Encryption can be enabled/disabled in the UI. When enabled, outgoing messages are encrypted and incoming messages are decrypted. When disabled, the core works as plaintext and encrypted payload remains pasta.
+- The plugin adds a checkbox to Settings; enabled/disabled state and other plugin settings are stored in `localStorage` under `macaroni.plugin.<plugin_id>.settings.v1`.
+- Encryption is enabled/disabled through the checkbox. When enabled, outgoing messages are encrypted and incoming messages are decrypted. When disabled, the core works as plaintext and encrypted payload remains pasta.
 - The key can be any string. Password, phrase, `macaroni123`, file contents, or a cursed shell one-liner. The only real rule is that chat participants must use the same key.
 - The key is stored in `localStorage` with a large honest warning. Convenient, not a secure enclave, not military-grade cryptography.
 - A portable version may hardcode the key next to the profile/token, so you can hand mom an HTML file that already knows everything.

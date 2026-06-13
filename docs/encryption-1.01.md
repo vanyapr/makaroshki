@@ -91,6 +91,16 @@ Client с тем же plugin и тем же secret увидит:
 
 Encryption 1.01 является режимом плагина.
 
+Plugin добавляет в Settings checkbox с названием плагина.
+
+Включён plugin или выключен - хранится в `localStorage`.
+
+Настройки Encryption 1.01 хранятся отдельно от core profile:
+
+```text
+macaroni.plugin.macaroni-encryption-1.01.settings.v1
+```
+
 Пользователь может:
 
 - включить шифрование;

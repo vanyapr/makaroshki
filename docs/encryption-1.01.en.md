@@ -91,6 +91,16 @@ Mom, please cook macaroni.
 
 Encryption 1.01 is a plugin mode.
 
+The plugin adds a checkbox with the plugin name to Settings.
+
+Whether the plugin is enabled or disabled is stored in `localStorage`.
+
+Encryption 1.01 settings are stored separately from the core profile:
+
+```text
+macaroni.plugin.macaroni-encryption-1.01.settings.v1
+```
+
 The user can:
 
 - enable encryption;

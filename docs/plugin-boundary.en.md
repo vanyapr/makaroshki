@@ -33,6 +33,34 @@ The composer uses `transformOutgoingMessage` before the message is written to lo
 
 Inbound transforms are exposed as a boundary, but automatic decrypt/render integration is not part of this step yet.
 
+## Plugin Settings
+
+A plugin may add controls to Settings.
+
+Minimal model:
+
+- plugin adds a checkbox with the plugin name;
+- enabled/disabled state is stored in `localStorage`;
+- every plugin stores settings in its own namespace;
+- plugin does not write its settings to git;
+- local profile reset may clear plugin settings together with the rest of local state.
+
+Recommended key:
+
+```text
+macaroni.plugin.<plugin_id>.settings.v1
+```
+
+Example:
+
+```text
+macaroni.plugin.macaroni-encryption-1.01.settings.v1
+```
+
+The core does not need to understand plugin settings internals.
+
+The core should give the plugin a place in Settings and not prevent it from being strange.
+
 ## Rules
 
 - Plugin ids must be unique.

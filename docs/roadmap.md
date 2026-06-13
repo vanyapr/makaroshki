@@ -387,7 +387,8 @@ async function checkSupport() {
 - **Macaroni Encryption 1.01**: шифрование сообщений любым ключом как plugin layer. Macaroni Protocol v1 не меняется: plugin превращает `message.text` в `MACARONI1.01:<base64-json>` и обратно.
 - File-as-key модель: в portable mode `messenger.html` может быть не только клиентом, но и capability artifact с repo URL, token, plugin, secret и salt. Обмен ключами - это передача HTML-файла.
 - Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
-- Шифрование включается/выключается в UI. Когда включено - outgoing messages шифруются, incoming messages расшифровываются. Когда выключено - core работает plaintext, а encrypted payload остаётся кашей.
+- Plugin добавляет checkbox в Settings; enabled/disabled state и остальные plugin settings хранятся в `localStorage` в namespace `macaroni.plugin.<plugin_id>.settings.v1`.
+- Шифрование включается/выключается checkbox'ом. Когда включено - outgoing messages шифруются, incoming messages расшифровываются. Когда выключено - core работает plaintext, а encrypted payload остаётся кашей.
 - Ключ - любой набор символов. Это может быть пароль, фраза, `макароны123`, содержимое файла или проклятие на bash. Главное, чтобы у участников чата совпадал ключ.
 - Ключ хранится в `localStorage` с большим честным warning. Это удобно, но это не secure enclave и не военная криптография.
 - Portable версия может иметь ключ захардкоженным рядом с профилем/token, чтобы "дать маме HTML, который уже всё знает".
