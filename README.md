@@ -53,6 +53,19 @@ The protocol notes layer contains:
 
 - `protocol/macaroni-protocol.md`.
 
+Russian documentation mirrors:
+
+- `README.ru.md`;
+- `AGENTS.ru.md`;
+- `.macaroni/README.ru.md`;
+- `protocol/macaroni-protocol.ru.md`;
+- `memory/timeline.ru.md`;
+- `memory/decisions.ru.md`;
+- `memory/open-questions.ru.md`;
+- `memory/experiments.ru.md`;
+- `memory/agent-native-knowledge-layer.ru.md`;
+- `memory/agent-notes/2026-06-14-macaroni-memory.ru.md`.
+
 That is all.
 
 No frontend.

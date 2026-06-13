@@ -6,6 +6,8 @@ This branch is `macaroni`.
 
 Treat it as long-term project memory.
 
+Russian mirror: `AGENTS.ru.md`.
+
 ## Purpose
 
 `main` answers:
