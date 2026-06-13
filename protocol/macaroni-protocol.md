@@ -205,6 +205,8 @@ Agents may write the conversation with the user into `.macaroni/` as Protocol v1
 
 This is intended for meaningful project context, not every tiny interaction.
 
+Copy-paste prompts for loading and writing this memory live in [`agent-memory-prompts.md`](agent-memory-prompts.md).
+
 Use this when the exchange contains:
 
 - decisions;

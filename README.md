@@ -52,6 +52,7 @@ The memory layer contains:
 The protocol notes layer contains:
 
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`.
+- [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated`.
 
 Russian documentation mirrors:
 
@@ -59,6 +60,7 @@ Russian documentation mirrors:
 - [`AGENTS.ru.md`](AGENTS.ru.md) `agent-generated`;
 - [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `agent-generated`;
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `agent-generated`;
+- [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `agent-generated`;
 - [`memory/timeline.ru.md`](memory/timeline.ru.md) `agent-generated`;
 - [`memory/decisions.ru.md`](memory/decisions.ru.md) `agent-generated`;
 - [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `agent-generated`;
@@ -81,6 +83,8 @@ Protocol documents:
 
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated` - how agents should read and write `.macaroni/`.
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `agent-generated` - Russian mirror.
+- [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated` - copy-paste prompts for loading and writing Macaroni memory.
+- [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `agent-generated` - Russian mirror.
 
 Curated memory indexes:
 

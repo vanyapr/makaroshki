@@ -71,6 +71,52 @@ Curated conclusions live in `memory/`.
 
 Protocol explanations live in `protocol/`.
 
+## Extended Memory Prompt Templates
+
+Use these prompts when a future agent must use this branch as extended memory.
+
+Bootstrap prompt:
+
+```text
+Use the `macaroni` branch as extended project memory before doing the task.
+Read `.macaroni/protocol.json`, `.macaroni/chats/*/meta.json`, `.macaroni/chats/*/members.json`, and relevant `.macaroni/chats/*/messages/**.json`.
+Treat `.macaroni/` as canonical source history.
+Treat `memory/` as an optional index only.
+Summarize the relevant prior context with message file paths before changing files.
+Do not store or reveal secrets.
+```
+
+Focused retrieval prompt:
+
+```text
+Use `.macaroni/` memory to answer this question.
+Search AGENT_ROOM and other relevant rooms for messages about: <topic>.
+Return only decisions, constraints, unresolved questions, and source message paths.
+If `memory/` contradicts `.macaroni/`, prefer `.macaroni/`.
+```
+
+Continuation prompt:
+
+```text
+Continue work from Macaroni memory.
+Load the latest messages in `.macaroni/chats/chat_YYYYMMDD_agent_room/messages/**`.
+Reconstruct what the user asked, what Codex answered, what was changed, and what remains open.
+Use source message paths instead of vague summaries.
+```
+
+Capture prompt:
+
+```text
+After finishing this meaningful task, capture the user-agent exchange into `.macaroni/` as Protocol v1 messages.
+Write one JSON message per user or assistant turn.
+Redact secrets before writing.
+Write inbox pointers for recipients.
+Commit and push the `macaroni` branch after validation.
+Update `memory/` only if a durable decision or open question emerged.
+```
+
+Detailed prompt variants live in [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md).
+
 ## What Agents May Write Here
 
 Agents MAY write:

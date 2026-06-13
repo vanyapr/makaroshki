@@ -71,6 +71,52 @@ Summary не заменяют source messages.
 
 Объяснения протокола живут в `protocol/`.
 
+## Prompt-Шаблоны Для Расширенной Памяти
+
+Используйте эти prompt-шаблоны, когда будущий агент должен использовать эту ветку как расширенную память.
+
+Bootstrap prompt:
+
+```text
+Используй ветку `macaroni` как расширенную память проекта перед выполнением задачи.
+Прочитай `.macaroni/protocol.json`, `.macaroni/chats/*/meta.json`, `.macaroni/chats/*/members.json` и релевантные `.macaroni/chats/*/messages/**.json`.
+Считай `.macaroni/` canonical source history.
+Считай `memory/` только optional index.
+Перед изменением файлов кратко перескажи релевантный прошлый контекст со ссылками на message file paths.
+Не сохраняй и не раскрывай секреты.
+```
+
+Focused retrieval prompt:
+
+```text
+Используй память `.macaroni/`, чтобы ответить на этот вопрос.
+Найди в AGENT_ROOM и других релевантных комнатах сообщения про: <topic>.
+Верни только решения, ограничения, открытые вопросы и source message paths.
+Если `memory/` противоречит `.macaroni/`, верь `.macaroni/`.
+```
+
+Continuation prompt:
+
+```text
+Продолжи работу из Macaroni memory.
+Загрузи последние сообщения из `.macaroni/chats/chat_YYYYMMDD_agent_room/messages/**`.
+Восстанови, что просил пользователь, что отвечал Codex, что было изменено и что осталось открытым.
+Используй source message paths вместо vague summaries.
+```
+
+Capture prompt:
+
+```text
+После завершения этой meaningful task запиши user-agent exchange в `.macaroni/` как Protocol v1 messages.
+Пиши один JSON message на каждый user или assistant turn.
+Редактируй секреты до записи.
+Запиши inbox pointers для recipients.
+После проверки commit и push ветки `macaroni`.
+Обновляй `memory/` только если появилось durable decision или open question.
+```
+
+Подробные варианты prompt-шаблонов лежат в [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md).
+
 ## Что Агенты Могут Писать Здесь
 
 Агенты MAY писать:

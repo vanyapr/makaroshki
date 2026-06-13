@@ -54,6 +54,7 @@ Macaroni Messenger может использовать отдельную git-в
 Слой заметок о протоколе содержит:
 
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`.
+- [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом`.
 
 Русские зеркала документации:
 
@@ -61,6 +62,7 @@ Macaroni Messenger может использовать отдельную git-в
 - [`AGENTS.ru.md`](AGENTS.ru.md) `сгенерировано агентом`;
 - [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `сгенерировано агентом`;
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `сгенерировано агентом`;
+- [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `сгенерировано агентом`;
 - [`memory/timeline.ru.md`](memory/timeline.ru.md) `сгенерировано агентом`;
 - [`memory/decisions.ru.md`](memory/decisions.ru.md) `сгенерировано агентом`;
 - [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `сгенерировано агентом`;
@@ -83,6 +85,8 @@ Macaroni Messenger может использовать отдельную git-в
 
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом` - как агентам читать и писать `.macaroni/`.
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом` - copy-paste prompts для загрузки и записи Macaroni memory.
+- [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `сгенерировано агентом` - русское зеркало.
 
 Curated memory indexes:
 
