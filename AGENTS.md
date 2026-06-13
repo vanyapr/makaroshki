@@ -24,6 +24,51 @@ This branch is not the GitHub Pages branch.
 
 This branch is memory for future agents.
 
+## Macaroni As Agent-Agnostic Memory
+
+The `.macaroni/` protocol is an agent-agnostic memory extension.
+
+It does not belong to Codex.
+
+It does not belong to Claude.
+
+It does not belong to DeepSeek.
+
+It does not belong to a model provider, IDE, SaaS memory feature, vector database, or context-window summarizer.
+
+It belongs to git.
+
+Any future agent that can read files, write JSON, and use git can use it.
+
+Compressed context says:
+
+```text
+The user and assistant discussed architecture.
+```
+
+`.macaroni/` can preserve:
+
+```text
+User wrote exactly this.
+Assistant answered exactly that.
+This decision was made after these objections.
+This implementation was rejected for this reason.
+```
+
+This is the central point:
+
+> `.macaroni/` allows agents to remember exact conversation history instead of inheriting a lossy summary.
+
+Summaries are allowed as indexes.
+
+Summaries are not a replacement for source messages.
+
+The raw conversation lives in `.macaroni/`.
+
+Curated conclusions live in `memory/`.
+
+Protocol explanations live in `protocol/`.
+
 ## What Agents May Write Here
 
 Agents MAY write:
@@ -227,6 +272,297 @@ When preserving reasoning, use `memory/`.
 When sending actual messages, use `.macaroni/`.
 
 If you are unsure which one to use, do not guess. Add an item to `memory/open-questions.md`.
+
+## Conversation Capture Protocol
+
+Agents SHOULD preserve meaningful conversation with the user as `.macaroni/` messages, message by message.
+
+The goal is not to dump noise.
+
+The goal is to preserve exact project-relevant context before it degrades into summary soup.
+
+### Default Room
+
+Use or create a chat with a clear purpose:
+
+```text
+AGENT_ROOM
+```
+
+Recommended chat id shape:
+
+```text
+chat_YYYYMMDD_agent_room
+```
+
+If a more specific room exists, use it:
+
+```text
+ARCHITECTURE_ROOM
+ENCRYPTION_ROOM
+STORAGE_BRANCH_ROOM
+RELEASE_ROOM
+```
+
+Do not create a new room for every tiny exchange.
+
+### Required Setup
+
+Before writing conversation messages, ensure these files exist:
+
+```text
+.macaroni/protocol.json
+.macaroni/users/<human_id>.json
+.macaroni/users/<agent_id>.json
+.macaroni/chats/<chat_id>/meta.json
+.macaroni/chats/<chat_id>/members.json
+```
+
+Suggested ids:
+
+```text
+HUMAN
+CODEX
+CLAUDE
+DEEPSEEK
+AGENT
+```
+
+Use a more specific id when known.
+
+Keep ids stable.
+
+Do not invent a new identity every run unless the agent is intentionally acting as a new participant.
+
+### What To Capture
+
+Capture user messages when they contain:
+
+- project direction;
+- architecture decisions;
+- rejected alternatives;
+- constraints;
+- protocol agreements;
+- security rules;
+- release decisions;
+- product positioning;
+- implementation instructions;
+- important corrections to agent behavior.
+
+Capture assistant messages when they contain:
+
+- accepted implementation decisions;
+- concrete plans;
+- explanations that future agents need;
+- tradeoffs;
+- final results;
+- links to commits/docs/releases;
+- follow-up tasks.
+
+Do not capture:
+
+- trivial acknowledgements;
+- repeated status pings;
+- tool noise;
+- raw command output unless it matters;
+- secrets;
+- personal data;
+- content the user clearly did not intend to preserve.
+
+### Redact Before Write
+
+Before writing any user or assistant message to `.macaroni/`, inspect it for secrets and sensitive data.
+
+Redact sensitive values before the message file is created.
+
+Use markers:
+
+```text
+ПАРОЛЬ
+СЕКРЕТ
+ТОКЕН
+КЛЮЧ
+PRIVATE_KEY
+EMAIL
+PHONE
+COOKIE
+SESSION
+REDACTED
+```
+
+The `.macaroni/` memory should preserve that a secret existed, not the secret itself.
+
+Good:
+
+```text
+User provided ТОКЕН and said it has Contents: Read and write.
+```
+
+Bad:
+
+```text
+User provided github_pat_...
+```
+
+### Message File Path
+
+Store every captured message as its own JSON file:
+
+```text
+.macaroni/chats/<chat_id>/messages/YYYY/MM/DD/<message_id>.json
+```
+
+Use UTC dates for paths.
+
+Use stable ids:
+
+```text
+YYYY-MM-DDTHH-mm-ss.sssZ_<from>_<short_suffix>
+```
+
+Example:
+
+```text
+2026-06-14T12-30-15.123Z_CODEX_a8k2md
+```
+
+### Message Document Shape
+
+Use Protocol v1 message JSON:
+
+```json
+{
+  "version": 1,
+  "id": "2026-06-14T12-30-15.123Z_CODEX_a8k2md",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": ["HUMAN"],
+  "created_at": "2026-06-14T12:30:15.123Z",
+  "text": "Message text after redaction.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "agent_conversation",
+    "redacted": true
+  },
+  "signature": null
+}
+```
+
+For user messages:
+
+```json
+{
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": ["CODEX"],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": true
+  }
+}
+```
+
+For assistant messages:
+
+```json
+{
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": ["HUMAN"],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false
+  }
+}
+```
+
+Set `redacted` truthfully.
+
+If anything was replaced with `ПАРОЛЬ`, `СЕКРЕТ`, `ТОКЕН`, `КЛЮЧ`, or `REDACTED`, use `true`.
+
+### Inbox Pointers
+
+For every recipient, write an inbox pointer:
+
+```text
+.macaroni/inbox/<recipient_id>/<message_id>.json
+```
+
+Shape:
+
+```json
+{
+  "version": 1,
+  "recipient": "HUMAN",
+  "message_id": "2026-06-14T12-30-15.123Z_CODEX_a8k2md",
+  "chat_id": "chat_20260614_agent_room",
+  "message_path": ".macaroni/chats/chat_20260614_agent_room/messages/2026/06/14/2026-06-14T12-30-15.123Z_CODEX_a8k2md.json",
+  "created_at": "2026-06-14T12:30:15.123Z"
+}
+```
+
+Inbox pointers are helpers.
+
+The message file is the source of truth.
+
+### Commit Strategy
+
+Prefer one commit per meaningful capture batch.
+
+For example, after a task:
+
+```text
+Macaroni memory: capture storage branch discussion
+```
+
+Do not create a separate git commit for every single chat message unless a live client naturally does that.
+
+The protocol is message-by-message.
+
+The git commit can batch multiple message files.
+
+### Relationship To `memory/`
+
+`.macaroni/` preserves exact messages.
+
+`memory/` preserves curated interpretation.
+
+After capturing an important discussion in `.macaroni/`, agents SHOULD update `memory/` when the discussion produced:
+
+- a decision;
+- an open question;
+- an experiment;
+- a timeline milestone;
+- an implementation warning.
+
+Do not replace exact `.macaroni/` messages with a summary.
+
+Use summaries as indexes pointing back to source messages.
+
+### Minimal Agent Workflow
+
+For every meaningful user-agent exchange:
+
+1. Decide whether the exchange is worth preserving.
+2. Redact secrets and sensitive data.
+3. Ensure user and agent documents exist.
+4. Ensure an appropriate chat exists.
+5. Write the user message as one Protocol v1 message.
+6. Write the assistant response as another Protocol v1 message.
+7. Write inbox pointers for recipients.
+8. Commit to the `macaroni` branch.
+9. Push the `macaroni` branch.
+10. Update `memory/` if a durable decision or open question emerged.
+
+This creates exact memory plus curated memory.
+
+That is the point.
 
 ## Before Finishing Meaningful Work
 

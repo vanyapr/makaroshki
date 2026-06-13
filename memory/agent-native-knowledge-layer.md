@@ -639,6 +639,43 @@ git branch macaroni
 
 That may be enough.
 
+## Conversation Capture Contract
+
+The next concrete step is not only to keep curated Markdown memory.
+
+Agents should be able to preserve meaningful user-agent exchanges as Protocol v1 messages under `.macaroni/`.
+
+This makes `.macaroni/` the exact source layer:
+
+```text
+user message
+assistant message
+user correction
+assistant result
+decision
+```
+
+`memory/` then becomes the curated index over that source layer.
+
+This is the difference between:
+
+```text
+We discussed storage branches.
+```
+
+and:
+
+```text
+Here are the exact messages where the user said main must stay about the messenger,
+the agent corrected course,
+and the macaroni branch became the memory/protocol branch.
+```
+
+The contract is documented in:
+
+- `AGENTS.md`;
+- `protocol/macaroni-protocol.md`.
+
 ## Final Formulation
 
 Macaroni Messenger started as:

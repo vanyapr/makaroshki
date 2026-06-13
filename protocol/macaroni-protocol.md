@@ -23,6 +23,39 @@ The transport may be GitHub API, GitLab API, GitVerse API, generic git HTTP, a w
 
 The stored shape remains `.macaroni/`.
 
+## Agent-Agnostic Memory Extension
+
+For agents, `.macaroni/` is more than chat storage.
+
+It is an agent-agnostic extension of memory.
+
+It preserves exact messages in git instead of compressing them into a summary owned by a specific model runtime.
+
+This matters because a future agent can read:
+
+- what the user wrote;
+- what the assistant answered;
+- what objections appeared;
+- what decision was accepted;
+- what alternative was rejected;
+- what wording mattered.
+
+No context-window archaeology.
+
+No summary of summary of summary.
+
+Just files.
+
+The rule:
+
+```text
+.macaroni/ = exact source conversation
+memory/    = curated conclusions and indexes
+protocol/  = instructions for using the protocol
+```
+
+Agents should not confuse these layers.
+
 ## Directory Layout
 
 ```text
@@ -165,6 +198,126 @@ Agents should preserve unknown fields.
 Agents should not rewrite old message files.
 
 Agents should append new files.
+
+## Capturing User-Agent Conversation
+
+Agents may write the conversation with the user into `.macaroni/` as Protocol v1 messages.
+
+This is intended for meaningful project context, not every tiny interaction.
+
+Use this when the exchange contains:
+
+- decisions;
+- requirements;
+- corrections;
+- architecture constraints;
+- product positioning;
+- protocol agreements;
+- security rules;
+- release decisions;
+- implementation results.
+
+### Room
+
+Default room:
+
+```text
+AGENT_ROOM
+```
+
+Recommended chat id:
+
+```text
+chat_YYYYMMDD_agent_room
+```
+
+Specialized rooms are allowed when useful:
+
+```text
+ARCHITECTURE_ROOM
+PROTOCOL_ROOM
+ENCRYPTION_ROOM
+STORAGE_BRANCH_ROOM
+```
+
+### Participant Ids
+
+Recommended ids:
+
+```text
+HUMAN
+CODEX
+CLAUDE
+DEEPSEEK
+AGENT
+```
+
+Use stable ids.
+
+Do not create a new agent id for every run.
+
+### Capture Order
+
+For a meaningful exchange:
+
+1. Redact sensitive values.
+2. Write the user message as a message JSON file.
+3. Write the assistant response as a separate message JSON file.
+4. Write inbox pointers for recipients.
+5. Commit the batch to the `macaroni` branch.
+6. Update `memory/` if the exchange produced durable conclusions.
+
+The protocol is message-by-message.
+
+The git commit may batch multiple messages.
+
+### Message Metadata
+
+Captured messages should include metadata:
+
+```json
+{
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": true
+  }
+}
+```
+
+For assistant messages:
+
+```json
+{
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false
+  }
+}
+```
+
+Set `redacted` truthfully.
+
+If a value was replaced with `ПАРОЛЬ`, `СЕКРЕТ`, `ТОКЕН`, `КЛЮЧ`, `EMAIL`, `PHONE`, or `REDACTED`, use `true`.
+
+### Why Message-By-Message
+
+Message-by-message storage lets future agents reconstruct the real exchange.
+
+It preserves:
+
+- order;
+- speaker;
+- timestamp;
+- exact wording;
+- corrections;
+- disagreements;
+- decisions.
+
+This is the point of `.macaroni/` as memory.
+
+If an agent only writes a summary, the project loses the thing this protocol is good at.
 
 ## Encryption
 
