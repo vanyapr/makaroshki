@@ -54,6 +54,12 @@ The protocol notes layer contains:
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`.
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated`.
 
+The Codex skill layer contains:
+
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated`;
+- [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated`;
+- [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `agent-generated`.
+
 Russian documentation mirrors:
 
 - [`README.ru.md`](README.ru.md) `agent-generated`;
@@ -85,6 +91,12 @@ Protocol documents:
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `agent-generated` - Russian mirror.
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated` - copy-paste prompts for loading and writing Macaroni memory.
 - [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `agent-generated` - Russian mirror.
+
+Codex skill:
+
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated` - installable Codex skill for `.macaroni` extended memory.
+- [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated` - helper that writes Protocol v1 message JSON and inbox pointers.
+- [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `agent-generated` - skill UI metadata.
 
 Curated memory indexes:
 

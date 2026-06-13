@@ -1,0 +1,4 @@
+interface:
+  display_name: "Macaroni Memory"
+  short_description: "Git-backed .macaroni memory workflow"
+  default_prompt: "Use $macaroni-memory to capture this project discussion into .macaroni memory."

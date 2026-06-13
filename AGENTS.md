@@ -239,6 +239,7 @@ memory/
   experiments.md
   agent-notes/
 protocol/
+skills/
 ```
 
 `.macaroni/` may later contain runtime messenger data.
@@ -246,6 +247,8 @@ protocol/
 `memory/` contains project memory.
 
 `protocol/` contains protocol notes for agents.
+
+`skills/` contains reusable Codex skills that help agents work with Macaroni memory.
 
 Do not confuse pasta with lore.
 

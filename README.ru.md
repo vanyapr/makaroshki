@@ -56,6 +56,12 @@ Macaroni Messenger может использовать отдельную git-в
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`.
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом`.
 
+Слой Codex skill содержит:
+
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом`;
+- [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом`;
+- [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `сгенерировано агентом`.
+
 Русские зеркала документации:
 
 - [`README.ru.md`](README.ru.md) `сгенерировано агентом`;
@@ -87,6 +93,12 @@ Macaroni Messenger может использовать отдельную git-в
 - [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `сгенерировано агентом` - русское зеркало.
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом` - copy-paste prompts для загрузки и записи Macaroni memory.
 - [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `сгенерировано агентом` - русское зеркало.
+
+Codex skill:
+
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом` - устанавливаемый Codex skill для `.macaroni` extended memory.
+- [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом` - helper, который пишет Protocol v1 message JSON и inbox pointers.
+- [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `сгенерировано агентом` - UI metadata skill.
 
 Curated memory indexes:
 
