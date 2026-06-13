@@ -394,6 +394,14 @@ token + message context + local counter -> bytes
 
 Если incoming `message.text` не начинается с `MACARONI1.01:`, plugin возвращает message как есть.
 
+Core хранит incoming messages в IndexedDB как raw Protocol v1 documents.
+
+Plugin decrypt не пишет plaintext обратно в cache.
+
+Decrypt применяется как view transform перед UI/search/export.
+
+Чекбокс plugin должен менять отображение, а не переписывать историю. Git помнит кашу, IndexedDB кеширует кашу, пользователь видит макароны только когда сам включил вилку.
+
 Если starts with `MACARONI1.01:`, но:
 
 - plugin выключен;

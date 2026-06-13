@@ -116,15 +116,16 @@ macaroni.plugin.macaroni-encryption-1.01.settings.v1
 
 Если шифрование включено:
 
-- outgoing messages шифруются перед записью в local cache/git;
-- incoming messages расшифровываются перед показом в UI;
+- outgoing messages шифруются перед записью в raw local cache/git;
+- incoming messages хранятся в IndexedDB как raw Protocol v1 messages;
+- incoming messages расшифровываются только перед показом в UI/search/export;
 - repo хранит кашу.
 
 Если шифрование выключено:
 
 - core работает как раньше;
 - новые messages уходят plaintext;
-- старые encrypted messages остаются кашей, пока plugin снова не включён.
+- старые encrypted messages остаются кашей и в git, и в local cache, пока plugin снова не включён.
 
 ## Файл - Это Ключ
 

@@ -99,6 +99,7 @@ Macaroni is not building a distributed settings database on top of `localStorage
 - Plugins receive a cloned message object.
 - A plugin must return a valid Protocol v1 message.
 - The core validates the final message after plugin transforms.
+- The core stores persisted message cache as raw Protocol v1. Incoming transforms apply to the view model and do not mutate IndexedDB history.
 - Plugins are local browser code. Macaroni does not load remote plugin code automatically.
 - Plugins are not a privacy promise.
 

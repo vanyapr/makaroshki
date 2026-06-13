@@ -394,6 +394,14 @@ If someone reads implementation and drops coffee on the keyboard, that is not a 
 
 If incoming `message.text` does not start with `MACARONI1.01:`, plugin returns the message unchanged.
 
+The core stores incoming messages in IndexedDB as raw Protocol v1 documents.
+
+Plugin decrypt does not write plaintext back into cache.
+
+Decrypt runs as a view transform before UI/search/export.
+
+The plugin checkbox changes rendering, not history. Git remembers pasta, IndexedDB caches pasta, and the user sees macaroni only after enabling the fork.
+
 If it starts with `MACARONI1.01:`, but:
 
 - plugin is disabled;

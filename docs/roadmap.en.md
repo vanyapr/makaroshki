@@ -389,7 +389,7 @@ Recommended:
 - File-as-key model: in portable mode, `messenger.html` may be not only the client, but also a capability artifact with repo URL, token, plugin, secret, and salt. Key exchange is handing over the HTML file.
 - Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
 - The plugin adds a checkbox to Settings; enabled/disabled state and other plugin settings are stored in `localStorage` under `macaroni.plugin.<plugin_id>.settings.v1`.
-- Encryption is enabled/disabled through the checkbox. When enabled, outgoing messages are encrypted and incoming messages are decrypted. When disabled, the core works as plaintext and encrypted payload remains pasta.
+- Encryption is enabled/disabled through the checkbox. When enabled, outgoing messages are encrypted and incoming messages are decrypted on the view layer. When disabled, the core works as plaintext and encrypted payload remains pasta. IndexedDB stores raw Protocol v1 cache, not decrypted history.
 - The key can be any string. Password, phrase, `macaroni123`, file contents, or a cursed shell one-liner. The only real rule is that chat participants must use the same key.
 - The key is stored in `localStorage` with a large honest warning. Convenient, not a secure enclave, not military-grade cryptography.
 - A portable version may hardcode the key next to the profile/token, so you can hand mom an HTML file that already knows everything.

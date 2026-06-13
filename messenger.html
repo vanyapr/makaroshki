@@ -1358,7 +1358,7 @@
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
       var APP_TITLE = "Macaroni Messenger";
       var DB_NAME = "macaroni-messenger";
-      var DB_VERSION = 3;
+      var DB_VERSION = 4;
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
       var LANGUAGE_KEY = "macaroni.language.v1";
@@ -3813,9 +3813,15 @@
             createStore(db, "meta", { keyPath: "key" });
             createStore(db, "repoFiles", { keyPath: "path" });
 
+            var messagesStore = messages || request.transaction.objectStore("messages");
+
             if (messages) {
               messages.createIndex("chat_id", "chat_id", { unique: false });
               messages.createIndex("created_at", "created_at", { unique: false });
+            }
+
+            if (request.oldVersion && request.oldVersion < 4 && messagesStore) {
+              messagesStore.clear();
             }
 
             if (chats) {
@@ -3885,14 +3891,20 @@
           return Promise.reject(new Error("Message id is required"));
         }
 
-        return applyMessagePlugins("incoming", message, pluginContext(loadProfile(), {
-          chat_id: message.chat_id
-        })).then(function (value) {
-          return putRecord("messages", value);
-        });
+        return putRecord("messages", rawMessageForCache(message));
       }
 
-      function listMessages(chatId) {
+      function rawMessageForCache(message) {
+        var value = cloneJson(message);
+        if (value.encrypted_text && value.encryption) {
+          value.text = value.encrypted_text;
+        }
+        delete value.encrypted_text;
+        delete value.encryption;
+        return value;
+      }
+
+      function listRawMessages(chatId) {
         return listRecords("messages").then(function (messages) {
           return messages
             .filter(function (message) {
@@ -3901,6 +3913,25 @@
             .sort(function (left, right) {
               return String(left.created_at || "").localeCompare(String(right.created_at || ""));
             });
+        });
+      }
+
+      function listMessages(chatId) {
+        return listRawMessages(chatId).then(function (messages) {
+          var chain = Promise.resolve([]);
+
+          messages.forEach(function (message) {
+            chain = chain.then(function (result) {
+              return applyMessagePlugins("incoming", message, pluginContext(loadProfile(), {
+                chat_id: message.chat_id
+              })).then(function (viewMessage) {
+                result.push(viewMessage);
+                return result;
+              });
+            });
+          });
+
+          return chain;
         });
       }
 

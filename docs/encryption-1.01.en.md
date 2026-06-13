@@ -116,15 +116,16 @@ The user can:
 
 When encryption is enabled:
 
-- outgoing messages are encrypted before local cache/git write;
-- incoming messages are decrypted before UI render;
+- outgoing messages are encrypted before raw local cache/git write;
+- incoming messages are stored in IndexedDB as raw Protocol v1 messages;
+- incoming messages are decrypted only before UI/search/export render;
 - the repo stores pasta.
 
 When encryption is disabled:
 
 - the core works as before;
 - new messages are sent as plaintext;
-- old encrypted messages remain pasta until the plugin is enabled again.
+- old encrypted messages remain pasta in both git and local cache until the plugin is enabled again.
 
 ## The File Is The Key
 
