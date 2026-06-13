@@ -299,6 +299,34 @@ Basement.
 
 A team that understands what it is doing.
 
+## Old Hacker Movie Attacks
+
+Macaroni does not protect you from attacks where the attacker:
+
+- steals your `messenger.html`;
+- replaces your hosted `messenger.html`;
+- gets access to your computer;
+- obtains an old portable bundle;
+- guesses your shared secret because you named it `123`.
+
+At that point this is no longer cryptography.
+
+This is cinema.
+
+If a tactical team rappelled from a helicopter, rolled through the window, a hacker backflipped through the laser room, pulled a flash drive from behind the cactus, and walked away with your `messenger.html`, they did not "bypass Macaroni Encryption".
+
+They achieved the objective.
+
+If the sacred file is stolen, the chat is stolen.
+
+If the sacred file is replaced, the messenger is replaced.
+
+If the attacker is at your keyboard, boil water and rotate the file.
+
+In boring security words, this is called endpoint compromise.
+
+In Macaroni words, this is called "they got to the flash drive".
+
 ## What This Does Not Give
 
 It does not protect you if:
