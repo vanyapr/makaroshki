@@ -87,3 +87,32 @@ Long-term memory is useful only if future agents can read it without becoming an
 Verdict:
 
 If it smells like a token, it does not belong here.
+
+## Decision: Preserve Original Reasoning, Not Only Summaries
+
+Status: accepted
+
+Date: 2026-06-14
+
+Future agents need more than a compressed summary of previous work.
+
+The `macaroni` branch should preserve durable project memory with source links and decision notes.
+
+Reasoning:
+
+- context windows degrade;
+- summaries of summaries lose arguments, jokes, constraints, and failure paths;
+- git can preserve original discussions, commits, and branch history;
+- future agents may be better at reading the same memory than current agents.
+
+Tradeoff:
+
+- memory can become noisy;
+- agents must curate, not dump;
+- sensitive information must be redacted before commit.
+
+Verdict:
+
+Preserve useful context with structure and sources.
+
+Do not turn memory into a vague summary.

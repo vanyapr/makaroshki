@@ -103,3 +103,13 @@ This creates a simple persistent memory layer for future agents:
 This is not an AI memory SaaS.
 
 It is `git checkout macaroni`.
+
+The idea was expanded into an explicit agent-native knowledge layer:
+
+- `main` documents what the project is;
+- `macaroni` preserves how the project became that way;
+- `.macaroni/` can hold runtime protocol messages;
+- `memory/` can hold curated project memory;
+- future agents can read original reasoning instead of inheriting summaries of summaries.
+
+See `memory/agent-native-knowledge-layer.md`.

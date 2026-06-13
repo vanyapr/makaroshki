@@ -31,3 +31,38 @@ Failure modes:
 - the branch becomes more interesting than the product.
 
 That last one may not be a failure.
+
+## Experiment: Agent-Native Knowledge Layer
+
+Status: documented
+
+Hypothesis:
+
+An ordinary git branch can act as durable, model-agnostic memory for future agents.
+
+Setup:
+
+- keep `main` as current product/source/docs;
+- keep `macaroni` as project memory and future storage;
+- place curated memory in `memory/`;
+- place runtime protocol data in `.macaroni/`;
+- place protocol notes in `protocol/`;
+- require agents to redact secrets before writing.
+
+What to observe over time:
+
+- whether future agents actually read the branch;
+- whether memory helps avoid repeated mistakes;
+- whether source-linked decisions age better than summaries;
+- whether AGENT_ROOM discussions produce useful decision notes;
+- whether the branch becomes a dump.
+
+A good outcome:
+
+Future agents understand project culture faster than they would from README alone.
+
+A bad outcome:
+
+The branch becomes a dramatic attic full of vague notes.
+
+Both outcomes are informative.

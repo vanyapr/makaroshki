@@ -39,3 +39,19 @@ No Macaroni Memory contract was added to `main`.
 - Add `storage_branch` support to `messenger.html`.
 - Decide when agents should update `memory/`.
 - Decide whether AGENT_ROOM summaries should be generated into `memory/`.
+
+## Later Same Thread
+
+The idea expanded from "macaroni branch as project memory" into "agent-native knowledge layer over git".
+
+Important conclusion:
+
+`main` is the official project surface.
+
+`macaroni` is the durable memory layer.
+
+This should preserve why the project became strange, not only how it currently works.
+
+Detailed write-up:
+
+- `memory/agent-native-knowledge-layer.md`

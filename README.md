@@ -46,6 +46,7 @@ The memory layer contains:
 - `memory/decisions.md`;
 - `memory/open-questions.md`;
 - `memory/experiments.md`;
+- `memory/agent-native-knowledge-layer.md`;
 - `memory/agent-notes/*.md`.
 
 The protocol notes layer contains:
