@@ -122,6 +122,8 @@ Git является источником истины.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/encryption-1.01.md` - контракт Macaroni Encryption 1.01 как plugin layer без изменения Protocol v1.
 - `docs/encryption-1.01.en.md` - Macaroni Encryption 1.01 plugin contract на английском.
+- `docs/file-as-key-cryptography.md` - модель, где portable `messenger.html` является ключом и capability artifact.
+- `docs/file-as-key-cryptography.en.md` - file-as-key crypto model на английском.
 - `docs/electron-wrapper.md` - контракт optional Electron/WebView wrapper.
 - `docs/electron-wrapper.en.md` - Electron/WebView wrapper contract на английском.
 - `docs/settings-export-import.md` - ручной export/import настроек.
@@ -383,6 +385,7 @@ async function checkSupport() {
 0.6:
 
 - **Macaroni Encryption 1.01**: шифрование сообщений любым ключом как plugin layer. Macaroni Protocol v1 не меняется: plugin превращает `message.text` в `MACARONI1.01:<base64-json>` и обратно.
+- File-as-key модель: в portable mode `messenger.html` может быть не только клиентом, но и capability artifact с repo URL, token, plugin, secret и salt. Обмен ключами - это передача HTML-файла.
 - Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
 - Шифрование включается/выключается в UI. Когда включено - outgoing messages шифруются, incoming messages расшифровываются. Когда выключено - core работает plaintext, а encrypted payload остаётся кашей.
 - Ключ - любой набор символов. Это может быть пароль, фраза, `макароны123`, содержимое файла или проклятие на bash. Главное, чтобы у участников чата совпадал ключ.
@@ -390,6 +393,7 @@ async function checkSupport() {
 - Portable версия может иметь ключ захардкоженным рядом с профилем/token, чтобы "дать маме HTML, который уже всё знает".
 - Обязательные кнопки: `Export Key` в файл `SUPER_SECRET_PRIVATE_PGP_KEY.txt` и `Import Key` из любого файла. Название файла специально абсурдное: это не PGP private key, это просто shared secret, который выглядит важнее, чем должен.
 - Алгоритм 1.01 описан в `docs/encryption-1.01.md`: shared secret + salt + message context -> tiny deterministic PRNG -> XOR byte stream.
+- Recovery при компрометации описан в `docs/file-as-key-cryptography.md`: отозвать token, собрать новый файл, при необходимости сделать squash/rewrite history и `git push --force`. Это чистит remote branch, но не стирает уже сделанные clone/fetch/cache.
 - Если ключ неправильный, сообщение не расшифровывается. Клиент показывает человеческое состояние: "ключ не тот или сообщение слишком серьёзное".
 
 ## Правило Отсечения

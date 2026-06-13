@@ -118,6 +118,8 @@ In portable mode, the secret may be hardcoded directly into the HTML.
 
 This is intentional.
 
+The full model is documented separately: `docs/file-as-key-cryptography.en.md`.
+
 The model is:
 
 ```text
