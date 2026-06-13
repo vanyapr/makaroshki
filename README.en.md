@@ -92,6 +92,7 @@ Documents:
 - [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md) - how non-GitHub git hosts fit the transport contract.
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
 - [docs/encryption-1.01.en.md](docs/encryption-1.01.en.md) - shared-secret encryption plugin contract.
+- [docs/encryption-1.01-implementation.en.md](docs/encryption-1.01-implementation.en.md) - implementation contract for Encryption 1.01.
 - [docs/file-as-key-cryptography.en.md](docs/file-as-key-cryptography.en.md) - why a single HTML file changes the crypto model.
 - [docs/electron-wrapper.en.md](docs/electron-wrapper.en.md) - optional Electron/WebView wrapper contract.
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
@@ -114,6 +115,7 @@ Russian documents:
 - [docs/generic-git-provider.md](docs/generic-git-provider.md)
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
 - [docs/encryption-1.01.md](docs/encryption-1.01.md)
+- [docs/encryption-1.01-implementation.md](docs/encryption-1.01-implementation.md)
 - [docs/file-as-key-cryptography.md](docs/file-as-key-cryptography.md)
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)

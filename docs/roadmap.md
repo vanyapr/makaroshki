@@ -394,9 +394,11 @@ async function checkSupport() {
 - Portable версия может иметь ключ захардкоженным рядом с профилем/token, чтобы "дать маме HTML, который уже всё знает".
 - Обязательные кнопки: `Export Key` в файл `SUPER_SECRET_PRIVATE_PGP_KEY.txt` и `Import Key` из любого файла. Название файла специально абсурдное: это не PGP private key, это просто shared secret, который выглядит важнее, чем должен.
 - Алгоритм 1.01 описан в `docs/encryption-1.01.md`: shared secret + salt + message context -> tiny deterministic PRNG -> XOR byte stream.
+- Implementation contract описан в `docs/encryption-1.01-implementation.md`: core рисует секцию `Plugins` и checkbox, plugin хранит свой namespace в `localStorage`, payload остаётся `MACARONI1.01:<base64-json>`, decrypt failure возвращает original message без пользовательской драмы.
 - Token Confetti: в обычном write-enabled profile token уже есть, и plugin использует его как local-only confetti перед шифрованием. Token никогда не сериализуется, не пишется в git и не требуется для расшифровки; read-only/demo режимы просто живут без confetti.
 - Recovery при компрометации описан в `docs/file-as-key-cryptography.md`: отозвать token, собрать новый файл, при необходимости сделать squash/rewrite history и `git push --force`. Это чистит remote branch, но не стирает уже сделанные clone/fetch/cache.
 - Если ключ неправильный, сообщение не расшифровывается. Клиент показывает человеческое состояние: "ключ не тот или сообщение слишком серьёзное".
+- После реализации 1.01 нужно обновить `docs/portable-mom.md`: hardcoded secret/salt, full/read-only file, token placement, file-as-key warning и rotation after compromise.
 
 ## Правило Отсечения
 

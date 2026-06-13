@@ -35,15 +35,19 @@ Inbound transforms are exposed as a boundary, but automatic decrypt/render integ
 
 ## Plugin Settings
 
-A plugin may add controls to Settings.
+If registered plugins exist, the core shows a `Plugins` section in Settings.
 
 Minimal model:
 
-- plugin adds a checkbox with the plugin name;
-- enabled/disabled state is stored in `localStorage`;
+- the core renders a checkbox with each plugin name;
+- the core stores only plugin enabled/disabled state in `localStorage`;
 - every plugin stores settings in its own namespace;
 - plugin does not write its settings to git;
-- local profile reset may clear plugin settings together with the rest of local state.
+- local profile reset does not need to clear plugin settings, because they are not part of the core profile.
+
+The plugin is duct-taped from the outside and performs protocoloscopy through the correct hole.
+
+This is an architectural decision.
 
 Recommended key:
 
@@ -59,7 +63,34 @@ macaroni.plugin.macaroni-encryption-1.01.settings.v1
 
 The core does not need to understand plugin settings internals.
 
-The core should give the plugin a place in Settings and not prevent it from being strange.
+The core should give the plugin a checkbox in Settings and not prevent it from being strange.
+
+If a plugin wants its own fields, buttons, or warnings, it may implement:
+
+```js
+mountSettings(container, context) {
+  // plugin-specific controls live here
+}
+```
+
+The core creates the container and passes context.
+
+After that, the plugin performs its own protocoloscopy.
+
+The plugin reads and writes its own namespace directly:
+
+```js
+var settings = JSON.parse(localStorage.getItem(key) || "{}")
+localStorage.setItem(key, JSON.stringify(settings))
+```
+
+Inside one tab, `localStorage` is synchronous, so a normal settings flow should not hit a race condition.
+
+Across several tabs, the last write wins.
+
+That is fine.
+
+Macaroni is not building a distributed settings database on top of `localStorage`.
 
 ## Rules
 
@@ -81,6 +112,8 @@ This is enough for future experiments like:
 - import/export transforms.
 
 The concrete shared-secret encryption contract is documented in `docs/encryption-1.01.en.md`.
+
+The Encryption 1.01 implementation contract is documented in `docs/encryption-1.01-implementation.en.md`.
 
 It is not a framework.
 

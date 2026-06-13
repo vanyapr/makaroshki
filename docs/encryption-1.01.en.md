@@ -18,6 +18,8 @@ The plugin takes `message.text`, turns it into encrypted pasta, and puts that pa
 
 The core does not know and should not know what is inside: normal text or `MACARONI1.01:...`.
 
+Implementation contract: [docs/encryption-1.01-implementation.en.md](encryption-1.01-implementation.en.md).
+
 ## Main Rule
 
 Plugins MUST be inserted immediately before the closing `</html>` tag.
@@ -41,8 +43,8 @@ Macaroni Encryption 1.01 is a shared-secret encryption plugin.
 Every participant has the same secret:
 
 ```js
-const MACARONI_101_SECRET = "macaroni2024";
-const MACARONI_101_SALT = "mom_salted_this_file_generously";
+const MACARONI_101_SECRET = "12345";
+const MACARONI_101_SALT = "macaroni";
 ```
 
 The secret may:

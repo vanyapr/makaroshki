@@ -18,6 +18,8 @@ Macaroni Protocol v1 уже зафиксирован и остаётся как 
 
 Core не знает и не должен знать, что внутри: обычный текст или `MACARONI1.01:...`.
 
+Implementation contract: [docs/encryption-1.01-implementation.md](encryption-1.01-implementation.md).
+
 ## Главное Правило
 
 Plugins MUST be inserted immediately before the closing `</html>` tag.
@@ -41,8 +43,8 @@ Macaroni Encryption 1.01 - это shared-secret encryption plugin.
 У всех участников есть один и тот же секрет:
 
 ```js
-const MACARONI_101_SECRET = "макароны2024";
-const MACARONI_101_SALT = "мама_солила_не_жалея";
+const MACARONI_101_SECRET = "12345";
+const MACARONI_101_SALT = "macaroni";
 ```
 
 Секрет может:

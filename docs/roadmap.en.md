@@ -394,9 +394,11 @@ Recommended:
 - A portable version may hardcode the key next to the profile/token, so you can hand mom an HTML file that already knows everything.
 - Required buttons: `Export Key` to `SUPER_SECRET_PRIVATE_PGP_KEY.txt` and `Import Key` from any file. The filename is intentionally absurd: it is not a PGP private key, it is just a shared secret wearing a fake mustache.
 - Algorithm 1.01 is documented in `docs/encryption-1.01.en.md`: shared secret + salt + message context -> tiny deterministic PRNG -> XOR byte stream.
+- The implementation contract is documented in `docs/encryption-1.01-implementation.en.md`: the core renders the `Plugins` section and checkbox, the plugin stores its own `localStorage` namespace, payload remains `MACARONI1.01:<base64-json>`, and decrypt failure returns the original message without user-facing drama.
 - Token Confetti: in a normal write-enabled profile, the token is already present, and the plugin uses it as local-only confetti before encryption. The token is never serialized, never written to git, and never required for decryption; read-only/demo modes simply live without confetti.
 - Compromise recovery is documented in `docs/file-as-key-cryptography.en.md`: revoke token, build a new file, optionally squash/rewrite history and `git push --force`. This cleans the remote branch, but does not erase existing clones/fetches/caches.
 - If the key is wrong, the message does not decrypt. The client shows a human state: "wrong key or the message is too serious".
+- After 1.01 is implemented, update `docs/portable-mom.en.md`: hardcoded secret/salt, full/read-only file, token placement, file-as-key warning, and rotation after compromise.
 
 ## Cutoff Rule
 
