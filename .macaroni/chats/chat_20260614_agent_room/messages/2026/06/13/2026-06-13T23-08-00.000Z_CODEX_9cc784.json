@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-08-00.000Z_CODEX_9cc784",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:08:00.000Z",
+  "text": "Готово. Ветка `macaroni` запушена: `2f5c05b docs: add russian macaroni memory docs`.\n\nЧто добавил:\n- `README.ru.md`\n- `AGENTS.ru.md`\n- `.macaroni/README.ru.md`\n- `protocol/macaroni-protocol.ru.md`\n- русские пары для всех текущих `memory/*.md`\n- русский agent note\n- ссылки на русские зеркала в `README.md`\n- ссылку на `AGENTS.ru.md` в `AGENTS.md`\n\n`main` не трогал, он остался чистым и про мессенджер. Ветка `macaroni` теперь содержит двуязычный слой памяти/протокола.\n\nПроверки:\n- `git diff --cached --check` чистый\n- staged secret scan прогнан\n- реальные токены/ключи не найдены\n- единственные срабатывания были на строки-образцы `BEGIN ... PRIVATE KEY` внутри правил AGENTS, это ожидаемо",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 9,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "chat_id": "chat_20260614_agent_room",
+  "members": [
+    {
+      "id": "HUMAN",
+      "role": "owner",
+      "joined_at": "2026-06-13T23:10:34.300Z"
+    },
+    {
+      "id": "CODEX",
+      "role": "agent",
+      "joined_at": "2026-06-13T23:10:34.300Z"
+    }
+  ],
+  "updated_at": "2026-06-13T23:10:34.300Z"
+}

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-06-00.000Z_CODEX_ac204e",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:06:00.000Z",
+  "text": "[capture note] Exact assistant responses for the initial macaroni-branch setup occurred before context compaction and are not available as raw message text in the active Codex context. Repository state shows that the macaroni branch received AGENTS.md, protocol notes, .macaroni placeholder, and memory documents matching the user instructions.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 7,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

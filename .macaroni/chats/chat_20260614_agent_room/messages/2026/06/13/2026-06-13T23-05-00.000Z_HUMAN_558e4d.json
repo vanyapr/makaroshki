@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-05-00.000Z_HUMAN_558e4d",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-13T23:05:00.000Z",
+  "text": "В AGENTS.md внеси подробную инструкцию о том как пользоваться протоколом. Я подразумеваю что агент будет пушить всю переписку с юзером сообщение за сообщением в репозиторий.\n\nОпиши также что протокол macaroni является Agent agnostic расширением памяти агента. В отличии от сжатого контекста .macaroni позволяет ТОЧНО помнить что писали, что отвечали, и какие решения были приняты.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 6,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

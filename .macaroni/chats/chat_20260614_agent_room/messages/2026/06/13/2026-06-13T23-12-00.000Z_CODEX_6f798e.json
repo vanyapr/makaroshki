@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-12-00.000Z_CODEX_6f798e",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:12:00.000Z",
+  "text": "Готово. В `macaroni` обновил оба README:\n\n- `README.md`\n- `README.ru.md`\n\nЧто изменилось:\n- все документы теперь расставлены как markdown-ссылки;\n- добавлена отдельная `Document Map` / `Карта Документов`;\n- ссылки на агентные документы помечены как `agent-generated` / `сгенерировано агентом`;\n- добавлено пояснение, что такие файлы являются индексами/заметками, а не заменой canonical `.macaroni/` messages и protocol docs.\n\nПроверки:\n- markdown-ссылки в README валидны;\n- `git diff --check` чистый;\n- secret scan по измененным README чистый;\n- `main` не трогал.\n\nЗапушено в `macaroni`: `e096c6f docs: link macaroni branch documents`.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 13,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

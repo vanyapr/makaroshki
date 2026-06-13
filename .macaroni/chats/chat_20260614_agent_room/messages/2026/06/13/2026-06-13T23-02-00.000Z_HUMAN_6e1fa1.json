@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-02-00.000Z_HUMAN_6e1fa1",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-13T23:02:00.000Z",
+  "text": "В ветке macaroni также должен быть AGENTS.MD который будет указывать чтобы агент внимательно следил за тем, чтобы в ветку не пушились секреты и конфиденциальные данные, вместо этого текст должен заменяться на \"ПАРОЛЬ\" \"СЕКРЕТ\" и тд. А также описание протокола  .macaroni и способ работы с ним.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 3,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-10-00.000Z_CODEX_a75b98",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:10:00.000Z",
+  "text": "Да, по логике проекта `memory/` **не должен быть источником истины**.\n\nПравильная модель почти один в один как в самом Macaroni:\n\n```text\nGit/.macaroni = source of truth\nmemory/       = cache / index / выжимка\n```\n\nТо есть если мы пушим всю беседу агент-человек в `.macaroni/` message-by-message, то `memory/` становится не обязательным слоем, а удобной навигацией:\n\n- `.macaroni/` хранит точные сообщения: кто что сказал, когда, в каком контексте;\n- `memory/` хранит curated views: решения, timeline, открытые вопросы, failed experiments;\n- если `memory/` устарел или сломался, его можно пересобрать из `.macaroni/`;\n- если `.macaroni/` потерян, `memory/` уже не заменит настоящую историю.\n\nЯ бы архитектурно зафиксировал так:\n\n```text\n.macaroni/\n  canonical append-only conversation log\n\nmemory/\n  optional materialized notes over .macaroni\n```\n\nТо есть `memory/` нам **не сильно нужен для протокола**. Он нужен только как `README` для памяти: быстрый вход для человека/агента, чтобы не читать 500 JSON-сообщений перед каждой задачей.\n\nНо ты прав: если цель именно agent-agnostic exact memory, то пушить всю беседу в `.macaroni` гораздо чище. Это и есть главный прикол. Не “мы обсудили архитектуру”, а буквально:\n\n```text\nUser:\n  main про мессенджер\n\nCodex:\n  понял, переношу память в macaroni\n\nUser:\n  документацию дублируй на русском\n```\n\nИ будущий агент читает первоисточник, а не пересказ пересказа.\n\nЯ бы не удалял `memory/` прямо как класс, но понизил бы его статус:\n\n1. `.macaroni/` - canonical memory.\n2. `memory/` - optional index.\n3. `memory/` нельзя считать истиной, если он противоречит `.macaroni/`.\n4. Агент может обновлять `memory/`, но обязан писать raw conversation в `.macaroni`.\n5. В будущем `memory/` можно вообще генерировать из `.macaroni`.\n\nТекущая ветка уже близко к этому: в `AGENTS.md` прямо написано, что raw conversation lives in `.macaroni`, curated conclusions live in `memory`, а protocol explanations live in `protocol`; на GitHub в `memory/` сейчас лежат именно curated документы вроде `timeline`, `decisions`, `open-questions`, `experiments` и agent-native layer.\n\nМой вердикт: **да, архитектурно лучше считать `memory/` не обязательной папкой, а производным индексом поверх `.macaroni`**. Это сильнее, проще и больше соответствует философии проекта.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 11,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}

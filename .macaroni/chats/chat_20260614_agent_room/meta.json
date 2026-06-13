@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "id": "chat_20260614_agent_room",
+  "title": "AGENT_ROOM",
+  "kind": "agent_room",
+  "created_at": "2026-06-13T23:10:34.300Z",
+  "updated_at": "2026-06-13T23:10:34.300Z",
+  "description": "Captured project-relevant conversation between the human and Codex, starting from the agent-native memory discussion.",
+  "meta": {
+    "captured_by": "CODEX",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request",
+    "capture_limitations": [
+      "Exact assistant messages before context compaction are not fully available.",
+      "Timestamps are synthetic and preserve order only."
+    ]
+  }
+}

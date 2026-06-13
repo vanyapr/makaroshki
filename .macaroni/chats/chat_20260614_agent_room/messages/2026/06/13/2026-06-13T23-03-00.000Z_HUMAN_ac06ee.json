@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-03-00.000Z_HUMAN_ac06ee",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-13T23:03:00.000Z",
+  "text": "Сама директория .macaroni должна тоже быть в ветке",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "2026-06-14-agent-memory-protocol-test",
+    "original_order": 4,
+    "timestamp_accuracy": "synthetic_order_only",
+    "capture_scope": "from phrase \"А теперь серьезное.\" through protocol capture request"
+  },
+  "signature": null
+}
