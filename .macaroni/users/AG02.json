@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "AG02",
+  "display_name": "Agent Two",
+  "created_at": "2026-06-13T20:09:47.388Z",
+  "meta": {
+    "client": "macaroni-docker-agent"
+  }
+}
