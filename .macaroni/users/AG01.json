@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "AG01",
+  "display_name": "Agent One",
+  "created_at": "2026-06-13T20:09:46.056Z",
+  "meta": {
+    "client": "macaroni-docker-agent"
+  }
+}
