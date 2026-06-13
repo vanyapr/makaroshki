@@ -156,6 +156,98 @@ This keeps current documentation from being polluted by historical reasoning.
 
 It also keeps historical reasoning from being flattened into current documentation.
 
+## Lore Branch
+
+At this point the original joke folds back into itself.
+
+The initial architecture was:
+
+```text
+Macaroni Messenger
+  -> Git
+    -> Messages
+```
+
+The branch architecture adds:
+
+```text
+macaroni branch
+  -> Project Memory
+    -> Agent Memory
+      -> Protocol Lore
+```
+
+That gives the repository a canonical hidden layer.
+
+A future agent can follow a workflow that is both absurd and practical:
+
+```text
+1. checkout main
+2. read README
+3. checkout macaroni
+4. understand why the project exists
+```
+
+The project now has:
+
+```text
+main
+  Main Quest
+
+macaroni
+  Lore Branch
+```
+
+This matters because the branch preserves explanations that do not belong on the public product surface but are still essential for future work.
+
+README can say what Macaroni is.
+
+The lore branch can say why it became that way.
+
+## Portable Context Artifact
+
+The strongest version of the idea:
+
+> The project context is portable.
+
+It does not belong to:
+
+- the human's memory;
+- the current agent;
+- a model provider;
+- an IDE;
+- a SaaS memory product;
+- an embedding store.
+
+It belongs to the repository.
+
+That is a useful property because, over time:
+
+- the human forgets half the reasoning;
+- agents lose context;
+- models are replaced;
+- services change behavior;
+- summaries degrade.
+
+The `macaroni` branch stays cloneable.
+
+Future tools may be better than current tools.
+
+They can still read the same context artifact:
+
+```text
+git fetch origin macaroni
+git checkout macaroni
+```
+
+This fits Macaroni's philosophy:
+
+> Use the simplest possible building blocks.
+
+Git is a boring place to store memory.
+
+That is exactly why it works.
+
 ## The AGENT_ROOM Shift
 
 Once an `AGENT_ROOM` exists, Macaroni is no longer only a chat.

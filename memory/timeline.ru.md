@@ -115,3 +115,38 @@ macaroni
 - будущие агенты могут читать исходные причины вместо summaries of summaries.
 
 См. `memory/agent-native-knowledge-layer.ru.md`.
+
+## 2026-06-14 - Lore Branch И Portable Context
+
+У ветки появился более точный смысл:
+
+```text
+main
+  Main Quest
+
+macaroni
+  Lore Branch
+```
+
+Так петля замкнулась:
+
+```text
+Macaroni Messenger -> Git -> Messages
+macaroni branch    -> Git -> Project Memory
+```
+
+Ключевая концепция:
+
+> `macaroni` - portable context artifact.
+
+Контекст проекта принадлежит репозиторию, а не человеку, агенту, model vendor, IDE или SaaS memory feature.
+
+Это значит, что будущие агенты могут:
+
+1. прочитать `main`, чтобы понять продукт;
+2. прочитать `macaroni`, чтобы понять, почему продукт существует;
+3. продолжить от исходного контекста, а не от унаследованного фольклора.
+
+Это все еще смешно.
+
+И это полезно.

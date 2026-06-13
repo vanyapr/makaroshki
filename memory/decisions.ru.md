@@ -118,3 +118,54 @@ Verdict:
 Сохраняйте полезный контекст со структурой и sources.
 
 Не превращайте memory в vague summary.
+
+## Решение: Считать `macaroni` Portable Context Artifact
+
+Status: accepted
+
+Date: 2026-06-14
+
+Ветка `macaroni` - не только storage.
+
+Это portable context artifact проекта.
+
+Причины:
+
+- люди забывают;
+- агенты сбрасываются;
+- model providers меняются;
+- SaaS memory features принадлежат vendor;
+- summaries теряют исходный reasoning;
+- git остается cloneable, forkable, inspectable и скучным.
+
+Целевая модель:
+
+```text
+main
+  что проект представляет собой
+
+macaroni
+  почему проект стал таким
+```
+
+Это создает практичный workflow для будущих агентов:
+
+```text
+checkout main
+read README
+checkout macaroni
+read memory and .macaroni
+continue with actual context
+```
+
+Tradeoff:
+
+- это выглядит как hidden lore branch;
+- пользователи и агенты должны знать, что ее надо читать;
+- stale memory нужно помечать, а не считать законом.
+
+Verdict:
+
+Контекст принадлежит репозиторию.
+
+В этом весь смысл.

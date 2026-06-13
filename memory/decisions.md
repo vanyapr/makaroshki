@@ -116,3 +116,54 @@ Verdict:
 Preserve useful context with structure and sources.
 
 Do not turn memory into a vague summary.
+
+## Decision: Treat `macaroni` As A Portable Context Artifact
+
+Status: accepted
+
+Date: 2026-06-14
+
+The `macaroni` branch is not only storage.
+
+It is the project's portable context artifact.
+
+Reasoning:
+
+- people forget;
+- agents reset;
+- model providers change;
+- SaaS memory features are vendor-owned;
+- summaries lose the original reasoning;
+- git remains cloneable, forkable, inspectable, and boring.
+
+The intended model:
+
+```text
+main
+  what the project is
+
+macaroni
+  why the project became that way
+```
+
+This creates a practical workflow for future agents:
+
+```text
+checkout main
+read README
+checkout macaroni
+read memory and .macaroni
+continue with actual context
+```
+
+Tradeoff:
+
+- this looks like a hidden lore branch;
+- users and agents must know to read it;
+- stale memory must be marked instead of treated as law.
+
+Verdict:
+
+The context belongs to the repository.
+
+That is the point.

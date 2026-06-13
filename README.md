@@ -107,6 +107,69 @@ A future agent with a 400-page context window and an attitude problem can use it
 
 The memory belongs to git, not to a vendor account.
 
+## Lore Branch
+
+The joke loops back into itself:
+
+```text
+Macaroni Messenger
+  -> Git
+    -> Messages
+```
+
+then becomes:
+
+```text
+macaroni branch
+  -> project memory
+    -> agent memory
+      -> protocol lore
+```
+
+This creates a canonical hidden layer for the project.
+
+A perfectly reasonable agent workflow now exists:
+
+```text
+checkout main
+read README
+checkout macaroni
+understand why the project exists
+```
+
+This is almost a game mechanic.
+
+`main` is the main quest.
+
+`macaroni` is the lore branch.
+
+The useful part is that the joke solves a real problem: people forget, models reset, tools change, providers update, and the repository remains.
+
+That makes `macaroni` a portable context artifact.
+
+The context no longer belongs to:
+
+- a person;
+- a model;
+- a company;
+- a service.
+
+It belongs to the repository.
+
+This fits Macaroni's core philosophy too well:
+
+> Use the simplest building blocks that can possibly work.
+
+Apparently the simplest possible long-term memory layer for agents is:
+
+```text
+git checkout macaroni
+```
+
+Either this is a good idea, or the project has fully committed to its bit.
+
+Both outcomes are acceptable.
+
 ## What Lives Here
 
 Source branch:

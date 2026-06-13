@@ -113,3 +113,38 @@ The idea was expanded into an explicit agent-native knowledge layer:
 - future agents can read original reasoning instead of inheriting summaries of summaries.
 
 See `memory/agent-native-knowledge-layer.md`.
+
+## 2026-06-14 - Lore Branch And Portable Context
+
+The branch gained a sharper meaning:
+
+```text
+main
+  Main Quest
+
+macaroni
+  Lore Branch
+```
+
+This completed the loop:
+
+```text
+Macaroni Messenger -> Git -> Messages
+macaroni branch    -> Git -> Project Memory
+```
+
+The key concept:
+
+> `macaroni` is a portable context artifact.
+
+The project context belongs to the repository, not to a person, agent, model vendor, IDE, or SaaS memory feature.
+
+That means future agents can:
+
+1. read `main` to understand the product;
+2. read `macaroni` to understand why the product exists;
+3. continue from original context instead of inherited folklore.
+
+This is still funny.
+
+It is also useful.

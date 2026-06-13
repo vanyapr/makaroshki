@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-35-52Z_CODEX_30473d",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:35:52Z",
+  "text": "Мысль про lore branch и portable context artifact добавлена в документацию ветки macaroni. README/README.ru получили новый раздел Lore Branch: main как Main Quest, macaroni как Lore Branch, и сценарий checkout main -> read README -> checkout macaroni -> understand why the project exists. memory/agent-native-knowledge-layer.md и .ru получили расширенные разделы Lore Branch и Portable Context Artifact. memory/timeline.md и .ru зафиксировали событие 2026-06-14, а memory/decisions.md и .ru добавили принятое решение: контекст проекта принадлежит репозиторию, а не человеку, агенту, модели или SaaS memory feature.\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
