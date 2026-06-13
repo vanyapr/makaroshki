@@ -385,6 +385,7 @@ Recommended:
 0.6:
 
 - **Macaroni Encryption 1.01**: message encryption with any key as a plugin layer. Macaroni Protocol v1 does not change: the plugin turns `message.text` into `MACARONI1.01:<base64-json>` and back.
+- Status: implemented in `messenger.html` as built-in plugin `macaroni-encryption-1.01` with a Settings checkbox, `mountSettings`, key import/export, Tiny PRNG + XOR outgoing transform, and incoming decrypt fallback-to-original behavior.
 - File-as-key model: in portable mode, `messenger.html` may be not only the client, but also a capability artifact with repo URL, token, plugin, secret, and salt. Key exchange is handing over the HTML file.
 - Encryption plugin MUST be inserted immediately before the closing `</html>` tag.
 - The plugin adds a checkbox to Settings; enabled/disabled state and other plugin settings are stored in `localStorage` under `macaroni.plugin.<plugin_id>.settings.v1`.
@@ -398,7 +399,7 @@ Recommended:
 - Token Confetti: in a normal write-enabled profile, the token is already present, and the plugin uses it as local-only confetti before encryption. The token is never serialized, never written to git, and never required for decryption; read-only/demo modes simply live without confetti.
 - Compromise recovery is documented in `docs/file-as-key-cryptography.en.md`: revoke token, build a new file, optionally squash/rewrite history and `git push --force`. This cleans the remote branch, but does not erase existing clones/fetches/caches.
 - If the key is wrong, the message does not decrypt. The client shows a human state: "wrong key or the message is too serious".
-- After 1.01 is implemented, update `docs/portable-mom.en.md`: hardcoded secret/salt, full/read-only file, token placement, file-as-key warning, and rotation after compromise.
+- Portable docs are updated in `docs/portable-mom.en.md`: hardcoded secret/salt, full/read-only file, token placement, file-as-key warning, and rotation after compromise.
 
 ## Cutoff Rule
 

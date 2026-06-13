@@ -4,6 +4,8 @@
 
 Macaroni Encryption 1.01 - это не новый протокол Macaroni.
 
+Статус: реализовано в `messenger.html` как built-in plugin `macaroni-encryption-1.01`.
+
 Macaroni Protocol v1 уже зафиксирован и остаётся как есть:
 
 - `.macaroni/chats/<chat_id>/messages/.../<message_id>.json`;

@@ -36,6 +36,7 @@ Inside that copy, prefill:
 - git provider;
 - repository URL;
 - access token;
+- Encryption 1.01 secret/salt, if an encrypted chat is needed;
 - privacy warning acceptance.
 
 Then put the file on the desktop.
@@ -54,6 +55,12 @@ Is the token.
 
 Anyone who gets this HTML file can write to the repository with that token's permissions.
 
+If Encryption 1.01 is enabled inside, the portable file is also the chat key.
+
+Not "contains the key".
+
+Is the key.
+
 This is not private.
 
 This is not secure.
@@ -61,6 +68,47 @@ This is not secure.
 This is convenient.
 
 Macaroni Messenger once again did exactly what it promised.
+
+## Encryption 1.01
+
+The portable file may enable Macaroni Encryption 1.01 immediately.
+
+In that case, the file pre-fills:
+
+- `secret`;
+- `salt`;
+- `salt_id`;
+- enabled plugin checkbox.
+
+Default comedy:
+
+```text
+secret: 12345
+salt: macaroni
+```
+
+For a family proof-of-concept, this is enough for everyone to open the same configured HTML and see the same decrypted pasta.
+
+For real use, replace `12345` with your own string.
+
+And yes, the string may be anything.
+
+That is literally the idea.
+
+## Full And Read-Only Files
+
+You can make two portable versions:
+
+- `macaroni-mom.html` - full file: repo URL, token, secret, salt. Reads and writes.
+- `macaroni-grandma-readonly.html` - read-only file: repo URL, secret, salt, but no token. Reads and decrypts, but does not write.
+
+Encryption 1.01 does not require a token for decryption.
+
+The token is needed for writing to git and for local Token Confetti during send.
+
+If the full file is stolen, revoke the token, build a new HTML, and optionally squash/rewrite history plus `git push --force`.
+
+If the read-only file is stolen, the token did not leak, but the secret did. Treat the chat as read by someone who earned it.
 
 ## The Right Token
 
@@ -130,11 +178,20 @@ Important: this location is already inside the main `<script>`, so do not add ex
     token: "github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     privacyAccepted: true
   };
+  var PORTABLE_ENCRYPTION = {
+    enabled: true,
+    secret: "12345",
+    salt: "macaroni",
+    salt_id: "family",
+    confetti_counter: 0,
+    debug: false
+  };
 
   try {
     localStorage.setItem("macaroni.client_id.v1", PORTABLE_CLIENT_ID);
     localStorage.setItem("macaroni.language.v1", PORTABLE_PROFILE.language);
     localStorage.setItem("macaroni.profile.v1", JSON.stringify(PORTABLE_PROFILE));
+    localStorage.setItem("macaroni.plugin.macaroni-encryption-1.01.settings.v1", JSON.stringify(PORTABLE_ENCRYPTION));
   } catch (error) {}
 }());
 ```
@@ -145,6 +202,7 @@ Important: this location is already inside the main `<script>`, so do not add ex
 - `Mom` with the display name;
 - `YOUR_LOGIN/YOUR_REPO` with the repository;
 - `github_pat_xxx` with the token.
+- `12345` with a shared secret, if the joke has gone too far.
 
 7. Save the file.
 
@@ -156,6 +214,7 @@ If you do not want to overwrite settings on every launch, use "first launch only
 (function () {
   var PORTABLE_CLIENT_ID = "MAMA";
   var PORTABLE_PROFILE_KEY = "macaroni.profile.v1";
+  var PORTABLE_ENCRYPTION_KEY = "macaroni.plugin.macaroni-encryption-1.01.settings.v1";
 
   if (localStorage.getItem(PORTABLE_PROFILE_KEY)) {
     return;
@@ -170,11 +229,20 @@ If you do not want to overwrite settings on every launch, use "first launch only
     token: "github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     privacyAccepted: true
   };
+  var PORTABLE_ENCRYPTION = {
+    enabled: true,
+    secret: "12345",
+    salt: "macaroni",
+    salt_id: "family",
+    confetti_counter: 0,
+    debug: false
+  };
 
   try {
     localStorage.setItem("macaroni.client_id.v1", PORTABLE_CLIENT_ID);
     localStorage.setItem("macaroni.language.v1", PORTABLE_PROFILE.language);
     localStorage.setItem(PORTABLE_PROFILE_KEY, JSON.stringify(PORTABLE_PROFILE));
+    localStorage.setItem(PORTABLE_ENCRYPTION_KEY, JSON.stringify(PORTABLE_ENCRYPTION));
   } catch (error) {}
 }());
 ```
@@ -194,7 +262,9 @@ Check:
 - `ID: MAMA` is shown;
 - the first-run setup screen does not appear;
 - the chat list opens;
+- Settings shows `Plugins` / `Macaroni Encryption 1.01`;
 - a test message can be sent;
+- the new git message has `text` starting with `MACARONI1.01:` if encryption is enabled;
 - after 30 seconds or after `Refresh`, the message appears in git;
 - after closing and reopening, history is rebuilt.
 

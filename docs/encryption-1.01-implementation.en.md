@@ -1,6 +1,8 @@
 # Macaroni Encryption 1.01 Implementation Contract
 
-This document bridges the Encryption 1.01 manifesto and future code.
+This document bridges the Encryption 1.01 manifesto and code.
+
+Status: implemented in `messenger.html` as built-in plugin `macaroni-encryption-1.01`.
 
 Goal: build the dumbest thing that works, while still having logic and common sense.
 

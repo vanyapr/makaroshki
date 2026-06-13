@@ -642,6 +642,42 @@
       margin-top: 8px;
     }
 
+    .plugin-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .plugin-card {
+      border: var(--thin-line) solid var(--ink);
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .plugin-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .plugin-card-title {
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .plugin-controls {
+      display: grid;
+      gap: 12px;
+    }
+
+    .plugin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
     .danger {
       margin-left: auto;
     }
@@ -1169,6 +1205,12 @@
           <button class="button" id="settings-reindex" type="button">Rebuild Index</button>
         </div>
 
+        <div class="field" id="settings-plugins" hidden>
+          <span class="field-label" id="settings-plugins-label">Plugins</span>
+          <p class="field-note" id="settings-plugins-note">Plugins are taped to the outside and keep their own localStorage settings.</p>
+          <div class="plugin-list" id="settings-plugin-list"></div>
+        </div>
+
         <label class="checkbox-row">
           <input id="settings-privacy" name="privacyAccepted" type="checkbox" required>
           <span class="checkbox-label">I understand that messages are not private by default.</span>
@@ -1320,6 +1362,11 @@
       var CLIENT_ID_KEY = "macaroni.client_id.v1";
       var PROFILE_KEY = "macaroni.profile.v1";
       var LANGUAGE_KEY = "macaroni.language.v1";
+      var PLUGIN_SETTINGS_PREFIX = "macaroni.plugin.";
+      var PLUGIN_SETTINGS_SUFFIX = ".settings.v1";
+      var ENCRYPTION_PLUGIN_ID = "macaroni-encryption-1.01";
+      var ENCRYPTION_MARKER = "MACARONI1.01:";
+      var ENCRYPTION_KEY_FILENAME = "SUPER_SECRET_PRIVATE_PGP_KEY.txt";
       var LAST_SYNC_META_KEY = "sync:last_success_at";
       var GITHUB_RATE_META_KEY = "github:rate_limit";
       var INCOMING_SOUND_SRC = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMQAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAKQAABOUAKiowMDU1NTo6Pz8/RUVKSkpPT1VVWlpaYGBlZWVqam9vb3V1enp6f3+FhYqKipCQlZWVmpqfn5+lpaqqsLCwtbW6urrAwMXFxcrKz8/P1dXa2uDg4OXl6urq8PD19fX6+v//AAAAAExhdmM2Mi4yOAAAAAAAAAAAAAAAACQCiwAAAAAAAATliGg4EgAAAAAAAAAAAAAAAAD/8xDEAAAAAogACEQASBoCCScuJNAj9HqVTv/zEsQNAtAagEAphABAM4ZuGWYOQCCMQWU8AP/zEMQPAcAqxeAIRgOBILBFQEwpxlZtsOAA//MQxBUBYBrF4ACCAwAlAlBMkCiTlLf/dNX/8xDEHAK4LnABRgABEQjEoCDRy1PMf6/QPf/zEMQeBCgavkGGCAIw266Kya6VM8EwYCCb//MQxBoE4AKUAYMQACF2U/3/Y1Vc45iXbGr/8xDEEwTQBpwBgQAAFf/fy/eEiyxsaMYkhv/zEMQMBUhm1AGPKADoKDgGaAAc0Ayq/9/+//MSxAMD2F7QAckAAb52S5XREOHEA6iVlPWe//MQxAEDAFbQAABYJWbqGeoaGDo5qPYzE5z/8xDEAgJYSswAAEwkRToAGACCssqjRhHACv/zEMQFAthqvAAAUiiRDF+fhau1rlMKdH0A//MQxAYCsFK8AABSCfWcirddqLM2UpcKkSr/8xDECALITrQAAFIJsi2Cqs43S1QQEKIWc//zEMQJAnhSrAAIEgSXIQZklljDAYqFbSoo//MQxAwCmFaswABMJK5vaTlUCjlZRZBI4u3/8xLEDgJoVqQACEwMnOWjgGirasWfbSDuCQ7/8xDEEgKoUqAACEwItxaFXbgDuxrylGEYMf/zEMQUArhOmCAITAjbQg4Y6rJnUCNxzS7S//MQxBYCqFKQABhGIJIv8wwcTGcXLDgVBFL/8xDEGALwUpDAEEwlgAPtXoRr9f+qHASAKP/zEMQZBTAehFAQRAAAQNaLjo8USjiHFU73//MQxBEFME6AWBjGJP/9P6YQSCgCCRSQ9Vn/8xDECQRQRoR4GEYkMFQX2t6/p/oqHwwGSP/zEsQEBAgOfFAwRgAC0FQIrCYb13Po//TVLP/zEMQBAYgetUAAxALHDwWbzio4CVDKajwI//MQxAcBEALFQAhEAhzguhc1KNpUNwHVcJD/8xDEDwEgIr1AAMYCVGAiIOHje5QhDM2Cjv/zEMQXAcgCqUAIwAIcY5lb/pqmRGC4gLFy//MQxBwCeCZ4ADJGAPyFOkwIB0gk4OlRAwH/8xDEHwKgJnggGEYAkV91CgwawYIBgqUP0P/zEMQhAigmfABJhgCbq7l16QOiMPMTH0oe//MSxCUDmCpsAGJMAGiprpUEMKoCKhMe2hn9//MQxCQDGBaEQDCEAGqYMoaP0Q7hDQMwUGn/8xDEJAMgHoAAMYIAHW0qQwgHmAoBQANFlf/zEMQkApgWiOAYggDV4MFGyRJgIgaK/61M//MQxCYBOB6IABCEAEFNRTMuMTAwVVVVVVX/8xDELgJIJnQAGYYBVVVVVVVVVVVVVVVVVf/zEMQxArgicCAxhgBVVVVVVVVVVVVVVVVV//MQxDMCsCpMADDCIFVVVVVVVVVVVVVVVVU=";
@@ -1380,6 +1427,19 @@
           indexStatusDefault: "IndexedDB is a cache. If it breaks, rebuild it from the git repository.",
           importRepo: "Import Repo",
           rebuildIndex: "Rebuild Index",
+          plugins: "Plugins",
+          pluginsNote: "Plugins are taped to the outside and keep their own localStorage settings.",
+          pluginEnabled: "Enabled",
+          encryptionNote: "Knee cryptography mode. Default password: 12345. Default salt: macaroni.",
+          encryptionSecret: "Secret",
+          encryptionSalt: "Salt",
+          encryptionSaltId: "Salt ID",
+          encryptionDebug: "Debug logs",
+          encryptionExportKey: "Export Key",
+          encryptionImportKey: "Import Key",
+          encryptionImportFailed: "Key import failed: {message}",
+          encryptionKeyImported: "Key imported.",
+          encryptionKeyExported: "Key exported.",
           back: "Back",
           reset: "Reset",
           resetTitle: "Reset",
@@ -1512,6 +1572,19 @@
           indexStatusDefault: "IndexedDB - это кеш. Если он сломался, пересоберите его из git-репозитория.",
           importRepo: "Импорт repo",
           rebuildIndex: "Пересобрать индекс",
+          plugins: "Плагины",
+          pluginsNote: "Плагины примотаны снаружи и хранят свои настройки в localStorage.",
+          pluginEnabled: "Включен",
+          encryptionNote: "Режим криптографии на коленке. Дефолтный пароль: 12345. Дефолтная соль: macaroni.",
+          encryptionSecret: "Secret",
+          encryptionSalt: "Salt",
+          encryptionSaltId: "Salt ID",
+          encryptionDebug: "Debug logs",
+          encryptionExportKey: "Экспорт ключа",
+          encryptionImportKey: "Импорт ключа",
+          encryptionImportFailed: "Не удалось импортировать ключ: {message}",
+          encryptionKeyImported: "Ключ импортирован.",
+          encryptionKeyExported: "Ключ экспортирован.",
           back: "Назад",
           reset: "Сбросить",
           resetTitle: "Сброс",
@@ -1712,6 +1785,9 @@
         }
         setText("#settings-import", t("importRepo"));
         setText("#settings-reindex", t("rebuildIndex"));
+        setText("#settings-plugins-label", t("plugins"));
+        setText("#settings-plugins-note", t("pluginsNote"));
+        renderPluginSettings(loadProfile());
         setText("#settings-back", t("back"));
         setText("#settings-reset", t("reset"));
         setText("#reset-title", t("resetTitle"));
@@ -2230,6 +2306,8 @@
         pluginRegistry.push({
           id: plugin.id,
           name: plugin.name || plugin.id,
+          defaultSettings: typeof plugin.defaultSettings === "function" ? plugin.defaultSettings : null,
+          mountSettings: typeof plugin.mountSettings === "function" ? plugin.mountSettings : null,
           transformOutgoingMessage: typeof plugin.transformOutgoingMessage === "function" ? plugin.transformOutgoingMessage : null,
           transformIncomingMessage: typeof plugin.transformIncomingMessage === "function" ? plugin.transformIncomingMessage : null
         });
@@ -2240,7 +2318,9 @@
         return pluginRegistry.map(function (plugin) {
           return {
             id: plugin.id,
-            name: plugin.name
+            name: plugin.name,
+            enabled: isPluginEnabled(plugin),
+            hasSettings: !!plugin.mountSettings
           };
         });
       }
@@ -2255,7 +2335,7 @@
 
         pluginRegistry.forEach(function (plugin) {
           chain = chain.then(function (current) {
-            if (!plugin[hookName]) {
+            if (!plugin[hookName] || !isPluginEnabled(plugin)) {
               return current;
             }
 
@@ -2271,6 +2351,559 @@
         return chain.then(function (current) {
           validateMessage(current);
           return current;
+        });
+      }
+
+      function pluginSettingsKey(pluginId) {
+        return PLUGIN_SETTINGS_PREFIX + pluginId + PLUGIN_SETTINGS_SUFFIX;
+      }
+
+      function pluginDefaultSettings(plugin) {
+        return plugin && plugin.defaultSettings ? plugin.defaultSettings() : { enabled: false };
+      }
+
+      function loadPluginSettings(pluginOrId) {
+        var plugin = typeof pluginOrId === "string"
+          ? pluginRegistry.find(function (item) { return item.id === pluginOrId; })
+          : pluginOrId;
+        var pluginId = plugin && plugin.id ? plugin.id : String(pluginOrId || "");
+        var defaults = pluginDefaultSettings(plugin);
+
+        try {
+          var raw = window.localStorage.getItem(pluginSettingsKey(pluginId));
+          return Object.assign({}, defaults, raw ? JSON.parse(raw) : {});
+        } catch (error) {
+          return Object.assign({}, defaults);
+        }
+      }
+
+      function savePluginSettings(pluginOrId, settings) {
+        var plugin = typeof pluginOrId === "string"
+          ? pluginRegistry.find(function (item) { return item.id === pluginOrId; })
+          : pluginOrId;
+        var pluginId = plugin && plugin.id ? plugin.id : String(pluginOrId || "");
+        var value = Object.assign({}, pluginDefaultSettings(plugin), settings || {}, {
+          updated_at: new Date().toISOString()
+        });
+        window.localStorage.setItem(pluginSettingsKey(pluginId), JSON.stringify(value));
+        return value;
+      }
+
+      function isPluginEnabled(plugin) {
+        return !!loadPluginSettings(plugin).enabled;
+      }
+
+      function setPluginEnabled(plugin, enabled) {
+        return savePluginSettings(plugin, Object.assign({}, loadPluginSettings(plugin), {
+          enabled: !!enabled
+        }));
+      }
+
+      function publicPluginProfile(profile) {
+        var value = profile || loadProfile() || {};
+        return {
+          clientId: value.clientId || CLIENT_ID,
+          displayName: value.displayName || CLIENT_ID,
+          provider: value.provider || "github",
+          repo: value.repo || "",
+          token: value.token || "",
+          demo: !!value.demo
+        };
+      }
+
+      function pluginContext(profile, extra) {
+        var value = publicPluginProfile(profile);
+        return Object.assign({
+          profile: value,
+          client_id: value.clientId || CLIENT_ID,
+          repo: value.repo || "",
+          token: value.token || "",
+          t: t,
+          getSettings: loadPluginSettings,
+          saveSettings: savePluginSettings
+        }, extra || {});
+      }
+
+      function renderPluginSettings(profile) {
+        var section = get("settings-plugins");
+        var list = get("settings-plugin-list");
+        if (!section || !list) {
+          return;
+        }
+
+        list.innerHTML = "";
+        section.hidden = !pluginRegistry.length;
+
+        pluginRegistry.forEach(function (plugin) {
+          var settings = loadPluginSettings(plugin);
+          var card = document.createElement("div");
+          var header = document.createElement("div");
+          var title = document.createElement("div");
+          var checkboxRow = document.createElement("label");
+          var checkbox = document.createElement("input");
+          var checkboxLabel = document.createElement("span");
+          var controls = document.createElement("div");
+
+          card.className = "plugin-card";
+          header.className = "plugin-card-header";
+          title.className = "plugin-card-title";
+          checkboxRow.className = "checkbox-row";
+          controls.className = "plugin-controls";
+          title.textContent = plugin.name || plugin.id;
+          checkbox.type = "checkbox";
+          checkbox.checked = !!settings.enabled;
+          checkboxLabel.className = "checkbox-label";
+          checkboxLabel.textContent = t("pluginEnabled");
+
+          checkbox.addEventListener("change", function () {
+            setPluginEnabled(plugin, checkbox.checked);
+            renderPluginSettings(profile || loadProfile());
+          });
+
+          checkboxRow.appendChild(checkbox);
+          checkboxRow.appendChild(checkboxLabel);
+          header.appendChild(title);
+          header.appendChild(checkboxRow);
+          card.appendChild(header);
+
+          if (plugin.mountSettings) {
+            try {
+              plugin.mountSettings(controls, Object.assign(pluginContext(profile), {
+                plugin_id: plugin.id,
+                enabled: !!settings.enabled,
+                settings: settings,
+                saveSettings: function (nextSettings) {
+                  return savePluginSettings(plugin, Object.assign({}, loadPluginSettings(plugin), nextSettings || {}));
+                },
+                setEnabled: function (enabled) {
+                  return setPluginEnabled(plugin, enabled);
+                }
+              }));
+            } catch (error) {
+              controls.textContent = error.message;
+            }
+          }
+
+          if (controls.children.length || controls.textContent) {
+            card.appendChild(controls);
+          }
+
+          list.appendChild(card);
+        });
+      }
+
+      function utf8Bytes(value) {
+        return new TextEncoder().encode(String(value == null ? "" : value));
+      }
+
+      function utf8Text(bytes) {
+        return new TextDecoder().decode(bytes);
+      }
+
+      function bytesToBase64(bytes) {
+        var binary = "";
+        var chunkSize = 0x8000;
+        for (var i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode.apply(null, Array.prototype.slice.call(bytes, i, i + chunkSize));
+        }
+        return window.btoa(binary);
+      }
+
+      function base64ToBytes(value) {
+        var binary = window.atob(String(value || ""));
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function base64Json(value) {
+        return bytesToBase64(utf8Bytes(JSON.stringify(value)));
+      }
+
+      function parseBase64Json(value) {
+        return JSON.parse(utf8Text(base64ToBytes(value)));
+      }
+
+      function fnv1a(str, seed) {
+        var h = seed >>> 0;
+        var text = String(str || "");
+        for (var i = 0; i < text.length; i++) {
+          h ^= text.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+      }
+
+      function xorshift32(seed) {
+        var x = seed >>> 0 || 0x6d2b79f5;
+        return function () {
+          x ^= x << 13;
+          x ^= x >>> 17;
+          x ^= x << 5;
+          return x >>> 0;
+        };
+      }
+
+      function xorTinyPrng(bytes, material) {
+        var out = new Uint8Array(bytes.length);
+        var random = xorshift32(fnv1a(material, 0x811c9dc5));
+        var word = 0;
+        var used = 4;
+
+        for (var i = 0; i < bytes.length; i++) {
+          if (used >= 4) {
+            word = random();
+            used = 0;
+          }
+
+          out[i] = bytes[i] ^ ((word >>> (used * 8)) & 255);
+          used++;
+        }
+
+        return out;
+      }
+
+      function encryptionDefaultSettings() {
+        return {
+          enabled: false,
+          secret: "12345",
+          salt: "macaroni",
+          salt_id: "default",
+          confetti_counter: 0,
+          debug: false
+        };
+      }
+
+      function encryptionSettings() {
+        return loadPluginSettings(ENCRYPTION_PLUGIN_ID);
+      }
+
+      function saveEncryptionSettings(settings) {
+        return savePluginSettings(ENCRYPTION_PLUGIN_ID, settings);
+      }
+
+      function encryptionDebug(settings, reason, error) {
+        if (settings && settings.debug && window.console && typeof window.console.debug === "function") {
+          window.console.debug("[macaroni-encryption-1.01]", reason, error || "");
+        }
+      }
+
+      function sortedRecipients(recipients) {
+        return (Array.isArray(recipients) ? recipients : [])
+          .map(function (item) { return String(item || ""); })
+          .filter(Boolean)
+          .sort();
+      }
+
+      function encryptionContextFromMessage(message, context, plaintextLength) {
+        var profile = context && context.profile ? context.profile : {};
+        return {
+          repo: String((context && context.repo) || profile.repo || ""),
+          chat: String(message.chat_id || ""),
+          from: String(message.from || ""),
+          to: sortedRecipients(message.to),
+          message_id: String(message.id || ""),
+          created_at: String(message.created_at || ""),
+          length: Number(plaintextLength) || 0
+        };
+      }
+
+      function encryptionMaterial(settings, ctx) {
+        return [
+          "macaroni-1.01",
+          settings.secret || "",
+          settings.salt || "",
+          ctx.repo || "",
+          ctx.chat || "",
+          ctx.from || "",
+          sortedRecipients(ctx.to).join(","),
+          ctx.message_id || "",
+          ctx.created_at || "",
+          String(ctx.length || 0)
+        ].join("|");
+      }
+
+      function contextMatchesMessage(message, ctx) {
+        return !!(
+          ctx &&
+          String(message.chat_id || "") === String(ctx.chat || "") &&
+          String(message.from || "") === String(ctx.from || "") &&
+          String(message.id || "") === String(ctx.message_id || "") &&
+          String(message.created_at || "") === String(ctx.created_at || "") &&
+          sortedRecipients(message.to).join(",") === sortedRecipients(ctx.to).join(",")
+        );
+      }
+
+      function makeTokenConfetti(token, material, counter) {
+        var value = String(token || "");
+        if (!value) {
+          return "";
+        }
+
+        var seed = fnv1a("token-confetti|" + material + "|" + String(counter || 0), 0x811c9dc5);
+        var out = new Uint8Array(24);
+
+        for (var i = 0; i < out.length; i++) {
+          seed ^= value.charCodeAt((seed + i + Number(counter || 0)) % value.length);
+          seed = Math.imul(seed ^ (seed >>> 13), 2654435761) >>> 0;
+          out[i] = (seed ^ value.charCodeAt((seed + i) % value.length)) & 255;
+        }
+
+        return bytesToBase64(out);
+      }
+
+      function parseImportedEncryptionKey(text) {
+        var value = String(text || "");
+        try {
+          var parsed = JSON.parse(value);
+          if (parsed && typeof parsed === "object" && (parsed.secret || parsed.salt)) {
+            return {
+              secret: String(parsed.secret || ""),
+              salt: String(parsed.salt || "macaroni"),
+              salt_id: String(parsed.salt_id || "imported")
+            };
+          }
+        } catch (error) {}
+
+        return {
+          secret: value,
+          salt: "macaroni",
+          salt_id: "imported-file"
+        };
+      }
+
+      function mountEncryptionSettings(container, context) {
+        var settings = Object.assign({}, encryptionDefaultSettings(), context.settings || {});
+        var status = document.createElement("p");
+        var note = document.createElement("p");
+        var secretField = document.createElement("div");
+        var secretLabel = document.createElement("label");
+        var secretInput = document.createElement("input");
+        var saltField = document.createElement("div");
+        var saltLabel = document.createElement("label");
+        var saltInput = document.createElement("input");
+        var saltIdField = document.createElement("div");
+        var saltIdLabel = document.createElement("label");
+        var saltIdInput = document.createElement("input");
+        var debugRow = document.createElement("label");
+        var debugInput = document.createElement("input");
+        var debugLabel = document.createElement("span");
+        var actions = document.createElement("div");
+        var exportButton = document.createElement("button");
+        var importButton = document.createElement("button");
+        var importInput = document.createElement("input");
+
+        function save(partial) {
+          settings = context.saveSettings(Object.assign({}, settings, partial || {}));
+          return settings;
+        }
+
+        function mark(message) {
+          status.textContent = message || "";
+        }
+
+        note.className = "field-note";
+        note.textContent = t("encryptionNote");
+        status.className = "field-note";
+
+        secretField.className = "field";
+        secretLabel.className = "field-label";
+        secretLabel.textContent = t("encryptionSecret");
+        secretInput.className = "text-field";
+        secretInput.type = "text";
+        secretInput.autocomplete = "off";
+        secretInput.value = settings.secret || "12345";
+        secretInput.addEventListener("change", function () {
+          save({ secret: secretInput.value });
+        });
+        secretField.appendChild(secretLabel);
+        secretField.appendChild(secretInput);
+
+        saltField.className = "field";
+        saltLabel.className = "field-label";
+        saltLabel.textContent = t("encryptionSalt");
+        saltInput.className = "text-field";
+        saltInput.type = "text";
+        saltInput.autocomplete = "off";
+        saltInput.value = settings.salt || "macaroni";
+        saltInput.addEventListener("change", function () {
+          save({ salt: saltInput.value });
+        });
+        saltField.appendChild(saltLabel);
+        saltField.appendChild(saltInput);
+
+        saltIdField.className = "field";
+        saltIdLabel.className = "field-label";
+        saltIdLabel.textContent = t("encryptionSaltId");
+        saltIdInput.className = "text-field";
+        saltIdInput.type = "text";
+        saltIdInput.autocomplete = "off";
+        saltIdInput.value = settings.salt_id || "default";
+        saltIdInput.addEventListener("change", function () {
+          save({ salt_id: saltIdInput.value });
+        });
+        saltIdField.appendChild(saltIdLabel);
+        saltIdField.appendChild(saltIdInput);
+
+        debugRow.className = "checkbox-row";
+        debugInput.type = "checkbox";
+        debugInput.checked = !!settings.debug;
+        debugInput.addEventListener("change", function () {
+          save({ debug: debugInput.checked });
+        });
+        debugLabel.className = "checkbox-label";
+        debugLabel.textContent = t("encryptionDebug");
+        debugRow.appendChild(debugInput);
+        debugRow.appendChild(debugLabel);
+
+        actions.className = "plugin-actions";
+        exportButton.className = "button";
+        exportButton.type = "button";
+        exportButton.textContent = t("encryptionExportKey");
+        exportButton.addEventListener("click", function () {
+          var exported = {
+            type: "macaroni.encryption.key",
+            version: "1.01",
+            exported_at: new Date().toISOString(),
+            secret: secretInput.value,
+            salt: saltInput.value,
+            salt_id: saltIdInput.value || "default"
+          };
+          downloadTextFile(ENCRYPTION_KEY_FILENAME, JSON.stringify(exported, null, 2), "text/plain;charset=utf-8");
+          mark(t("encryptionKeyExported"));
+        });
+
+        importButton.className = "button";
+        importButton.type = "button";
+        importButton.textContent = t("encryptionImportKey");
+        importButton.addEventListener("click", function () {
+          importInput.value = "";
+          importInput.click();
+        });
+
+        importInput.type = "file";
+        importInput.hidden = true;
+        importInput.addEventListener("change", function () {
+          var file = importInput.files && importInput.files[0];
+          if (!file) {
+            return;
+          }
+
+          readTextFile(file).then(function (text) {
+            var imported = parseImportedEncryptionKey(text);
+            secretInput.value = imported.secret;
+            saltInput.value = imported.salt;
+            saltIdInput.value = imported.salt_id;
+            save(imported);
+            mark(t("encryptionKeyImported"));
+          }).catch(function (error) {
+            mark(t("encryptionImportFailed", { message: error.message }));
+          });
+        });
+
+        actions.appendChild(exportButton);
+        actions.appendChild(importButton);
+        actions.appendChild(importInput);
+
+        container.appendChild(note);
+        container.appendChild(secretField);
+        container.appendChild(saltField);
+        container.appendChild(saltIdField);
+        container.appendChild(debugRow);
+        container.appendChild(actions);
+        container.appendChild(status);
+      }
+
+      function encryptionTransformOutgoing(message, context) {
+        var settings = encryptionSettings();
+        var plaintext = String(message.text || "");
+        if (!settings.enabled || !settings.secret || !settings.salt || !plaintext || plaintext.indexOf(ENCRYPTION_MARKER) === 0) {
+          return message;
+        }
+
+        var plaintextBytes = utf8Bytes(plaintext);
+        var ctx = encryptionContextFromMessage(message, context, plaintextBytes.length);
+        var material = encryptionMaterial(settings, ctx);
+        var counter = Number(settings.confetti_counter || 0);
+        var token = String((context && context.token) || (context && context.profile && context.profile.token) || "");
+        var clearEnvelope = [
+          "1.01",
+          makeTokenConfetti(token, material, counter),
+          plaintext
+        ];
+        var encrypted = xorTinyPrng(utf8Bytes(JSON.stringify(clearEnvelope)), material);
+        var payload = {
+          v: "1.01",
+          alg: "entropy-monolith-xor-tiny-prng",
+          ctx: ctx,
+          data: bytesToBase64(encrypted)
+        };
+
+        saveEncryptionSettings(Object.assign({}, settings, {
+          confetti_counter: counter + 1
+        }));
+
+        return Object.assign({}, message, {
+          text: ENCRYPTION_MARKER + base64Json(payload)
+        });
+      }
+
+      function encryptionTransformIncoming(message) {
+        var settings = encryptionSettings();
+        var text = String(message.text || "");
+        if (!settings.enabled || !settings.secret || !settings.salt || text.indexOf(ENCRYPTION_MARKER) !== 0) {
+          return message;
+        }
+
+        try {
+          var payload = parseBase64Json(text.slice(ENCRYPTION_MARKER.length));
+          if (!payload || payload.v !== "1.01" || payload.alg !== "entropy-monolith-xor-tiny-prng" || !payload.ctx || !payload.data) {
+            encryptionDebug(settings, "unsupported payload");
+            return message;
+          }
+
+          if (!contextMatchesMessage(message, payload.ctx)) {
+            encryptionDebug(settings, "context mismatch");
+            return message;
+          }
+
+          var material = encryptionMaterial(settings, payload.ctx);
+          var clearEnvelope = JSON.parse(utf8Text(xorTinyPrng(base64ToBytes(payload.data), material)));
+          if (!Array.isArray(clearEnvelope) || clearEnvelope[0] !== "1.01" || typeof clearEnvelope[2] !== "string") {
+            encryptionDebug(settings, "clear envelope malformed");
+            return message;
+          }
+
+          if (utf8Bytes(clearEnvelope[2]).length !== Number(payload.ctx.length || 0)) {
+            encryptionDebug(settings, "length mismatch");
+            return message;
+          }
+
+          return Object.assign({}, message, {
+            text: clearEnvelope[2],
+            encrypted_text: text,
+            encryption: {
+              plugin: ENCRYPTION_PLUGIN_ID,
+              version: "1.01",
+              salt_id: settings.salt_id || "default"
+            }
+          });
+        } catch (error) {
+          encryptionDebug(settings, "decrypt failed", error);
+          return message;
+        }
+      }
+
+      function registerEncryptionPlugin() {
+        registerPlugin({
+          id: ENCRYPTION_PLUGIN_ID,
+          name: "Macaroni Encryption 1.01",
+          defaultSettings: encryptionDefaultSettings,
+          mountSettings: mountEncryptionSettings,
+          transformOutgoingMessage: encryptionTransformOutgoing,
+          transformIncomingMessage: encryptionTransformIncoming
         });
       }
 
@@ -3088,34 +3721,40 @@
       function downloadSettingsExport() {
         var profile = loadProfile();
         var exported = createSettingsExport(profile);
-        var blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json;charset=utf-8" });
+        downloadTextFile(settingsExportFilename(exported.profile), JSON.stringify(exported, null, 2), "application/json;charset=utf-8");
+        return exported;
+      }
+
+      function downloadTextFile(filename, content, type) {
+        var blob = new Blob([String(content || "")], { type: type || "text/plain;charset=utf-8" });
         var url = URL.createObjectURL(blob);
         var link = document.createElement("a");
         link.href = url;
-        link.download = settingsExportFilename(exported.profile);
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.setTimeout(function () {
           URL.revokeObjectURL(url);
         }, 1000);
-        return exported;
       }
 
-      function readJsonFile(file) {
+      function readTextFile(file) {
         return new Promise(function (resolve, reject) {
           var reader = new FileReader();
           reader.onerror = function () {
             reject(reader.error || new Error("Could not read file"));
           };
           reader.onload = function () {
-            try {
-              resolve(JSON.parse(String(reader.result || "")));
-            } catch (error) {
-              reject(error);
-            }
+            resolve(String(reader.result || ""));
           };
           reader.readAsText(file);
+        });
+      }
+
+      function readJsonFile(file) {
+        return readTextFile(file).then(function (text) {
+          return JSON.parse(text);
         });
       }
 
@@ -3246,7 +3885,11 @@
           return Promise.reject(new Error("Message id is required"));
         }
 
-        return putRecord("messages", message);
+        return applyMessagePlugins("incoming", message, pluginContext(loadProfile(), {
+          chat_id: message.chat_id
+        })).then(function (value) {
+          return putRecord("messages", value);
+        });
       }
 
       function listMessages(chatId) {
@@ -3827,6 +4470,7 @@
         get("settings-repo").value = value.repo || fallback.repo;
         get("settings-token").value = value.token || "";
         get("settings-privacy").checked = !!value.privacyAccepted;
+        renderPluginSettings(value);
       }
 
       function showAppOrSetup() {
@@ -5290,8 +5934,13 @@
             profile: {
               clientId: CLIENT_ID,
               displayName: (profile && profile.displayName) || CLIENT_ID,
-              provider: profile && profile.provider
+              provider: profile && profile.provider,
+              repo: profile && profile.repo,
+              token: profile && profile.token,
+              demo: !!(profile && profile.demo)
             },
+            repo: profile && profile.repo,
+            token: profile && profile.token,
             chat_id: targetChatId
           });
         }).then(function (message) {
@@ -5689,6 +6338,9 @@
         register: registerPlugin,
         list: listPlugins,
         clear: clearPlugins,
+        settingsKey: pluginSettingsKey,
+        getSettings: loadPluginSettings,
+        saveSettings: savePluginSettings,
         applyOutgoingMessage: function (message, context) {
           return applyMessagePlugins("outgoing", message, context);
         },
@@ -5711,6 +6363,7 @@
         t: t
       };
 
+      registerEncryptionPlugin();
       setClientIdText();
       applyLanguage();
       bindProfileForms();

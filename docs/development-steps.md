@@ -396,7 +396,7 @@ node scripts/mvp-smoke.js
 8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML: частично сделано как optional `wrappers/electron/main.js`, который открывает корневой `messenger.html` через `loadFile`, без localhost, backend и копии клиента.
 10. Plugin boundary: частично сделано как browser-side `window.MacaroniPlugins` registry с outbound/inbound message transform hooks; composer применяет outbound hook перед записью сообщения.
-11. Macaroni Encryption 1.01: implementation contract зафиксирован в `docs/encryption-1.01-implementation.md`. Порядок реализации: core plugin checkbox/settings namespace, `localStorage` schema, Tiny PRNG helpers, payload encode/decode, outgoing transform, incoming transform с fallback-to-original, key import/export UI, временная проверка roundtrip в `/tmp` без добавления tests в repo, затем update portable docs.
+11. Macaroni Encryption 1.01: реализовано как встроенный plugin в `messenger.html`. Есть core plugin checkbox/settings namespace, `mountSettings`, `localStorage` schema, Tiny PRNG helpers, payload encode/decode, outgoing transform, incoming transform с fallback-to-original, key import/export UI, временная browser-проверка roundtrip без добавления tests в repo и обновлённые portable docs.
 
 ## Что Не Делаем До MVP
 

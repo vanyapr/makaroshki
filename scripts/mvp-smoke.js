@@ -1414,6 +1414,9 @@ async function testPluginBoundary(browser) {
         return message;
       }
     });
+    window.localStorage.setItem(window.MacaroniPlugins.settingsKey("smoke-plugin"), JSON.stringify({
+      enabled: true
+    }));
 
     let duplicateRejected = false;
     try {
@@ -1438,6 +1441,7 @@ async function testPluginBoundary(browser) {
 
   assert(pluginState.plugins.length === 1, "plugin registry did not list registered plugin");
   assert(pluginState.plugins[0].id === "smoke-plugin", "plugin registry listed the wrong plugin");
+  assert(pluginState.plugins[0].enabled === true, "plugin registry did not expose enabled plugin state");
   assert(pluginState.duplicateRejected, "plugin registry accepted duplicate plugin id");
   assert(pluginState.previewText === "Preview [plugin]", "plugin boundary did not transform outgoing preview");
 

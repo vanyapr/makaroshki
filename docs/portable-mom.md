@@ -36,6 +36,7 @@ macaroni-mama.html
 - git provider;
 - repository URL;
 - access token;
+- Encryption 1.01 secret/salt, если нужен encrypted chat;
 - acceptance privacy warning.
 
 После этого файл можно положить на рабочий стол.
@@ -54,6 +55,12 @@ Portable-файл с захардкоженным token является token.
 
 Если кто-то получил этот HTML-файл, он получил возможность писать в репозиторий с правами этого token.
 
+Если внутри включён Encryption 1.01, portable-файл является ещё и ключом к переписке.
+
+Не "содержит ключ".
+
+Является ключом.
+
 Это не приватно.
 
 Это не безопасно.
@@ -61,6 +68,47 @@ Portable-файл с захардкоженным token является token.
 Это удобно.
 
 Macaroni Messenger снова сделал ровно то, что обещал.
+
+## Encryption 1.01
+
+Portable-файл может сразу включить Macaroni Encryption 1.01.
+
+В таком случае внутри файла заранее прописываются:
+
+- `secret`;
+- `salt`;
+- `salt_id`;
+- включённый checkbox плагина.
+
+Дефолтная комедия:
+
+```text
+secret: 12345
+salt: macaroni
+```
+
+Для семейного proof-of-concept этого достаточно, чтобы все участники открыли одинаково настроенный HTML и увидели одинаково расшифрованную кашу.
+
+Для реального использования замените `12345` на свою строку.
+
+И да, строка может быть любой.
+
+Это буквально идея.
+
+## Full И Read-Only Файлы
+
+Можно сделать две portable-версии:
+
+- `macaroni-mama.html` - full file: repo URL, token, secret, salt. Читает и пишет.
+- `macaroni-grandma-readonly.html` - read-only file: repo URL, secret, salt, но без token. Читает и расшифровывает, но не пишет.
+
+Encryption 1.01 не требует token для расшифровки.
+
+Token нужен для записи в git и для локального Token Confetti при отправке.
+
+Если full-файл украли - отзывайте token, собирайте новый HTML, при необходимости делайте squash/rewrite history и `git push --force`.
+
+Если read-only-файл украли - token не утёк, но secret утёк. Считайте переписку прочитанной человеком, который этого добился.
 
 ## Правильный Token
 
@@ -130,11 +178,20 @@ setClientIdText();
     token: "github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     privacyAccepted: true
   };
+  var PORTABLE_ENCRYPTION = {
+    enabled: true,
+    secret: "12345",
+    salt: "macaroni",
+    salt_id: "family",
+    confetti_counter: 0,
+    debug: false
+  };
 
   try {
     localStorage.setItem("macaroni.client_id.v1", PORTABLE_CLIENT_ID);
     localStorage.setItem("macaroni.language.v1", PORTABLE_PROFILE.language);
     localStorage.setItem("macaroni.profile.v1", JSON.stringify(PORTABLE_PROFILE));
+    localStorage.setItem("macaroni.plugin.macaroni-encryption-1.01.settings.v1", JSON.stringify(PORTABLE_ENCRYPTION));
   } catch (error) {}
 }());
 ```
@@ -145,6 +202,7 @@ setClientIdText();
 - `Мама` на имя;
 - `YOUR_LOGIN/YOUR_REPO` на репозиторий;
 - `github_pat_xxx` на token.
+- `12345` на общий secret, если вам уже не смешно.
 
 7. Сохраните файл.
 
@@ -156,6 +214,7 @@ setClientIdText();
 (function () {
   var PORTABLE_CLIENT_ID = "MAMA";
   var PORTABLE_PROFILE_KEY = "macaroni.profile.v1";
+  var PORTABLE_ENCRYPTION_KEY = "macaroni.plugin.macaroni-encryption-1.01.settings.v1";
 
   if (localStorage.getItem(PORTABLE_PROFILE_KEY)) {
     return;
@@ -170,11 +229,20 @@ setClientIdText();
     token: "github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     privacyAccepted: true
   };
+  var PORTABLE_ENCRYPTION = {
+    enabled: true,
+    secret: "12345",
+    salt: "macaroni",
+    salt_id: "family",
+    confetti_counter: 0,
+    debug: false
+  };
 
   try {
     localStorage.setItem("macaroni.client_id.v1", PORTABLE_CLIENT_ID);
     localStorage.setItem("macaroni.language.v1", PORTABLE_PROFILE.language);
     localStorage.setItem(PORTABLE_PROFILE_KEY, JSON.stringify(PORTABLE_PROFILE));
+    localStorage.setItem(PORTABLE_ENCRYPTION_KEY, JSON.stringify(PORTABLE_ENCRYPTION));
   } catch (error) {}
 }());
 ```
@@ -194,7 +262,9 @@ setClientIdText();
 - показывается `ID: MAMA`;
 - первый экран регистрации не появляется;
 - открыт список чатов;
+- в настройках есть `Plugins` / `Macaroni Encryption 1.01`;
 - можно отправить тестовое сообщение;
+- в git у нового сообщения поле `text` начинается с `MACARONI1.01:`, если encryption включён;
 - через 30 секунд или после кнопки `Обновить` сообщение появляется в git;
 - после закрытия и повторного открытия история восстанавливается.
 

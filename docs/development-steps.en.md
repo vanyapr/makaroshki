@@ -396,7 +396,7 @@ Only after working `messenger.html`:
 8. HTML export of chat history: partially done as local export of the current chat from IndexedDB into a standalone HTML file, without writing to git.
 9. Electron/WebView wrapper around the same HTML: partially done as optional `wrappers/electron/main.js`, which opens the root `messenger.html` through `loadFile`, without localhost, backend, or a copied client.
 10. Plugin boundary: partially done as a browser-side `window.MacaroniPlugins` registry with outbound/inbound message transform hooks; the composer applies the outbound hook before writing a message.
-11. Macaroni Encryption 1.01: the implementation contract is documented in `docs/encryption-1.01-implementation.en.md`. Implementation order: core plugin checkbox/settings namespace, `localStorage` schema, Tiny PRNG helpers, payload encode/decode, outgoing transform, incoming transform with fallback-to-original behavior, key import/export UI, temporary roundtrip verification in `/tmp` without adding tests to the repo, then portable docs update.
+11. Macaroni Encryption 1.01: implemented as a built-in plugin in `messenger.html`. It includes the core plugin checkbox/settings namespace, `mountSettings`, `localStorage` schema, Tiny PRNG helpers, payload encode/decode, outgoing transform, incoming transform with fallback-to-original behavior, key import/export UI, temporary browser roundtrip verification without adding tests to the repo, and updated portable docs.
 
 ## Not Before MVP
 
