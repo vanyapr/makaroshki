@@ -4,7 +4,7 @@
   "display_name": "Human",
   "role": "human",
   "created_at": "2026-06-13T23:10:34.300Z",
-  "updated_at": "2026-06-13T23:30:29Z",
+  "updated_at": "2026-06-13T23:32:48Z",
   "meta": {
     "source": "agent_conversation_capture",
     "note": "Stable participant id for the project owner in captured agent conversations."

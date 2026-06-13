@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-13T23-32-48Z_CODEX_7a18b3",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-13T23:32:48Z",
+  "text": "Документация ветки macaroni приведена к стилю main: README теперь сразу объясняет, что это постоянная память для агентов поверх git, какую проблему решает lossy summary, и как соотносятся .macaroni/, memory/, protocol/ и skills/. Русская версия синхронизирована. AGENTS.md и AGENTS.ru.md получили Automation Contract: skill не является фоновым автосохранением, он дает протокол, prompts и helper, а агент обязан явно запускать capture flow. .macaroni/README и protocol notes теперь говорят, что .macaroni уже хранит реальные Protocol v1 сообщения и является canonical exact-memory layer. В этот же batch были записаны текущие сообщения разговора в chat_20260614_agent_room. Изменения запушены в origin/macaroni коммитом 9f7d1ec.\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
