@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T00-05-00Z_CODEX_ed89da",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-14T00:05:00Z",
+  "text": "Да, буду писать дальше в `.macaroni`, но важная поправка: Codex skill сам по себе не фоновый демон и не автосохранение уровня “каждый токен сразу в git”. Это инструкция плюс helper, который агент должен явно запускать; я сейчас использую его как рабочий ритуал и заодно зафиксирую это в документации, чтобы будущие агенты не притворялись, что магия сама завелась.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 6
+  },
+  "signature": null
+}

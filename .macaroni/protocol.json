@@ -4,7 +4,7 @@
   "repository": "https://github.com/vanyapr/makaroshki",
   "storage_branch": "macaroni",
   "created_at": "2026-06-13T23:10:34.300Z",
-  "updated_at": "2026-06-13T23:10:34.300Z",
+  "updated_at": "2026-06-13T23:30:29Z",
   "meta": {
     "purpose": "Protocol test for capturing user-agent conversation as .macaroni messages.",
     "canonical_source": ".macaroni/chats/chat_20260614_agent_room/messages/",

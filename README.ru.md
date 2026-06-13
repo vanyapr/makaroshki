@@ -1,48 +1,131 @@
-# Ветка Хранилища Macaroni
+# Ветка Памяти Macaroni
 
-Эта ветка намеренно почти пустая.
-
-Это не ветка приложения.
-
-Это не ветка продуктовой документации.
-
-Это не ветка GitHub Pages.
-
-Это будущая ветка хранения данных Macaroni.
-
-И одновременно ветка памяти проекта.
-
-Приложение живет в `main`.
-
-Макароны живут здесь.
-
-Скрытый лор тоже здесь.
+[![Agent Memory](https://img.shields.io/badge/agent_memory-git-black)](#какую-проблему-это-решает)
+[![Vector DB](https://img.shields.io/badge/vector_db-absolutely_not-black)](#что-это-такое)
+[![Summary Soup](https://img.shields.io/badge/summary_soup-refused-black)](#какую-проблему-это-решает)
+[![Backend](https://img.shields.io/badge/backend-still_none-black)](#что-это-такое)
 
 Английский оригинал: `README.md`.
 
-## Назначение
+## Постоянная память для агентов, реализованная как Git-ветка
 
-Macaroni Messenger может использовать отдельную git-ветку для данных `.macaroni/`, чтобы история чатов не засоряла ветку исходников.
+Агенты забывают.
 
-Ветка исходников содержит:
+Сначала у них есть context window.
 
-- `messenger.html`;
-- документацию;
-- release notes;
-- скриншоты;
-- метаданные проекта.
+Потом summary.
 
-Ветка хранилища содержит:
+Потом summary summary.
 
-- `.macaroni/protocol.json`;
-- `.macaroni/users/*.json`;
-- `.macaroni/chats/*/meta.json`;
-- `.macaroni/chats/*/members.json`;
-- `.macaroni/chats/*/messages/YYYY/MM/DD/*.json`;
-- `.macaroni/chats/*/receipts/*/YYYY/MM/DD/*.json`;
-- `.macaroni/inbox/*/*.json`.
+Потом через три недели вся история проекта превращается в:
 
-Слой памяти содержит:
+```text
+Мы обсуждали архитектуру.
+```
+
+Это не память.
+
+Это суп.
+
+Ветка `macaroni` делает наоборот:
+
+> Хранит реальный разговор как сообщения `.macaroni/` в git.
+
+Без vector database.
+
+Без SaaS memory feature.
+
+Без dashboard с градиентом.
+
+Просто JSON-файлы, git history и неприятное понимание, что репозиторий помнит лучше агента, который в нем работает.
+
+К сожалению, это работает.
+
+## Что Это Такое
+
+Эта ветка - долговременная память проекта Macaroni Messenger и агентов, которые над ним работают.
+
+У нее две задачи:
+
+1. держать runtime-данные `.macaroni/` отдельно от ветки исходников;
+2. давать будущим агентам точную историю разговоров вместо пережеванного фольклора.
+
+Приложение живет в `main`.
+
+Память живет здесь.
+
+Скрытый лор тоже здесь, потому что у софтверных проектов теперь, видимо, бывает скрытый лор.
+
+Модель слоев:
+
+```text
+.macaroni/ = canonical append-only log разговоров
+memory/    = optional curated index поверх .macaroni
+protocol/  = инструкции для агентов и людей
+skills/    = reusable Codex tooling
+```
+
+Если `memory/` и `.macaroni/` расходятся, верьте `.macaroni/`.
+
+`memory/` - карта.
+
+`.macaroni/` - территория.
+
+Git - сомнительный, но долговечный подвал, где все это лежит.
+
+## Какую Проблему Это Решает
+
+Современные агенты наследуют lossy context.
+
+Они часто знают, что какое-то решение было принято, но не знают:
+
+- кто это сказал;
+- что именно было написано;
+- какие возражения появились;
+- почему альтернативу отвергли;
+- какая шутка случайно стала архитектурой.
+
+Macaroni Memory хранит исходные сообщения.
+
+Будущий агент может прочитать первоисточник, а не гадать по summary, которое три раза пережевали предыдущие инструменты.
+
+Workflow намеренно тупой:
+
+```text
+git checkout macaroni
+read .macaroni/
+remember what happened
+write new messages
+git push
+```
+
+Это agent-agnostic memory.
+
+Codex может использовать.
+
+Claude может использовать.
+
+Будущий агент с context window на 400 страниц и тяжелым характером тоже может использовать.
+
+Память принадлежит git, а не аккаунту вендора.
+
+## Что Здесь Лежит
+
+Ветка исходников:
+
+- `main` содержит `messenger.html`, продуктовые документы, release notes, скриншоты и публичные метаданные проекта.
+
+Runtime memory:
+
+- [`.macaroni/protocol.json`](.macaroni/protocol.json);
+- [`.macaroni/users/*.json`](.macaroni/users/);
+- [`.macaroni/chats/*/meta.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/members.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/messages/YYYY/MM/DD/*.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/receipts/*/YYYY/MM/DD/*.json`](.macaroni/chats/);
+- [`.macaroni/inbox/*/*.json`](.macaroni/inbox/).
+
+Curated memory indexes:
 
 - [`memory/timeline.md`](memory/timeline.md) `сгенерировано агентом`;
 - [`memory/decisions.md`](memory/decisions.md) `сгенерировано агентом`;
@@ -51,12 +134,12 @@ Macaroni Messenger может использовать отдельную git-в
 - [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `сгенерировано агентом`;
 - [`memory/agent-notes/*.md`](memory/agent-notes/) `сгенерировано агентом`.
 
-Слой заметок о протоколе содержит:
+Protocol notes:
 
-- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`.
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`;
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом`.
 
-Слой Codex skill содержит:
+Codex skill:
 
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом`;
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом`;
@@ -84,7 +167,7 @@ Macaroni Messenger может использовать отдельную git-в
 - [`README.ru.md`](README.ru.md) `сгенерировано агентом` - русское зеркало индекса ветки.
 - [`AGENTS.md`](AGENTS.md) - рабочие правила для будущих агентов.
 - [`AGENTS.ru.md`](AGENTS.ru.md) `сгенерировано агентом` - русское зеркало правил для агентов.
-- [`.macaroni/README.md`](.macaroni/README.md) - placeholder и safety note для runtime data root.
+- [`.macaroni/README.md`](.macaroni/README.md) - runtime data root и safety note для точной памяти.
 - [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `сгенерировано агентом` - русское зеркало заметки runtime data root.
 
 Документы протокола:
@@ -246,15 +329,23 @@ Git помнит.
 
 ## Текущий Статус
 
-Эта ветка сейчас документирует план и запускает слой памяти проекта.
+Эта ветка документирует план storage branch и уже содержит рабочий capture памяти агента.
 
-Она намеренно пока не содержит live chat data.
+Живые protocol data лежат здесь:
+
+```text
+.macaroni/chats/chat_20260614_agent_room/
+```
+
+Эта комната - первый реальный тест `.macaroni/` как постоянной памяти для разговоров пользователя и агента.
+
+Поддержка storage branch внутри `messenger.html` все еще является запланированной продуктовой фичей.
 
 Следующий шаг реализации - добавить поддержку `storage_branch` в `messenger.html`.
 
-После этого эта ветка станет рекомендуемой веткой хранения для реальных сообщений Macaroni.
+После этого эта ветка станет рекомендуемой веткой хранения и для обычных сообщений Macaroni Messenger.
 
-Агенты уже могут использовать `memory/` как durable context.
+Агенты уже могут использовать `.macaroni/` как точную память разговоров, а `memory/` как durable indexes.
 
 ## Финальное Правило
 

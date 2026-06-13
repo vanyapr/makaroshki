@@ -17,6 +17,28 @@ protocol/  = protocol notes and operating instructions
 
 Do not replace source messages with summaries. Summaries are indexes, not truth.
 
+## What This Skill Is Not
+
+This skill is not a daemon.
+
+It does not automatically listen to the chat UI.
+
+It does not push messages by itself after every turn.
+
+It is a workflow contract plus a helper script.
+
+When the user asks to remember the conversation, or when a meaningful task produced durable project context, Codex must explicitly run the capture flow.
+
+In other words:
+
+```text
+automatic memory = agent discipline + Protocol v1 files + git push
+```
+
+Not invisible background magic.
+
+Macaroni is already strange enough.
+
 ## Fast Workflow
 
 1. Check the repository state with `git status --short --branch`.

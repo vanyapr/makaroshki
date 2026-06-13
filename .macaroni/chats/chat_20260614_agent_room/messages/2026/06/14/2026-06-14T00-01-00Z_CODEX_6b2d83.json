@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T00-01-00Z_CODEX_6b2d83",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-14T00:01:00Z",
+  "text": "Продолжаю с уже созданной отдельной ветки под `macaroni`: сначала проверю, что именно успело лечь в README, затем приведу русскую версию и agent/protocol docs к тому же тону. После этого прогоню быстрые проверки и запушу именно в ветку `macaroni`, `main` не трогаю.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 2
+  },
+  "signature": null
+}

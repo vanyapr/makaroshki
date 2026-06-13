@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T00-04-00Z_HUMAN_bb76c8",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-14T00:04:00Z",
+  "text": "Дальше сразу записывай сообщения в этом чате в .macaroni чтобы помнить историю. Скилл это позволяет автоматически делать?",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 5
+  },
+  "signature": null
+}

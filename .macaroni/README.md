@@ -2,9 +2,17 @@
 
 This directory is intentionally tracked in the `macaroni` branch.
 
-It is the future runtime data root for Macaroni Messenger.
+It is the runtime data root for Macaroni protocol messages.
 
-Expected runtime layout:
+In this branch, it also acts as exact long-term memory for agents.
+
+If `memory/` is a neat notebook, `.macaroni/` is the stack of original receipts on the table.
+
+The notebook may be nicer.
+
+The receipts win arguments.
+
+Runtime layout:
 
 ```text
 .macaroni/
@@ -21,6 +29,12 @@ Use `memory/` for long-term project memory.
 Use `protocol/` for protocol notes.
 
 Use `.macaroni/` for machine-readable Macaroni protocol data.
+
+If you are preserving a user-agent conversation, write one Protocol v1 JSON message per turn.
+
+Do not replace the conversation with "we discussed things".
+
+That is how memory becomes soup.
 
 No secrets.
 
@@ -40,4 +54,6 @@ REDACTED
 
 Git tracks files, not empty directories.
 
-This README exists so the pasta pot exists before the pasta is cooked.
+This README started as a pasta pot placeholder.
+
+The pot now contains actual pasta.

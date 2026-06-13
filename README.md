@@ -1,46 +1,129 @@
-# Macaroni Storage Branch
+# Macaroni Memory Branch
 
-This branch is intentionally almost empty.
+[![Agent Memory](https://img.shields.io/badge/agent_memory-git-black)](#what-problem-it-solves)
+[![Vector DB](https://img.shields.io/badge/vector_db-absolutely_not-black)](#what-this-is)
+[![Summary Soup](https://img.shields.io/badge/summary_soup-refused-black)](#what-problem-it-solves)
+[![Backend](https://img.shields.io/badge/backend-still_none-black)](#what-this-is)
 
-It is not the application branch.
+## Persistent memory for agents, implemented as a Git branch
 
-It is not the documentation branch.
+Agents forget.
 
-It is not the GitHub Pages branch.
+First they get a context window.
 
-It is the future storage branch for Macaroni data.
+Then they get a summary.
 
-It is also the project memory branch.
+Then they get a summary of a summary.
+
+Then, three weeks later, the entire history of a project becomes:
+
+```text
+We discussed architecture.
+```
+
+This is not memory.
+
+This is soup.
+
+The `macaroni` branch is the opposite idea:
+
+> Store the actual conversation as `.macaroni/` messages in git.
+
+No vector database.
+
+No SaaS memory feature.
+
+No dashboard with a gradient.
+
+Just JSON files, git history, and the mild realization that a repository can remember more than the agent running inside it.
+
+Unfortunately, it works.
+
+## What This Is
+
+This branch is long-term project memory for Macaroni Messenger and for the agents working on it.
+
+It has two jobs:
+
+1. keep runtime `.macaroni/` data away from the source branch;
+2. give future agents exact conversation history instead of compressed folklore.
 
 The app lives on `main`.
 
-The pasta lives here.
+The memory lives here.
 
-The hidden lore lives here too.
+The hidden lore lives here too, because apparently software projects now have hidden lore.
 
-## Purpose
+Layer model:
 
-Macaroni Messenger can use a separate git branch for `.macaroni/` data, so chat history does not pollute the source branch.
+```text
+.macaroni/ = canonical append-only conversation log
+memory/    = optional curated index over .macaroni
+protocol/  = instructions for agents and humans
+skills/    = reusable Codex tooling
+```
 
-The source branch contains:
+If `memory/` and `.macaroni/` disagree, believe `.macaroni/`.
 
-- `messenger.html`;
-- docs;
-- release notes;
-- screenshots;
-- project metadata.
+`memory/` is the map.
 
-The storage branch contains:
+`.macaroni/` is the territory.
 
-- `.macaroni/protocol.json`;
-- `.macaroni/users/*.json`;
-- `.macaroni/chats/*/meta.json`;
-- `.macaroni/chats/*/members.json`;
-- `.macaroni/chats/*/messages/YYYY/MM/DD/*.json`;
-- `.macaroni/chats/*/receipts/*/YYYY/MM/DD/*.json`;
-- `.macaroni/inbox/*/*.json`.
+Git is the questionable but durable basement where both are stored.
 
-The memory layer contains:
+## What Problem It Solves
+
+Modern agents inherit lossy context.
+
+They often know that something was decided, but not:
+
+- who said it;
+- what was actually written;
+- what objections appeared;
+- why an alternative was rejected;
+- which joke accidentally became architecture.
+
+Macaroni Memory keeps the original messages.
+
+A future agent can read the source exchange instead of guessing from a summary that has been chewed three times by previous tooling.
+
+The workflow is intentionally stupid:
+
+```text
+git checkout macaroni
+read .macaroni/
+remember what happened
+write new messages
+git push
+```
+
+This is agent-agnostic memory.
+
+Codex can use it.
+
+Claude can use it.
+
+A future agent with a 400-page context window and an attitude problem can use it.
+
+The memory belongs to git, not to a vendor account.
+
+## What Lives Here
+
+Source branch:
+
+- `main` contains `messenger.html`, product docs, release notes, screenshots, and public project metadata.
+
+Runtime memory:
+
+- [`.macaroni/protocol.json`](.macaroni/protocol.json);
+- [`.macaroni/users/*.json`](.macaroni/users/);
+- [`.macaroni/chats/*/meta.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/members.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/messages/YYYY/MM/DD/*.json`](.macaroni/chats/);
+- [`.macaroni/chats/*/receipts/*/YYYY/MM/DD/*.json`](.macaroni/chats/);
+- [`.macaroni/inbox/*/*.json`](.macaroni/inbox/).
+
+Curated memory indexes:
 
 - [`memory/timeline.md`](memory/timeline.md) `agent-generated`;
 - [`memory/decisions.md`](memory/decisions.md) `agent-generated`;
@@ -49,12 +132,12 @@ The memory layer contains:
 - [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `agent-generated`;
 - [`memory/agent-notes/*.md`](memory/agent-notes/) `agent-generated`.
 
-The protocol notes layer contains:
+Protocol notes:
 
-- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`.
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`;
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated`.
 
-The Codex skill layer contains:
+Codex skill:
 
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated`;
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated`;
@@ -82,7 +165,7 @@ Core branch documents:
 - [`README.ru.md`](README.ru.md) `agent-generated` - Russian mirror of this branch index.
 - [`AGENTS.md`](AGENTS.md) - operating rules for future agents.
 - [`AGENTS.ru.md`](AGENTS.ru.md) `agent-generated` - Russian mirror of the agent rules.
-- [`.macaroni/README.md`](.macaroni/README.md) - placeholder and safety note for the runtime data root.
+- [`.macaroni/README.md`](.macaroni/README.md) - runtime data root and exact-memory safety note.
 - [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `agent-generated` - Russian mirror of the runtime data root note.
 
 Protocol documents:
@@ -244,15 +327,23 @@ Users should choose when to clean history.
 
 ## Current Status
 
-This branch currently documents the plan and starts the project memory layer.
+This branch documents the storage-branch plan and already contains a working agent-memory capture.
 
-It intentionally does not contain live chat data yet.
+There is live protocol data under:
+
+```text
+.macaroni/chats/chat_20260614_agent_room/
+```
+
+That room is the first real test of `.macaroni/` as persistent memory for user-agent conversations.
+
+The storage-branch support inside `messenger.html` is still a planned product feature.
 
 The next implementation step is to add `storage_branch` support to `messenger.html`.
 
-After that, this branch becomes the recommended storage branch for real Macaroni messages.
+After that, this branch becomes the recommended storage branch for normal Macaroni Messenger messages too.
 
-Agents may already use `memory/` for durable context.
+Agents may already use `.macaroni/` for exact conversation memory and `memory/` for durable indexes.
 
 ## Final Rule
 

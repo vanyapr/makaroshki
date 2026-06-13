@@ -6,6 +6,10 @@ The authoritative product protocol still lives in the source branch docs.
 
 This file explains how future agents should reason about `.macaroni/` when using this branch as storage and memory.
 
+Short version:
+
+> `.macaroni/` is how a future agent reads what actually happened, instead of inheriting "we discussed architecture" and quietly suffering.
+
 ## Core Idea
 
 `.macaroni/` is a git-native message store.
@@ -22,6 +26,16 @@ The protocol is intentionally boring:
 The transport may be GitHub API, GitLab API, GitVerse API, generic git HTTP, a wrapper, or something else.
 
 The stored shape remains `.macaroni/`.
+
+This is not a replacement for the messenger.
+
+This is not a replacement for product docs.
+
+This is not a sacred knowledge graph.
+
+It is messages in git.
+
+The disturbing part is that this is enough.
 
 ## Agent-Agnostic Memory Extension
 

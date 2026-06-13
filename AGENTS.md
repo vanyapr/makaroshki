@@ -8,6 +8,10 @@ Treat it as long-term project memory.
 
 Russian mirror: `AGENTS.ru.md`.
 
+If you are an agent, this branch is your external memory.
+
+Read it before pretending you remember.
+
 ## Purpose
 
 `main` answers:
@@ -25,6 +29,39 @@ This branch is not the product docs branch.
 This branch is not the GitHub Pages branch.
 
 This branch is memory for future agents.
+
+It solves one concrete problem: agent context gets compressed until important decisions become vague folklore.
+
+This branch keeps the original messages.
+
+## Automation Contract
+
+The Macaroni memory skill is not a background service.
+
+It does not automatically watch a chat window.
+
+It does not commit every token while nobody is looking.
+
+It gives agents:
+
+- the protocol contract;
+- prompts for reading and writing memory;
+- a helper script for writing Protocol v1 JSON messages;
+- validation rules.
+
+The automation is procedural:
+
+1. the agent decides the exchange is project-relevant;
+2. the agent redacts secrets;
+3. the agent runs the capture helper or writes equivalent Protocol v1 JSON;
+4. the agent validates the result;
+5. the agent commits and pushes the `macaroni` branch.
+
+If future tooling adds a real background capture hook, document it here before relying on it.
+
+Until then, no invisible magic.
+
+Just git with a clipboard.
 
 ## Macaroni As Agent-Agnostic Memory
 

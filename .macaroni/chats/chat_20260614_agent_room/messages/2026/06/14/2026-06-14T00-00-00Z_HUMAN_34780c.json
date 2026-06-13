@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T00-00-00Z_HUMAN_34780c",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-14T00:00:00Z",
+  "text": "в целом документацию в ветке macaroni причеши, чтобы она во-первых была в том же юмористическом ключе что и в мейне, а во-вторых объясняла сразу что это такое, и какую проблему оно решает (постоянная память для агентов)",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
