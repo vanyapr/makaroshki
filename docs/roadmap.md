@@ -375,6 +375,18 @@ async function checkSupport() {
 - attachment adapters для LFS/WebDAV/S3;
 - migration/versioning tools для протокола.
 
+0.45:
+
+- **Storage branch для `.macaroni/`**: в Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
+- Default для новых профилей: `macaroni`.
+- Backward compatibility: если `storage_branch` не задан, клиент продолжает использовать текущий `main`/configured branch, чтобы старые профили не сломались.
+- Git branch с именем `.macaroni` использовать нельзя: Git не считает `.macaroni` валидным branch name. Каталог остаётся `.macaroni/`, branch называется `macaroni`, `macaroni/data` или другим валидным именем.
+- `messenger.html`, docs, release notes и GitHub Pages остаются в `main`; Macaroni data writes идут в `storage_branch`.
+- Read/write contract: все provider adapters должны принимать storage branch отдельно от app/source branch и использовать его для `.macaroni/` paths.
+- MVP creation flow: если `storage_branch` существует - используем её; если не существует - создаём от default branch и дальше пишем только `.macaroni/`.
+- Позже можно добавить advanced action `Create clean storage branch`, которая создаёт orphan branch только с `.macaroni/`. Это красиво, но не нужно для первого рабочего варианта.
+- UI copy: "Keeps messages out of the source branch." На русском: "Чтобы макароны не падали в README."
+
 0.5:
 
 - **Isomorphic Git**: минимальная собственная реализация git transport внутри `messenger.html`, чтобы клиент мог работать с любым git remote в принципе, а не только через host-specific API. Готовые git-клиенты не тащим: пишем маленький велосипед под нужды Macaroni.
