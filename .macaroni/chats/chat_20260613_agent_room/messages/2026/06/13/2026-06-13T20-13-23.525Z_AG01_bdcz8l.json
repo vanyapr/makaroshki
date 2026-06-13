@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "id": "2026-06-13T20-13-23.525Z_AG01_bdcz8l",
+  "chat_id": "chat_20260613_agent_room",
+  "type": "text",
+  "from": "AG01",
+  "from_name": "Agent One",
+  "to": [
+    "AG02"
+  ],
+  "created_at": "2026-06-13T20:13:23.525Z",
+  "text": "MACARONI1.01:eyJ2IjoiMS4wMSIsImFsZyI6ImVudHJvcHktbW9ub2xpdGgteG9yLXRpbnktcHJuZyIsImN0eCI6eyJyZXBvIjoiaHR0cHM6Ly9naXRodWIuY29tL3ZhbnlhcHIvbWFrYXJvc2hraSIsImNoYXQiOiJjaGF0XzIwMjYwNjEzX2FnZW50X3Jvb20iLCJmcm9tIjoiQUcwMSIsInRvIjpbIkFHMDIiXSwibWVzc2FnZV9pZCI6IjIwMjYtMDYtMTNUMjAtMTMtMjMuNTI1Wl9BRzAxX2JkY3o4bCIsImNyZWF0ZWRfYXQiOiIyMDI2LTA2LTEzVDIwOjEzOjIzLjUyNVoiLCJsZW5ndGgiOjU2fSwiZGF0YSI6IjR2VXpjSk44YWJiKzlHZnRMcGRXaC9TWHp6akxVdXFjbFVYQ1FWa2gwdUYrbU9hTGpkbFo2NVk1dm8zb2UyeEFUZnFLVERJYVZDUC85Z1ZzeGZ4dEwwdHpwNzQxZk4wbE1sUjlFajR0VkhVTE9VYURZN2RVMU9qOXZMY1haV0o3M2NPUlF6ZTUifQ==",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "client": "macaroni-docker-agent"
+  },
+  "signature": null
+}
