@@ -10,9 +10,13 @@ It is not the GitHub Pages branch.
 
 It is the future storage branch for Macaroni data.
 
+It is also the project memory branch.
+
 The app lives on `main`.
 
 The pasta lives here.
+
+The hidden lore lives here too.
 
 ## Purpose
 
@@ -36,6 +40,14 @@ The storage branch contains:
 - `.macaroni/chats/*/receipts/*/YYYY/MM/DD/*.json`;
 - `.macaroni/inbox/*/*.json`.
 
+The memory layer contains:
+
+- `memory/timeline.md`;
+- `memory/decisions.md`;
+- `memory/open-questions.md`;
+- `memory/experiments.md`;
+- `memory/agent-notes/*.md`.
+
 That is all.
 
 No frontend.
@@ -45,6 +57,12 @@ No README-driven product marketing.
 No build system.
 
 No backend trying to sneak in through the window.
+
+`.macaroni/` is runtime protocol data.
+
+`memory/` is long-term project memory for future people and agents.
+
+Do not mix them just because both are funny.
 
 ## Branch Name
 
@@ -157,13 +175,15 @@ Users should choose when to clean history.
 
 ## Current Status
 
-This branch currently documents the plan.
+This branch currently documents the plan and starts the project memory layer.
 
 It intentionally does not contain live chat data yet.
 
 The next implementation step is to add `storage_branch` support to `messenger.html`.
 
 After that, this branch becomes the recommended storage branch for real Macaroni messages.
+
+Agents may already use `memory/` for durable context.
 
 ## Final Rule
 
@@ -174,3 +194,5 @@ After that, this branch becomes the recommended storage branch for real Macaroni
 Keep code out of pasta.
 
 Keep pasta out of code.
+
+Keep memory readable enough that a future agent does not need a séance.

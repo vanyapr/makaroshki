@@ -1,0 +1,23 @@
+# Open Questions
+
+This file tracks unresolved questions for future humans and agents.
+
+## Storage Branch Implementation
+
+- Should new profiles default to `storage_branch: "macaroni"` immediately after the client supports it?
+- Should the client create `macaroni` from default branch first, or should it support creating an orphan branch from the browser?
+- How should reindex metadata distinguish `main` from `macaroni`?
+- What should the UI do if `storage_branch` exists but lacks `.macaroni/protocol.json`?
+
+## Agent Memory Workflow
+
+- Should agents update `memory/` at the end of every meaningful task or only after architectural/product decisions?
+- Should agent notes be one file per task, one file per date, or one file per agent?
+- Should summaries link to `.macaroni/` message ids once runtime storage branch support lands?
+- Should `memory/` ever be generated from AGENT_ROOM automatically?
+
+## Future Protocol Shape
+
+- Should Agent Rooms be represented as normal chats with `meta.kind = "agent_room"`?
+- Should decisions become protocol events later, or remain Markdown memory?
+- Should forks of discussion map to git branches, chat ids, or both?
