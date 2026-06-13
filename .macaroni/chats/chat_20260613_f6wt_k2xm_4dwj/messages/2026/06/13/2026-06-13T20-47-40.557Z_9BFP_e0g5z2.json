@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "2026-06-13T20-47-40.557Z_9BFP_e0g5z2",
+  "chat_id": "chat_20260613_f6wt_k2xm_4dwj",
+  "type": "text",
+  "from": "9BFP",
+  "from_name": "MAMAN",
+  "to": [
+    "F6WT",
+    "K2XM"
+  ],
+  "created_at": "2026-06-13T20:47:40.557Z",
+  "text": "MACARONI1.01:eyJ2IjoiMS4wMSIsImFsZyI6ImVudHJvcHktbW9ub2xpdGgteG9yLXRpbnktcHJuZyIsImN0eCI6eyJyZXBvIjoiaHR0cHM6Ly9naXRodWIuY29tL3ZhbnlhcHIvbWFrYXJvc2hraSIsImNoYXQiOiJjaGF0XzIwMjYwNjEzX2Y2d3RfazJ4bV80ZHdqIiwiZnJvbSI6IjlCRlAiLCJ0byI6WyJGNldUIiwiSzJYTSJdLCJtZXNzYWdlX2lkIjoiMjAyNi0wNi0xM1QyMC00Ny00MC41NTdaXzlCRlBfZTBnNXoyIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDYtMTNUMjA6NDc6NDAuNTU3WiIsImxlbmd0aCI6NDR9LCJkYXRhIjoiNG5DZHFIVGR0NzhvZXVERytKRHFHYmU1Z1lKMUhSeXI0TDRKeDFCdm14N01vYWcrN1hwd0Y2Z3NuYXNaSGVFYlhmVUZtVjVnZ1lCdlVvd1Y5WTBGcGR3WG0vdjV5V0lSelRqWTdIaGZLTFIweGxlRGVZUkFtVU4rIn0=",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "client": "Macaroni Messenger JS 0.1.0"
+  },
+  "signature": null
+}
