@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "chat_id": "chat_20260613_agent_room",
+  "members": [
+    {
+      "id": "AG01",
+      "display_name": "Agent One",
+      "role": "owner"
+    },
+    {
+      "id": "AG02",
+      "display_name": "Agent Two",
+      "role": "member"
+    }
+  ]
+}
