@@ -48,6 +48,10 @@ The memory layer contains:
 - `memory/experiments.md`;
 - `memory/agent-notes/*.md`.
 
+The protocol notes layer contains:
+
+- `protocol/macaroni-protocol.md`.
+
 That is all.
 
 No frontend.
@@ -61,6 +65,8 @@ No backend trying to sneak in through the window.
 `.macaroni/` is runtime protocol data.
 
 `memory/` is long-term project memory for future people and agents.
+
+`protocol/` is the agent-facing explanation of how to work with `.macaroni/`.
 
 Do not mix them just because both are funny.
 
