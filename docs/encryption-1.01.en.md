@@ -190,7 +190,11 @@ This is knee cryptography that at least has a knee.
 
 ## Token Confetti
 
-If a local write token exists, Encryption 1.01 may use it as a local source of confetti before encryption.
+In a normal write-enabled Macaroni profile, a local write token is already present: without it, the user is not writing to git, just looking at macaroni through the shop window.
+
+Encryption 1.01 uses that token as a local source of confetti before encryption.
+
+In read-only/demo modes, the token may be absent. This does not break decryption because confetti is not the key.
 
 Token Confetti:
 
@@ -199,7 +203,7 @@ Token Confetti:
 - is never hashed into public metadata;
 - is never required for decryption;
 - may be different for every participant;
-- may be absent entirely.
+- is absent only in read-only/demo modes.
 
 Token Confetti is not a second lock.
 
@@ -209,7 +213,7 @@ The plugin may add confetti to the clear envelope before XOR stream encryption. 
 
 Different tokens do not break compatibility.
 
-No token does not disable encryption.
+No token in read-only/demo mode does not disable decryption.
 
 Token Confetti makes no promises.
 
