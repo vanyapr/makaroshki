@@ -42,29 +42,62 @@ The storage branch contains:
 
 The memory layer contains:
 
-- `memory/timeline.md`;
-- `memory/decisions.md`;
-- `memory/open-questions.md`;
-- `memory/experiments.md`;
-- `memory/agent-native-knowledge-layer.md`;
-- `memory/agent-notes/*.md`.
+- [`memory/timeline.md`](memory/timeline.md) `agent-generated`;
+- [`memory/decisions.md`](memory/decisions.md) `agent-generated`;
+- [`memory/open-questions.md`](memory/open-questions.md) `agent-generated`;
+- [`memory/experiments.md`](memory/experiments.md) `agent-generated`;
+- [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `agent-generated`;
+- [`memory/agent-notes/*.md`](memory/agent-notes/) `agent-generated`.
 
 The protocol notes layer contains:
 
-- `protocol/macaroni-protocol.md`.
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`.
 
 Russian documentation mirrors:
 
-- `README.ru.md`;
-- `AGENTS.ru.md`;
-- `.macaroni/README.ru.md`;
-- `protocol/macaroni-protocol.ru.md`;
-- `memory/timeline.ru.md`;
-- `memory/decisions.ru.md`;
-- `memory/open-questions.ru.md`;
-- `memory/experiments.ru.md`;
-- `memory/agent-native-knowledge-layer.ru.md`;
-- `memory/agent-notes/2026-06-14-macaroni-memory.ru.md`.
+- [`README.ru.md`](README.ru.md) `agent-generated`;
+- [`AGENTS.ru.md`](AGENTS.ru.md) `agent-generated`;
+- [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `agent-generated`;
+- [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `agent-generated`;
+- [`memory/timeline.ru.md`](memory/timeline.ru.md) `agent-generated`;
+- [`memory/decisions.ru.md`](memory/decisions.ru.md) `agent-generated`;
+- [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `agent-generated`;
+- [`memory/experiments.ru.md`](memory/experiments.ru.md) `agent-generated`;
+- [`memory/agent-native-knowledge-layer.ru.md`](memory/agent-native-knowledge-layer.ru.md) `agent-generated`;
+- [`memory/agent-notes/2026-06-14-macaroni-memory.ru.md`](memory/agent-notes/2026-06-14-macaroni-memory.ru.md) `agent-generated`.
+
+## Document Map
+
+Core branch documents:
+
+- [`README.md`](README.md) - this branch index.
+- [`README.ru.md`](README.ru.md) `agent-generated` - Russian mirror of this branch index.
+- [`AGENTS.md`](AGENTS.md) - operating rules for future agents.
+- [`AGENTS.ru.md`](AGENTS.ru.md) `agent-generated` - Russian mirror of the agent rules.
+- [`.macaroni/README.md`](.macaroni/README.md) - placeholder and safety note for the runtime data root.
+- [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `agent-generated` - Russian mirror of the runtime data root note.
+
+Protocol documents:
+
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated` - how agents should read and write `.macaroni/`.
+- [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `agent-generated` - Russian mirror.
+
+Curated memory indexes:
+
+- [`memory/timeline.md`](memory/timeline.md) `agent-generated` - project memory timeline.
+- [`memory/timeline.ru.md`](memory/timeline.ru.md) `agent-generated` - Russian mirror.
+- [`memory/decisions.md`](memory/decisions.md) `agent-generated` - durable decisions and reasoning.
+- [`memory/decisions.ru.md`](memory/decisions.ru.md) `agent-generated` - Russian mirror.
+- [`memory/open-questions.md`](memory/open-questions.md) `agent-generated` - unresolved questions.
+- [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `agent-generated` - Russian mirror.
+- [`memory/experiments.md`](memory/experiments.md) `agent-generated` - experiments worth remembering.
+- [`memory/experiments.ru.md`](memory/experiments.ru.md) `agent-generated` - Russian mirror.
+- [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `agent-generated` - the agent-native memory hypothesis.
+- [`memory/agent-native-knowledge-layer.ru.md`](memory/agent-native-knowledge-layer.ru.md) `agent-generated` - Russian mirror.
+- [`memory/agent-notes/2026-06-14-macaroni-memory.md`](memory/agent-notes/2026-06-14-macaroni-memory.md) `agent-generated` - first agent note for the branch.
+- [`memory/agent-notes/2026-06-14-macaroni-memory.ru.md`](memory/agent-notes/2026-06-14-macaroni-memory.ru.md) `agent-generated` - Russian mirror.
+
+`agent-generated` means the link points to a document created or maintained by agents as project memory. Treat those files as useful indexes and notes, not as a replacement for canonical `.macaroni/` messages or the source branch protocol docs.
 
 That is all.
 

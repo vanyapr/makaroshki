@@ -44,29 +44,62 @@ Macaroni Messenger может использовать отдельную git-в
 
 Слой памяти содержит:
 
-- `memory/timeline.md`;
-- `memory/decisions.md`;
-- `memory/open-questions.md`;
-- `memory/experiments.md`;
-- `memory/agent-native-knowledge-layer.md`;
-- `memory/agent-notes/*.md`.
+- [`memory/timeline.md`](memory/timeline.md) `сгенерировано агентом`;
+- [`memory/decisions.md`](memory/decisions.md) `сгенерировано агентом`;
+- [`memory/open-questions.md`](memory/open-questions.md) `сгенерировано агентом`;
+- [`memory/experiments.md`](memory/experiments.md) `сгенерировано агентом`;
+- [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `сгенерировано агентом`;
+- [`memory/agent-notes/*.md`](memory/agent-notes/) `сгенерировано агентом`.
 
 Слой заметок о протоколе содержит:
 
-- `protocol/macaroni-protocol.md`.
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`.
 
 Русские зеркала документации:
 
-- `README.ru.md`;
-- `AGENTS.ru.md`;
-- `.macaroni/README.ru.md`;
-- `protocol/macaroni-protocol.ru.md`;
-- `memory/timeline.ru.md`;
-- `memory/decisions.ru.md`;
-- `memory/open-questions.ru.md`;
-- `memory/experiments.ru.md`;
-- `memory/agent-native-knowledge-layer.ru.md`;
-- `memory/agent-notes/2026-06-14-macaroni-memory.ru.md`.
+- [`README.ru.md`](README.ru.md) `сгенерировано агентом`;
+- [`AGENTS.ru.md`](AGENTS.ru.md) `сгенерировано агентом`;
+- [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `сгенерировано агентом`;
+- [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `сгенерировано агентом`;
+- [`memory/timeline.ru.md`](memory/timeline.ru.md) `сгенерировано агентом`;
+- [`memory/decisions.ru.md`](memory/decisions.ru.md) `сгенерировано агентом`;
+- [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `сгенерировано агентом`;
+- [`memory/experiments.ru.md`](memory/experiments.ru.md) `сгенерировано агентом`;
+- [`memory/agent-native-knowledge-layer.ru.md`](memory/agent-native-knowledge-layer.ru.md) `сгенерировано агентом`;
+- [`memory/agent-notes/2026-06-14-macaroni-memory.ru.md`](memory/agent-notes/2026-06-14-macaroni-memory.ru.md) `сгенерировано агентом`.
+
+## Карта Документов
+
+Основные документы ветки:
+
+- [`README.md`](README.md) - индекс этой ветки.
+- [`README.ru.md`](README.ru.md) `сгенерировано агентом` - русское зеркало индекса ветки.
+- [`AGENTS.md`](AGENTS.md) - рабочие правила для будущих агентов.
+- [`AGENTS.ru.md`](AGENTS.ru.md) `сгенерировано агентом` - русское зеркало правил для агентов.
+- [`.macaroni/README.md`](.macaroni/README.md) - placeholder и safety note для runtime data root.
+- [`.macaroni/README.ru.md`](.macaroni/README.ru.md) `сгенерировано агентом` - русское зеркало заметки runtime data root.
+
+Документы протокола:
+
+- [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом` - как агентам читать и писать `.macaroni/`.
+- [`protocol/macaroni-protocol.ru.md`](protocol/macaroni-protocol.ru.md) `сгенерировано агентом` - русское зеркало.
+
+Curated memory indexes:
+
+- [`memory/timeline.md`](memory/timeline.md) `сгенерировано агентом` - timeline памяти проекта.
+- [`memory/timeline.ru.md`](memory/timeline.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`memory/decisions.md`](memory/decisions.md) `сгенерировано агентом` - durable decisions и reasoning.
+- [`memory/decisions.ru.md`](memory/decisions.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`memory/open-questions.md`](memory/open-questions.md) `сгенерировано агентом` - unresolved questions.
+- [`memory/open-questions.ru.md`](memory/open-questions.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`memory/experiments.md`](memory/experiments.md) `сгенерировано агентом` - эксперименты, которые стоит помнить.
+- [`memory/experiments.ru.md`](memory/experiments.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`memory/agent-native-knowledge-layer.md`](memory/agent-native-knowledge-layer.md) `сгенерировано агентом` - гипотеза agent-native memory.
+- [`memory/agent-native-knowledge-layer.ru.md`](memory/agent-native-knowledge-layer.ru.md) `сгенерировано агентом` - русское зеркало.
+- [`memory/agent-notes/2026-06-14-macaroni-memory.md`](memory/agent-notes/2026-06-14-macaroni-memory.md) `сгенерировано агентом` - первая заметка агента для ветки.
+- [`memory/agent-notes/2026-06-14-macaroni-memory.ru.md`](memory/agent-notes/2026-06-14-macaroni-memory.ru.md) `сгенерировано агентом` - русское зеркало.
+
+`сгенерировано агентом` означает, что ссылка ведет на документ, созданный или поддерживаемый агентами как память проекта. Считайте такие файлы полезными индексами и заметками, а не заменой canonical `.macaroni/` messages или protocol docs из ветки исходников.
 
 И все.
 
