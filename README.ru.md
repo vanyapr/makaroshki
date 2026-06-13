@@ -93,6 +93,7 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 - [docs/product-brief.md](docs/product-brief.md) - подробный продуктовый и архитектурный бриф.
 - [docs/roadmap.md](docs/roadmap.md) - актуальный roadmap.
 - [docs/development-steps.md](docs/development-steps.md) - последовательный план разработки.
+- [docs/releases/1.01.md](docs/releases/1.01.md) - release notes Macaroni Messenger 1.01.
 - [docs/protocol-v1.md](docs/protocol-v1.md) - файловая модель Macaroni Protocol v1.
 - [docs/github-provider.md](docs/github-provider.md) - первый реальный provider adapter.
 - [docs/generic-git-provider.md](docs/generic-git-provider.md) - как non-GitHub git hosts вписываются в transport contract.
@@ -116,6 +117,7 @@ English docs:
 - [docs/product-brief.en.md](docs/product-brief.en.md)
 - [docs/roadmap.en.md](docs/roadmap.en.md)
 - [docs/development-steps.en.md](docs/development-steps.en.md)
+- [docs/releases/1.01.en.md](docs/releases/1.01.en.md)
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md)
 - [docs/github-provider.en.md](docs/github-provider.en.md)
 - [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md)
