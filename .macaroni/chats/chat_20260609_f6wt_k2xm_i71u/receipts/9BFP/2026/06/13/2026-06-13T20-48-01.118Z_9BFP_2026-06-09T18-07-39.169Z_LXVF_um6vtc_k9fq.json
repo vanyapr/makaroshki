@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "id": "2026-06-13T20-48-01.118Z_9BFP_2026-06-09T18-07-39.169Z_LXVF_um6vtc_k9fq",
+  "type": "read",
+  "chat_id": "chat_20260609_f6wt_k2xm_i71u",
+  "user_id": "9BFP",
+  "user_name": "MAMAN",
+  "message_id": "2026-06-09T18-07-39.169Z_LXVF_um6vtc",
+  "message_created_at": "2026-06-09T18:07:39.169Z",
+  "read_at": "2026-06-13T20:48:01.118Z",
+  "created_at": "2026-06-13T20:48:01.118Z",
+  "meta": {
+    "client": "Macaroni Messenger JS 0.1.0"
+  },
+  "signature": null
+}
