@@ -276,11 +276,17 @@ we just built a platform
 
 ## Completely Explicit
 
-Macaroni Messenger is not designed as a tool for bypassing blocks.
+Macaroni Messenger was not conceived as a tool for bypassing blocks.
 
-Macaroni Messenger is not designed as a way to break the law.
+Macaroni Messenger was not conceived as a way to break the law.
 
-Macaroni Messenger is not a political manifesto.
+Macaroni Messenger was not conceived as a political manifesto.
+
+The point is not the tool. The point is the users.
+
+Before the Internet, exhibitionists went to parks.
+
+That did not make parks or raincoats bad.
 
 The author lives in Russia, votes, pays taxes, pays utility bills, and is not planning to move anywhere.
 
