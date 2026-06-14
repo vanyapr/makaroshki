@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T05-13-09Z_HUMAN_fe147b",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-14T05:13:09Z",
+  "text": "Selected text:\nесли ради просмотра одного HTML хочется принести 500 МБ обёртки, значит обёртка варит себя, а не макароны”\n\nМне нравилась моя версия шутки про \"бандл на 500 мегабайт для просмотра джипега в вебвью\". Найдем компромисную шутку, или сохраним обе. Че скажешь, мы готовы писать гит агностик без нарушения принципов проекта: велосипеды там где их можно написать и никаких зависимостей?\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
