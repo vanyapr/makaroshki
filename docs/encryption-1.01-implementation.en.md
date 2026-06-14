@@ -84,8 +84,6 @@ For 1.01, a core checkbox plus separate import/export/secret controls mounted by
 
 Plugin settings are not stored in the core profile.
 
-The plugin is duct-taped from the outside and performs protocoloscopy through the correct hole.
-
 That means:
 
 - core profile remains core profile;

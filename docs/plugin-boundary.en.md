@@ -75,7 +75,7 @@ mountSettings(container, context) {
 
 The core creates the container and passes context.
 
-After that, the plugin performs its own protocoloscopy.
+After that, the plugin renders its own controls and works with its own namespace.
 
 The plugin reads and writes its own namespace directly:
 
