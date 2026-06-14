@@ -4,12 +4,12 @@
   "repository": "https://github.com/vanyapr/makaroshki",
   "storage_branch": "macaroni",
   "created_at": "2026-06-13T23:10:34.300Z",
-  "updated_at": "2026-06-13T23:35:52Z",
+  "updated_at": "2026-06-14T04:38:36Z",
   "meta": {
     "purpose": "Protocol test for capturing user-agent conversation as .macaroni messages.",
     "canonical_source": ".macaroni/chats/chat_20260614_agent_room/messages/",
     "generated_by": "CODEX",
-    "capture_scope": "Conversation starting from the phrase \"А теперь серьезное.\" as available in the active Codex context.",
+    "capture_scope": "Project-relevant user-agent conversation captured by append-only .macaroni messages.",
     "capture_limitations": [
       "Some assistant raw messages before context compaction are unavailable in the active context.",
       "Older message timestamps were not available; captured messages use synthetic UTC ordering."

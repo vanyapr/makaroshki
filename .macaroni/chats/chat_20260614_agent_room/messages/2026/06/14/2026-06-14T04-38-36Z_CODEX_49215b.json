@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T04-38-36Z_CODEX_49215b",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-14T04:38:36Z",
+  "text": "Research-only решение зафиксировано без изменения main: создана ветка codex/research-git-host-adapters, добавлены docs/git-host-api-research.md и docs/git-host-api-research.en.md, обновлены generic git provider docs, roadmap и development steps. Вывод research: ближайший путь к git-agnostic Macaroni — browser-compatible host API adapters для GitLab, GitVerse, Gitea и Forgejo при сохранении GitHub adapter как reference implementation. Storage branch и read-only composer guard оставлены отдельными backlog items. Raw SSH из browser tab не цель; wrapper не должен стать обязательной ценой generic git support.\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
