@@ -395,10 +395,12 @@ Recommended:
 - The current GitHub adapter remains the reference implementation and must not be broken for the new abstraction.
 - Minimal shared contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard is a separate backlog item: if the token is missing or has no write permissions, hide the composer and honestly show that this is read-only mode.
-- **Isomorphic Git** in Macaroni means not an npm package, but our minimal self-written browser-side git/file transport up to the boundary where the browser can talk to the remote without a backend adapter.
-- The first phase of Isomorphic Git is host API adapters. The second phase, if needed, is our own Smart HTTP/git object subset where a browser-compatible remote allows it.
+- **Isomorphic Git** in Macaroni means not an npm package, but the whole minimal self-written browser-side transport layer up to the boundary where the browser can work with the remote without a backend adapter.
+- Host API adapters are not "phase one before real git"; they are the whole practical Isomorphic Git scope for the base product: use the remote's existing transport and ride as far as square wheels can go.
+- If your own Linux box needs a transport the browser can reach, it is the remote operator's turn to do the splits.
+- Smart HTTP/git object subset remains an optional experiment only for browser-compatible remotes without a sane host API, not a required next phase.
 - We do not bundle existing git clients or `isomorphic-git` from npm; we write the small bicycle Macaroni actually needs.
-- Support only the git subset the messenger needs: read refs/HEAD, read required objects/trees, create new `.macaroni/` blobs/trees/commits, and push a branch update.
+- Support only the transport subset the messenger needs: read/list/write `.macaroni/` paths, optional batch write, branch/ref marker, normalized errors.
 - SSH from the browser is still not promised. Isomorphic Git targets browser-compatible HTTP(S) git flow where the remote does not block CORS/auth. If the host does not let a browser talk to the git endpoint, a wrapper or adapter is still required.
 - The goal is not "complete git in HTML". The goal is "enough git for mom to receive a message".
 

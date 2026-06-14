@@ -395,10 +395,12 @@ async function checkSupport() {
 - Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
 - Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
-- **Isomorphic Git** в Macaroni означает не npm package, а наш минимальный self-written browser-side git/file transport до границы, где браузер может говорить с remote без backend adapter.
-- Первая фаза Isomorphic Git - host API adapters. Вторая фаза, если понадобится, - свой Smart HTTP/git object subset там, где browser-compatible remote это позволяет.
+- **Isomorphic Git** в Macaroni означает не npm package, а весь наш минимальный self-written browser-side transport layer до границы, где браузер может работать с remote без backend adapter.
+- Host API adapters - это не "первая фаза перед настоящим git", а весь practical Isomorphic Git для base product: используем существующий transport remote'а и едем туда, куда доезжают квадратные колёса.
+- Если для собственной Linux-машины нужен transport, до которого браузер сможет дотянуться, дальше очередь оператора remote садиться на шпагат.
+- Smart HTTP/git object subset остаётся optional experiment только для browser-compatible remotes без нормального host API, а не обязательной следующей фазой.
 - Готовые git-клиенты и `isomorphic-git` из npm не тащим: пишем маленький велосипед под нужды Macaroni.
-- Поддерживаем только тот subset git, который реально нужен messenger'у: получить refs/HEAD, прочитать нужные объекты/деревья, записать новые `.macaroni/` blobs/trees/commits и отправить update в branch.
+- Поддерживаем только тот transport subset, который реально нужен messenger'у: read/list/write `.macaroni/` paths, optional batch write, branch/ref marker, normalized errors.
 - SSH из браузера по-прежнему не обещаем. Isomorphic Git ориентируется на browser-compatible HTTP(S) git flow, где remote не мешает CORS/auth. Если host не даёт браузеру говорить с git endpoint, нужен wrapper или adapter.
 - Цель не "полный git в HTML". Цель - "достаточно git, чтобы мама получила сообщение".
 

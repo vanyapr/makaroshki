@@ -105,24 +105,32 @@ Macaroni Protocol v1
 Наше понимание:
 
 ```text
-Isomorphic Git = минимальный self-written browser-side git/file transport,
-который работает ровно до той границы, где браузер может говорить с remote сам.
+Isomorphic Git = весь минимальный self-written browser-side transport layer Macaroni,
+который использует существующие HTTPS/API transports remote'а
+и едет ровно до той границы, где браузер может работать сам.
 ```
 
-Первый слой:
+Это не "первая фаза перед настоящим git".
+
+Это и есть весь Isomorphic Git для base product.
+
+Что входит:
 
 - host API adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo;
 - file/content/tree/commit endpoints;
 - auth headers;
 - branch/ref handling;
+- optional batch write;
 - normalized errors.
 
-Второй слой, если понадобится:
+Что не входит:
 
-- свой минимальный Smart HTTP / git object subset;
-- только read/write branch data, которые нужны `.macaroni/`;
-- без полного git client;
-- без packfile-героизма там, где host API уже даёт нормальный file endpoint.
+- npm package `isomorphic-git`;
+- готовый git client;
+- обязательный backend adapter;
+- обязательный wrapper;
+- SSH из browser tab;
+- полный raw git stack ради спортивного интереса.
 
 Граница честности:
 
@@ -130,7 +138,15 @@ Isomorphic Git = минимальный self-written browser-side git/file trans
 - если remote требует SSH, локальный socket, запрещает CORS или прячет всё за backend-only flow - это не базовый продукт;
 - в таком случае нужен custom host adapter, настройка remote или optional wrapper, но не обязательная обёртка в поставке.
 
-То есть мы пишем своё ровно там, где браузер может работать без backend adapter.
+Если тебе надо на собственной Linux-машине развернуть transport так, чтобы браузер смог до него дотянуться, тут уже твоя очередь садиться на шпагат.
+
+Macaroni и так много сделал: доехал до границы браузера на квадратных колёсах.
+
+Если когда-нибудь попадётся browser-compatible remote без нормального host API, можно написать маленький Smart HTTP/git object subset.
+
+Но это не "следующая обязательная фаза".
+
+Это отдельный optional experiment для дороги, до которой квадратные колёса реально достают.
 
 Дальше не обещаем магию.
 
@@ -394,13 +410,13 @@ Transport contract не должен зависеть от них.
 4. После этого сделать Gitea/Forgejo family adapter.
 5. Добавить read-only composer guard.
 6. Отдельно реализовать storage branch.
-7. После host API adapters расширять наш Isomorphic Git вниз до Smart HTTP subset только там, где браузер может говорить с remote напрямую.
+7. Smart HTTP/git object subset оставить optional experiment только для browser-compatible remotes без нормального host API.
 
 ## Решение На Сейчас
 
-Git-agnostic Macaroni не должен начинаться с полного git implementation и не должен брать `isomorphic-git` из npm.
+Git-agnostic Macaroni не должен брать `isomorphic-git` из npm и не обязан писать полный git implementation.
 
-Он должен начинаться с browser-compatible host API adapters как первой фазы нашего собственного Isomorphic Git.
+Browser-compatible host API adapters - это и есть весь practical Isomorphic Git для base product.
 
 Это сохраняет:
 
@@ -410,7 +426,7 @@ Git-agnostic Macaroni не должен начинаться с полного g
 - понятный путь к GitLab/Gitea/Forgejo/GitVerse;
 - минимальную operational complexity.
 
-А полный "мы написали git в HTML" оставляем как следующий вид спорта. Красивый, бессмысленный и потенциально великий, но только после того, как обычные host APIs уже варят макароны.
+Полный "мы написали git в HTML" не нужен для доказательства. Если когда-нибудь понадобится доехать дальше, это будет отдельный велосипед, а не долг текущего release.
 
 ## Источники
 
