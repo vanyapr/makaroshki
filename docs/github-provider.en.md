@@ -64,7 +64,7 @@ If GitHub returns `409 Conflict` during a write, the client rereads file metadat
 
 ## Send/Refresh Flow
 
-If the profile uses provider `github` and has a token, the main composer uses `window.MacaroniGitHub`.
+If the profile uses provider `github` and has a token, the main composer goes through shared `window.MacaroniRemoteAdapters`, where GitHub remains the reference adapter.
 
 If the token is empty, the GitHub repo works as a read-only public repo: the client can read public history, but cannot create chats or send messages.
 

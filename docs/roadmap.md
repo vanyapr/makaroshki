@@ -118,6 +118,8 @@ Git является источником истины.
 - `docs/github-provider.en.md` - GitHub adapter guide на английском.
 - `docs/generic-git-provider.md` - transport contract для non-GitHub git hosts.
 - `docs/generic-git-provider.en.md` - generic git provider contract на английском.
+- `docs/git-host-api-research.md` - сравнение GitHub, GitLab, Gitea, Forgejo и GitVerse API для git-agnostic adapter roadmap.
+- `docs/git-host-api-research.en.md` - git host API research на английском.
 - `docs/plugin-boundary.md` - browser-side plugin boundary.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/encryption-1.01.md` - контракт Macaroni Encryption 1.01 как plugin layer без изменения Protocol v1.
@@ -377,7 +379,7 @@ async function checkSupport() {
 
 0.45:
 
-- **Storage branch для `.macaroni/`**: в Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
+- **Storage branch для `.macaroni/`**: backlog после git-agnostic adapters. В Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
 - Default для новых профилей: `macaroni`.
 - Backward compatibility: если `storage_branch` не задан, клиент продолжает использовать текущий `main`/configured branch, чтобы старые профили не сломались.
 - Git branch с именем `.macaroni` использовать нельзя: Git не считает `.macaroni` валидным branch name. Каталог остаётся `.macaroni/`, branch называется `macaroni`, `macaroni/data` или другим валидным именем.
@@ -389,8 +391,19 @@ async function checkSupport() {
 
 0.5:
 
-- **Isomorphic Git**: минимальная собственная реализация git transport внутри `messenger.html`, чтобы клиент мог работать с любым git remote в принципе, а не только через host-specific API. Готовые git-клиенты не тащим: пишем маленький велосипед под нужды Macaroni.
-- Поддерживаем только тот subset git, который реально нужен messenger'у: получить refs/HEAD, прочитать нужные объекты/деревья, записать новые `.macaroni/` blobs/trees/commits и отправить update в branch.
+- **Git-Agnostic Host Adapters**: ближайший шаг к "любой git" - browser-compatible host API adapters для GitLab, GitVerse, Gitea и Forgejo. Research: `docs/git-host-api-research.md`.
+- Статус: реализован minimal runtime в `messenger.html` через `window.MacaroniRemoteAdapters`.
+- Встроены adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo.
+- Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
+- Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
+- Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
+- **Isomorphic Git** в Macaroni означает не npm package, а весь наш минимальный self-written browser-side transport layer до границы, где браузер может работать с remote без backend adapter.
+- Host API adapters - это не "первая фаза перед настоящим git", а весь practical Isomorphic Git для base product: используем существующий transport remote'а и едем туда, куда доезжают квадратные колёса.
+- Если для собственной Linux-машины нужен transport, до которого браузер сможет дотянуться, дальше очередь оператора remote садиться на шпагат.
+- Smart HTTP/git object subset остаётся optional experiment только для browser-compatible remotes без нормального host API, а не обязательной следующей фазой.
+- Готовые git-клиенты и `isomorphic-git` из npm не тащим: пишем маленький велосипед под нужды Macaroni.
+- Поддерживаем только тот transport subset, который реально нужен messenger'у: read/list/write `.macaroni/` paths, optional batch write, branch/ref marker, normalized errors.
+- В runtime optional batch write пока не реализован: Protocol v1 files пишутся последовательно.
 - SSH из браузера по-прежнему не обещаем. Isomorphic Git ориентируется на browser-compatible HTTP(S) git flow, где remote не мешает CORS/auth. Если host не даёт браузеру говорить с git endpoint, нужен wrapper или adapter.
 - Цель не "полный git в HTML". Цель - "достаточно git, чтобы мама получила сообщение".
 

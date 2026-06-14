@@ -1117,6 +1117,8 @@
             <option value="git-http">Generic Git HTTP adapter</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
+            <option value="gitea">Gitea</option>
+            <option value="forgejo">Forgejo</option>
             <option value="other">Other / local test repo</option>
           </select>
         </div>
@@ -1175,6 +1177,8 @@
             <option value="git-http">Generic Git HTTP adapter</option>
             <option value="gitlab">GitLab</option>
             <option value="gitverse">GitVerse</option>
+            <option value="gitea">Gitea</option>
+            <option value="forgejo">Forgejo</option>
             <option value="other">Other / local test repo</option>
           </select>
         </div>
@@ -1477,7 +1481,7 @@
           transportDemo: "demo read-only",
           transportLocal: "local test repo",
           transportUnsupported: "{provider} unsupported",
-          unsupportedProvider: "{provider} adapter is not implemented in this HTML file yet. Macaroni Protocol is git-host agnostic, but browsers need a host-specific HTTPS/CORS adapter. Choose GitHub or Other/local test repo.",
+          unsupportedProvider: "{provider} adapter is not implemented in this HTML file yet. Built-in remotes: GitHub, GitLab, GitVerse, Gitea, Forgejo.",
           saveProfileFirst: "Save the profile first. An index without a repository is just a mood.",
           rebuildingIndex: "Rebuilding index. If git is large, you may have time to boil water.",
           indexRebuilt: "Index rebuilt. Skipped files: {count}.",
@@ -1518,8 +1522,8 @@
           createChatTokenRequired: "Creating a chat requires a write-capable provider token. Without a token this is a read-only repo.",
           joinChatTokenRequired: "Joining a chat requires a write-capable provider token. Without a token this is a read-only repo.",
           pollingError: "Polling could not refresh messages: {message}",
-          githubReadOnlyRetry: "GitHub repo is read-only. Retry waits for a token.",
-          githubReadOnlySend: "GitHub repo is read-only. Add a token to send messages.",
+          githubReadOnlyRetry: "Remote repo is read-only. Retry waits for a write-capable token.",
+          githubReadOnlySend: "Remote repo is read-only. Add a write-capable token to send messages.",
           demoReadOnlyAction: "Demo is hardcoded read-only. Add a GitHub token in Settings to use a real repo.",
           demoReadOnlySend: "Demo is read-only. Add a GitHub token in Settings to send messages.",
           sendingBackground: "sending background",
@@ -1622,7 +1626,7 @@
           transportDemo: "demo read-only",
           transportLocal: "локальный test repo",
           transportUnsupported: "{provider} не поддерживается",
-          unsupportedProvider: "{provider} adapter пока не встроен в этот HTML-файл. Macaroni Protocol не привязан к GitHub, но браузеру нужен host-specific HTTPS/CORS adapter. Выберите GitHub или Other/local test repo.",
+          unsupportedProvider: "{provider} adapter пока не встроен в этот HTML-файл. Встроенные remotes: GitHub, GitLab, GitVerse, Gitea, Forgejo.",
           saveProfileFirst: "Сначала сохраните профиль. Индекс без репозитория - это просто настроение.",
           rebuildingIndex: "Пересобираем индекс. Если git большой, можно успеть вскипятить воду.",
           indexRebuilt: "Индекс пересобран. Пропущено файлов: {count}.",
@@ -1663,8 +1667,8 @@
           createChatTokenRequired: "Для создания чата нужен token provider'а с правом записи. Без token это read-only repo.",
           joinChatTokenRequired: "Для вступления в чат нужен token provider'а с правом записи. Без token это read-only repo.",
           pollingError: "Polling не смог обновить сообщения: {message}",
-          githubReadOnlyRetry: "GitHub repo read-only. Retry ждет token.",
-          githubReadOnlySend: "GitHub repo read-only. Добавьте token, чтобы отправлять сообщения.",
+          githubReadOnlyRetry: "Remote repo read-only. Retry ждет token с правом записи.",
+          githubReadOnlySend: "Remote repo read-only. Добавьте token с правом записи, чтобы отправлять сообщения.",
           demoReadOnlyAction: "Demo захардкожено и работает read-only. Добавьте GitHub token в настройках, чтобы использовать настоящий repo.",
           demoReadOnlySend: "Demo read-only. Добавьте GitHub token в настройках, чтобы отправлять сообщения.",
           sendingBackground: "отправляем в фоне",
@@ -3136,6 +3140,431 @@
         return githubWriteFile(config, path, JSON.stringify(value, null, 2), message);
       }
 
+      function trimTrailingSlash(value) {
+        return String(value || "").replace(/\/+$/g, "");
+      }
+
+      function encodePathSegments(path) {
+        return normalizeRepoPath(path).split("/").filter(Boolean).map(encodeURIComponent).join("/");
+      }
+
+      function appendQuery(url, params) {
+        var query = Object.keys(params || {}).filter(function (key) {
+          return params[key] !== undefined && params[key] !== null && params[key] !== "";
+        }).map(function (key) {
+          return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+        }).join("&");
+
+        if (!query) {
+          return url;
+        }
+
+        return url + (url.indexOf("?") === -1 ? "?" : "&") + query;
+      }
+
+      function parseHostedRepo(repoUrl, options) {
+        var settings = options || {};
+        var value = String(repoUrl || "").trim();
+        var defaultOrigin = settings.defaultOrigin || "";
+        var url = null;
+        var path = "";
+
+        if (/^[^/\s]+\/[^/\s]+/.test(value) && value.indexOf("://") === -1 && defaultOrigin) {
+          value = trimTrailingSlash(defaultOrigin) + "/" + value;
+        }
+
+        try {
+          url = new URL(value);
+        } catch (error) {
+          throw new Error(settings.name + " repo URL must look like " + (settings.example || "https://host/owner/repo"));
+        }
+
+        path = url.pathname.replace(/^\/+|\/+$/g, "").replace(/\.git$/i, "");
+        var parts = path.split("/").filter(Boolean);
+        var minParts = settings.allowNestedProject ? 2 : 2;
+
+        if (parts.length < minParts || (!settings.allowNestedProject && parts.length !== 2)) {
+          throw new Error(settings.name + " repo URL must look like " + (settings.example || "https://host/owner/repo"));
+        }
+
+        return {
+          origin: url.origin,
+          owner: parts[0],
+          repo: parts[parts.length - 1],
+          projectPath: parts.join("/")
+        };
+      }
+
+      function genericProviderError(config, response, data) {
+        var provider = (config && config.label) || "Git provider";
+        var rawMessage = data && (data.message || data.error || data.error_description) ? (data.message || data.error || data.error_description) : response.statusText;
+        var message = provider + " error: " + rawMessage;
+
+        if (response.status === 401) {
+          message = provider + " rejected the token.";
+        } else if (response.status === 403) {
+          message = provider + " denied access. Check token repository permissions.";
+        } else if (response.status === 404) {
+          message = provider + " did not find the repo or file. Check repository URL, branch, and token access.";
+        } else if (response.status === 409 || response.status === 400) {
+          message = provider + " saw a write conflict or invalid write. Refresh and try again.";
+        } else if (response.status === 422) {
+          message = provider + " rejected the write payload.";
+        } else if (/rate limit/i.test(rawMessage || "")) {
+          message = provider + " rate limit is exhausted.";
+        }
+
+        var error = new Error(message);
+        error.status = response.status;
+        error.provider = config && config.provider;
+        return error;
+      }
+
+      function providerRequest(config, url, options, allowMissing) {
+        var requestOptions = Object.assign({
+          method: "GET",
+          headers: config.headers()
+        }, options || {});
+
+        return config.transport(url, requestOptions).then(function (response) {
+          return response.text().then(function (text) {
+            var data = null;
+            if (text) {
+              try {
+                data = JSON.parse(text);
+              } catch (error) {
+                data = { message: text };
+              }
+            }
+            if (!response.ok) {
+              if (allowMissing && response.status === 404 && requestOptions.method === "GET") {
+                return null;
+              }
+              throw genericProviderError(config, response, data);
+            }
+            if (text && data && data.message === text) {
+              throw genericProviderError(config, response, data);
+            }
+            return data;
+          });
+        });
+      }
+
+      function gitlabHeaders(config) {
+        var headers = {
+          "Accept": "application/json"
+        };
+
+        if (config.token) {
+          headers["PRIVATE-TOKEN"] = config.token;
+        }
+
+        return headers;
+      }
+
+      function parseGitLabRepo(repoUrl) {
+        var repo = parseHostedRepo(repoUrl, {
+          name: "GitLab",
+          defaultOrigin: "https://gitlab.com",
+          example: "https://gitlab.com/group/project",
+          allowNestedProject: true
+        });
+        return {
+          origin: repo.origin,
+          projectPath: repo.projectPath
+        };
+      }
+
+      function createGitLabConfig(profile) {
+        var repo = parseGitLabRepo(profile.repo);
+        return {
+          provider: "gitlab",
+          label: "GitLab",
+          origin: repo.origin,
+          apiBase: trimTrailingSlash(repo.origin) + "/api/v4",
+          projectPath: repo.projectPath,
+          branch: profile.branch || "main",
+          token: profile.token || "",
+          transport: profile.transport || window.fetch.bind(window),
+          headers: function () {
+            return gitlabHeaders(this);
+          }
+        };
+      }
+
+      function gitlabProjectUrl(config, path) {
+        return config.apiBase + "/projects/" + encodeURIComponent(config.projectPath) + "/" + normalizeRepoPath(path);
+      }
+
+      function gitlabFileUrl(config, path) {
+        return gitlabProjectUrl(config, "repository/files/" + encodeURIComponent(normalizeRepoPath(path)));
+      }
+
+      function gitlabReadHead(config) {
+        return providerRequest(config, gitlabProjectUrl(config, "repository/branches/" + encodeURIComponent(config.branch)), {
+          method: "GET"
+        }, false).then(function (data) {
+          return data && data.commit ? (data.commit.id || data.commit.short_id || null) : null;
+        });
+      }
+
+      function gitlabReadFile(config, path) {
+        return providerRequest(config, appendQuery(gitlabFileUrl(config, path), { ref: config.branch }), {
+          method: "GET"
+        }, true).then(function (data) {
+          if (!data) {
+            return null;
+          }
+
+          return {
+            path: data.file_path || normalizeRepoPath(path),
+            content: data.encoding === "base64" ? base64ToUtf8(data.content || "") : String(data.content || ""),
+            sha: data.blob_id || data.content_sha256 || data.last_commit_id || null
+          };
+        });
+      }
+
+      function gitlabReadJson(config, path) {
+        return gitlabReadFile(config, path).then(function (file) {
+          return file ? JSON.parse(file.content) : null;
+        });
+      }
+
+      function gitlabListFiles(config, path) {
+        return providerRequest(config, appendQuery(gitlabProjectUrl(config, "repository/tree"), {
+          ref: config.branch,
+          path: normalizeRepoPath(path),
+          per_page: 100
+        }), {
+          method: "GET"
+        }, true).then(function (data) {
+          return (Array.isArray(data) ? data : []).map(function (entry) {
+            return {
+              path: entry.path,
+              type: entry.type === "tree" ? "dir" : "file",
+              sha: entry.id || null
+            };
+          });
+        });
+      }
+
+      function gitlabWriteFile(config, path, content, message) {
+        var normalizedPath = normalizeRepoPath(path);
+        return gitlabReadFile(config, normalizedPath).then(function (existingFile) {
+          var body = {
+            branch: config.branch,
+            commit_message: message || "Macaroni Messenger: write " + normalizedPath,
+            content: utf8ToBase64(content),
+            encoding: "base64"
+          };
+          var method = existingFile ? "PUT" : "POST";
+
+          return providerRequest(config, gitlabFileUrl(config, normalizedPath), {
+            method: method,
+            headers: Object.assign({}, gitlabHeaders(config), {
+              "Content-Type": "application/json"
+            }),
+            body: JSON.stringify(body)
+          }, false);
+        });
+      }
+
+      function gitlabWriteJson(config, path, value, message) {
+        return gitlabWriteFile(config, path, JSON.stringify(value, null, 2), message);
+      }
+
+      function githubLikeHeaders(config) {
+        var headers = {
+          "Accept": config.accept || "application/json"
+        };
+
+        if (config.token) {
+          headers.Authorization = config.authPrefix + " " + config.token;
+        }
+
+        return headers;
+      }
+
+      function parseGithubLikeRepo(repoUrl, settings) {
+        var repo = parseHostedRepo(repoUrl, {
+          name: settings.name,
+          defaultOrigin: settings.defaultOrigin,
+          example: settings.example,
+          allowNestedProject: false
+        });
+        return {
+          origin: repo.origin,
+          owner: repo.owner,
+          repo: repo.repo
+        };
+      }
+
+      function createGithubLikeConfig(profile, settings) {
+        var repo = parseGithubLikeRepo(profile.repo, settings);
+        return {
+          provider: settings.provider,
+          label: settings.name,
+          origin: repo.origin,
+          apiBase: settings.apiBase ? settings.apiBase(repo.origin) : trimTrailingSlash(repo.origin) + "/api/v1",
+          owner: repo.owner,
+          repo: repo.repo,
+          branch: profile.branch || "main",
+          token: profile.token || "",
+          authPrefix: settings.authPrefix || "token",
+          accept: settings.accept || "application/json",
+          createMethod: settings.createMethod || "POST",
+          transport: profile.transport || window.fetch.bind(window),
+          headers: function () {
+            return githubLikeHeaders(this);
+          }
+        };
+      }
+
+      function githubLikeRepoUrl(config, path) {
+        return config.apiBase + "/repos/" +
+          encodeURIComponent(config.owner) +
+          "/" +
+          encodeURIComponent(config.repo) +
+          "/" +
+          normalizeRepoPath(path);
+      }
+
+      function githubLikeContentUrl(config, path) {
+        return githubLikeRepoUrl(config, "contents/" + encodePathSegments(path));
+      }
+
+      function githubLikeReadHead(config) {
+        if (config.provider === "gitverse") {
+          return providerRequest(config, githubLikeRepoUrl(config, "branches"), {
+            method: "GET"
+          }, false).then(function (branches) {
+            var match = (Array.isArray(branches) ? branches : []).find(function (branch) {
+              return branch && branch.name === config.branch;
+            });
+            var commit = match && match.commit;
+            return commit ? (commit.sha || commit.id || null) : null;
+          });
+        }
+
+        return providerRequest(config, githubLikeRepoUrl(config, "branches/" + encodeURIComponent(config.branch)), {
+          method: "GET"
+        }, false).then(function (data) {
+          var commit = data && data.commit;
+          return commit ? (commit.sha || commit.id || null) : null;
+        });
+      }
+
+      function githubLikeReadFile(config, path) {
+        return providerRequest(config, appendQuery(githubLikeContentUrl(config, path), { ref: config.branch }), {
+          method: "GET"
+        }, true).then(function (data) {
+          if (!data || Array.isArray(data) || data.type !== "file") {
+            return null;
+          }
+
+          return {
+            path: data.path,
+            content: data.encoding === "base64" ? base64ToUtf8(data.content || "") : String(data.content || ""),
+            sha: data.sha || null
+          };
+        });
+      }
+
+      function githubLikeReadJson(config, path) {
+        return githubLikeReadFile(config, path).then(function (file) {
+          return file ? JSON.parse(file.content) : null;
+        });
+      }
+
+      function githubLikeListFiles(config, path) {
+        return providerRequest(config, appendQuery(githubLikeContentUrl(config, path || ""), { ref: config.branch }), {
+          method: "GET"
+        }, true).then(function (data) {
+          if (!data) {
+            return [];
+          }
+
+          if (Array.isArray(data)) {
+            return data.map(function (entry) {
+              return {
+                path: entry.path,
+                type: entry.type === "dir" || entry.type === "tree" ? "dir" : "file",
+                sha: entry.sha || null
+              };
+            });
+          }
+
+          return [{
+            path: data.path,
+            type: data.type === "dir" || data.type === "tree" ? "dir" : "file",
+            sha: data.sha || null
+          }];
+        });
+      }
+
+      function githubLikeWriteFile(config, path, content, message) {
+        var normalizedPath = normalizeRepoPath(path);
+        return githubLikeReadFile(config, normalizedPath).then(function (existingFile) {
+          var body = {
+            message: message || "Macaroni Messenger: write " + normalizedPath,
+            content: utf8ToBase64(content),
+            branch: config.branch
+          };
+          var method = existingFile ? "PUT" : config.createMethod;
+
+          if (existingFile && existingFile.sha) {
+            body.sha = existingFile.sha;
+          }
+
+          return providerRequest(config, githubLikeContentUrl(config, normalizedPath), {
+            method: method,
+            headers: Object.assign({}, githubLikeHeaders(config), {
+              "Content-Type": "application/json"
+            }),
+            body: JSON.stringify(body)
+          }, false);
+        });
+      }
+
+      function githubLikeWriteJson(config, path, value, message) {
+        return githubLikeWriteFile(config, path, JSON.stringify(value, null, 2), message);
+      }
+
+      function createGitVerseConfig(profile) {
+        return createGithubLikeConfig(profile, {
+          provider: "gitverse",
+          name: "GitVerse",
+          defaultOrigin: "https://gitverse.ru",
+          example: "https://gitverse.ru/owner/repo",
+          apiBase: function () {
+            return "https://api.gitverse.ru";
+          },
+          authPrefix: "Bearer",
+          accept: "application/vnd.gitverse.object+json; version=1",
+          createMethod: "PUT"
+        });
+      }
+
+      function createGiteaConfig(profile) {
+        return createGithubLikeConfig(profile, {
+          provider: "gitea",
+          name: "Gitea",
+          example: "https://gitea.example/owner/repo",
+          authPrefix: "token",
+          createMethod: "POST"
+        });
+      }
+
+      function createForgejoConfig(profile) {
+        return createGithubLikeConfig(profile, {
+          provider: "forgejo",
+          name: "Forgejo",
+          example: "https://codeberg.org/owner/repo",
+          authPrefix: "token",
+          createMethod: "POST"
+        });
+      }
+
       function runSequentially(tasks) {
         var chain = Promise.resolve();
         var results = [];
@@ -3152,16 +3581,6 @@
         });
       }
 
-      function githubEnsureJson(config, path, value, message) {
-        return githubReadJson(config, path).then(function (existingValue) {
-          if (existingValue) {
-            return existingValue;
-          }
-
-          return githubWriteJson(config, path, value, message);
-        });
-      }
-
       function canReadGitHub(profile) {
         return !!(profile && profile.provider === "github" && profile.repo);
       }
@@ -3170,13 +3589,99 @@
         return !!(profile && profile.demo);
       }
 
-      function canWriteGitHub(profile) {
-        return !!(!isDemoProfile(profile) && canReadGitHub(profile) && profile.token);
+      var REMOTE_PROVIDER_ADAPTERS = {
+        github: {
+          id: "github",
+          label: "GitHub",
+          createConfig: createGitHubConfig,
+          readHead: githubReadHead,
+          readFile: githubReadFile,
+          readJson: githubReadJson,
+          listFiles: githubListFiles,
+          writeFile: githubWriteFile,
+          writeJson: githubWriteJson
+        },
+        gitlab: {
+          id: "gitlab",
+          label: "GitLab",
+          createConfig: createGitLabConfig,
+          readHead: gitlabReadHead,
+          readFile: gitlabReadFile,
+          readJson: gitlabReadJson,
+          listFiles: gitlabListFiles,
+          writeFile: gitlabWriteFile,
+          writeJson: gitlabWriteJson
+        },
+        gitverse: {
+          id: "gitverse",
+          label: "GitVerse",
+          createConfig: createGitVerseConfig,
+          readHead: githubLikeReadHead,
+          readFile: githubLikeReadFile,
+          readJson: githubLikeReadJson,
+          listFiles: githubLikeListFiles,
+          writeFile: githubLikeWriteFile,
+          writeJson: githubLikeWriteJson
+        },
+        gitea: {
+          id: "gitea",
+          label: "Gitea",
+          createConfig: createGiteaConfig,
+          readHead: githubLikeReadHead,
+          readFile: githubLikeReadFile,
+          readJson: githubLikeReadJson,
+          listFiles: githubLikeListFiles,
+          writeFile: githubLikeWriteFile,
+          writeJson: githubLikeWriteJson
+        },
+        forgejo: {
+          id: "forgejo",
+          label: "Forgejo",
+          createConfig: createForgejoConfig,
+          readHead: githubLikeReadHead,
+          readFile: githubLikeReadFile,
+          readJson: githubLikeReadJson,
+          listFiles: githubLikeListFiles,
+          writeFile: githubLikeWriteFile,
+          writeJson: githubLikeWriteJson
+        }
+      };
+
+      function profileProviderId(profile) {
+        return String((profile && profile.provider) || "github").trim().toLowerCase();
+      }
+
+      function remoteAdapter(profile) {
+        return REMOTE_PROVIDER_ADAPTERS[profileProviderId(profile)] || null;
+      }
+
+      function createRemoteConfig(profile) {
+        var adapter = remoteAdapter(profile);
+        if (!adapter) {
+          throw unsupportedProviderError(profile);
+        }
+
+        var config = adapter.createConfig(profile || {});
+        config.adapter = adapter;
+        return config;
+      }
+
+      function canReadRemote(profile) {
+        return !!(!isDemoProfile(profile) && profile && profile.repo && remoteAdapter(profile));
+      }
+
+      function canWriteRemote(profile) {
+        return !!(canReadRemote(profile) && profile.token);
+      }
+
+      function remoteLabel(profile) {
+        var adapter = remoteAdapter(profile);
+        return adapter ? adapter.label : unsupportedProviderName(profile);
       }
 
       function unsupportedProviderName(profile) {
         var provider = profile && profile.provider;
-        if (!provider || provider === "github" || provider === "other") {
+        if (!provider || provider === "other" || remoteAdapter(profile)) {
           return "";
         }
 
@@ -3192,22 +3697,50 @@
         return new Error(t("unsupportedProvider", { provider: provider }));
       }
 
-      function initGitHubRepo(profile) {
-        var config = createGitHubConfig(profile);
+      function uniqueRepoFiles(files) {
+        var seen = {};
+        return files.filter(function (file) {
+          if (!file || !file.path || seen[file.path]) {
+            return false;
+          }
+
+          seen[file.path] = true;
+          return true;
+        });
+      }
+
+      function remoteEnsureJson(config, path, value, message) {
+        return config.adapter.readJson(config, path).then(function (existingValue) {
+          if (existingValue) {
+            return existingValue;
+          }
+
+          return config.adapter.writeJson(config, path, value, message);
+        });
+      }
+
+      function initRemoteRepo(profile) {
+        var config = createRemoteConfig(profile);
         var now = new Date().toISOString();
         return runSequentially([
           function () {
-            return githubEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol");
+            return remoteEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol");
           },
           function () {
-            return githubEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID));
+            return remoteEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID));
           }
         ]);
       }
 
-      function githubFindFirstChatMeta(profile) {
-        var config = createGitHubConfig(profile);
-        return githubListFiles(config, macaroniPath("chats")).then(function (entries) {
+      function readRemoteJsonSafe(config, path) {
+        return config.adapter.readJson(config, path).catch(function () {
+          return null;
+        });
+      }
+
+      function remoteFindFirstChatMeta(profile) {
+        var config = createRemoteConfig(profile);
+        return config.adapter.listFiles(config, macaroniPath("chats")).then(function (entries) {
           var dirs = entries.filter(function (entry) {
             return entry.type === "dir";
           });
@@ -3219,9 +3752,7 @@
                 return found;
               }
 
-              return githubReadJson(config, entry.path + "/meta.json").catch(function () {
-                return null;
-              });
+              return readRemoteJsonSafe(config, entry.path + "/meta.json");
             });
           });
 
@@ -3229,16 +3760,16 @@
         });
       }
 
-      function githubListChatMetas(profile) {
-        var config = createGitHubConfig(profile);
-        return githubListFiles(config, macaroniPath("chats")).then(function (entries) {
+      function remoteListChatMetas(profile) {
+        var config = createRemoteConfig(profile);
+        return config.adapter.listFiles(config, macaroniPath("chats")).then(function (entries) {
           var chain = Promise.resolve([]);
 
           entries.filter(function (entry) {
             return entry.type === "dir";
           }).forEach(function (entry) {
             chain = chain.then(function (chats) {
-              return readGitHubJsonSafe(config, entry.path + "/meta.json").then(function (chatMeta) {
+              return readRemoteJsonSafe(config, entry.path + "/meta.json").then(function (chatMeta) {
                 return chatMeta ? chats.concat([chatMeta]) : chats;
               });
             });
@@ -3248,8 +3779,8 @@
         });
       }
 
-      function createGitHubChat(profile, options) {
-        var config = createGitHubConfig(profile);
+      function createRemoteChat(profile, options) {
+        var config = createRemoteConfig(profile);
         var value = options || {};
         var ownerId = value.owner_id || CLIENT_ID;
         var members = value.members || [
@@ -3269,10 +3800,10 @@
 
         return runSequentially([
           function () {
-            return githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title);
+            return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title);
           },
           function () {
-            return githubWriteJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id);
+            return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id);
           }
         ]).then(function () {
           return {
@@ -3282,8 +3813,8 @@
         });
       }
 
-      function sendGitHubMessage(profile, options) {
-        var config = createGitHubConfig(profile);
+      function sendRemoteMessage(profile, options) {
+        var config = createRemoteConfig(profile);
         var value = options || {};
         var message = value.message || createTextMessage({
           chat_id: value.chat_id,
@@ -3296,13 +3827,13 @@
         });
         var writes = [
           function () {
-            return githubWriteJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id);
+            return config.adapter.writeJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id);
           }
         ];
 
         message.to.forEach(function (recipientId) {
           writes.push(function () {
-            return githubWriteJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id);
+            return config.adapter.writeJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id);
           });
         });
 
@@ -3313,40 +3844,34 @@
         });
       }
 
-      function writeGitHubReadReceipt(profile, receipt) {
-        var config = createGitHubConfig(profile);
+      function writeRemoteReadReceipt(profile, receipt) {
+        var config = createRemoteConfig(profile);
         validateReadReceipt(receipt);
-        return githubWriteJson(config, receiptPath(receipt), receipt, "Macaroni: read receipt " + receipt.message_id).then(function () {
+        return config.adapter.writeJson(config, receiptPath(receipt), receipt, "Macaroni: read receipt " + receipt.message_id).then(function () {
           return receipt;
         });
       }
 
-      function readGitHubJsonSafe(config, path) {
-        return githubReadJson(config, path).catch(function () {
-          return null;
-        });
-      }
-
-      function listGitHubMessageFiles(config, chatId) {
-        return githubListFiles(config, macaroniPath("chats/" + chatId + "/messages")).then(function (years) {
+      function listRemoteMessageFiles(config, chatId) {
+        return config.adapter.listFiles(config, macaroniPath("chats/" + chatId + "/messages")).then(function (years) {
           var chain = Promise.resolve([]);
           years.filter(function (entry) {
             return entry.type === "dir";
           }).forEach(function (yearEntry) {
             chain = chain.then(function (files) {
-              return githubListFiles(config, yearEntry.path).then(function (months) {
+              return config.adapter.listFiles(config, yearEntry.path).then(function (months) {
                 var monthChain = Promise.resolve(files);
                 months.filter(function (entry) {
                   return entry.type === "dir";
                 }).forEach(function (monthEntry) {
                   monthChain = monthChain.then(function (monthFiles) {
-                    return githubListFiles(config, monthEntry.path).then(function (days) {
+                    return config.adapter.listFiles(config, monthEntry.path).then(function (days) {
                       var dayChain = Promise.resolve(monthFiles);
                       days.filter(function (entry) {
                         return entry.type === "dir";
                       }).forEach(function (dayEntry) {
                         dayChain = dayChain.then(function (dayFiles) {
-                          return githubListFiles(config, dayEntry.path).then(function (entries) {
+                          return config.adapter.listFiles(config, dayEntry.path).then(function (entries) {
                             return dayFiles.concat(entries.filter(function (entry) {
                               return entry.type === "file" && /\.json$/.test(entry.path);
                             }));
@@ -3365,27 +3890,15 @@
         });
       }
 
-      function uniqueRepoFiles(files) {
-        var seen = {};
-        return files.filter(function (file) {
-          if (!file || !file.path || seen[file.path]) {
-            return false;
-          }
-
-          seen[file.path] = true;
-          return true;
-        });
-      }
-
-      function listGitHubInboxMessageFiles(config, clientId) {
-        return githubListFiles(config, macaroniPath("inbox/" + clientId)).then(function (entries) {
+      function listRemoteInboxMessageFiles(config, clientId) {
+        return config.adapter.listFiles(config, macaroniPath("inbox/" + clientId)).then(function (entries) {
           var chain = Promise.resolve([]);
 
           entries.filter(function (entry) {
             return entry.type === "file" && /\.json$/.test(entry.path);
           }).forEach(function (entry) {
             chain = chain.then(function (files) {
-              return readGitHubJsonSafe(config, entry.path).then(function (notification) {
+              return readRemoteJsonSafe(config, entry.path).then(function (notification) {
                 if (!notification || !notification.message_path) {
                   return files;
                 }
@@ -3399,8 +3912,8 @@
         });
       }
 
-      function listGitHubUserFiles(config) {
-        return githubListFiles(config, macaroniPath("users")).then(function (entries) {
+      function listRemoteUserFiles(config) {
+        return config.adapter.listFiles(config, macaroniPath("users")).then(function (entries) {
           return entries.filter(function (entry) {
             return entry.type === "file" && /\.json$/.test(entry.path);
           });
@@ -3409,11 +3922,11 @@
         });
       }
 
-      function reindexFromGitHub(profile, chatId) {
-        var config = createGitHubConfig(profile);
+      function reindexFromRemote(profile, chatId) {
+        var config = createRemoteConfig(profile);
         var clientId = profile.clientId || CLIENT_ID;
         return resetIndex().then(function () {
-          return githubListChatMetas(profile);
+          return remoteListChatMetas(profile);
         }).then(function (chatMetas) {
           if (!chatMetas.length) {
             return {
@@ -3431,16 +3944,16 @@
             writes.push(putRecord("chats", chatMeta));
           });
 
-          return readGitHubJsonSafe(config, macaroniPath("protocol.json")).then(function (protocol) {
+          return readRemoteJsonSafe(config, macaroniPath("protocol.json")).then(function (protocol) {
             writes[0] = putRecord("meta", { key: "protocol", value: protocol });
             var targetChatIds = chatId ? [chatId] : chatMetas.map(function (chatMeta) {
               return chatMeta.id;
             });
             var messageLists = targetChatIds.map(function (targetChatId) {
-              return listGitHubMessageFiles(config, targetChatId);
+              return listRemoteMessageFiles(config, targetChatId);
             });
             var memberDocuments = targetChatIds.map(function (targetChatId) {
-              return readGitHubJsonSafe(config, macaroniPath("chats/" + targetChatId + "/members.json")).then(function (membersDocument) {
+              return readRemoteJsonSafe(config, macaroniPath("chats/" + targetChatId + "/members.json")).then(function (membersDocument) {
                 return membersDocument && membersDocument.chat_id ? membersDocument : null;
               });
             });
@@ -3450,8 +3963,8 @@
                   return allFiles.concat(files);
                 }, []);
               }),
-              listGitHubInboxMessageFiles(config, clientId),
-              listGitHubUserFiles(config),
+              listRemoteInboxMessageFiles(config, clientId),
+              listRemoteUserFiles(config),
               Promise.all(memberDocuments)
             ]);
           }).then(function (sources) {
@@ -3459,7 +3972,7 @@
               var chain = Promise.resolve();
               userFiles.forEach(function (file) {
                 chain = chain.then(function () {
-                  return readGitHubJsonSafe(config, file.path).then(function (user) {
+                  return readRemoteJsonSafe(config, file.path).then(function (user) {
                     if (user && user.id) {
                       writes.push(putRecord("users", user));
                     }
@@ -3481,7 +3994,7 @@
             var chain = Promise.resolve();
             files.forEach(function (file) {
               chain = chain.then(function () {
-                return readGitHubJsonSafe(config, file.path).then(function (message) {
+                return readRemoteJsonSafe(config, file.path).then(function (message) {
                   if (!message) {
                     return null;
                   }
@@ -3510,17 +4023,17 @@
         });
       }
 
-      function githubHeadMetaKey(profile) {
-        var config = createGitHubConfig(profile);
-        return "github_head:" + config.owner + "/" + config.repo + "#" + config.branch;
+      function remoteHeadMetaKey(profile) {
+        var config = createRemoteConfig(profile);
+        return "remote_head:" + config.provider + ":" + (config.projectPath || (config.owner + "/" + config.repo)) + "#" + config.branch;
       }
 
-      function reindexGitHubIfChanged(profile, chatId) {
-        var config = createGitHubConfig(profile);
-        var metaKey = githubHeadMetaKey(profile);
-        return githubReadHead(config).then(function (remoteSha) {
+      function reindexRemoteIfChanged(profile, chatId) {
+        var config = createRemoteConfig(profile);
+        var metaKey = remoteHeadMetaKey(profile);
+        return config.adapter.readHead(config).then(function (remoteSha) {
           if (!remoteSha) {
-            return reindexFromGitHub(profile, chatId);
+            return reindexFromRemote(profile, chatId);
           }
 
           return getMeta(metaKey).then(function (localSha) {
@@ -3533,7 +4046,7 @@
               };
             }
 
-            return reindexFromGitHub(profile, chatId).then(function (result) {
+            return reindexFromRemote(profile, chatId).then(function (result) {
               return putRecord("meta", { key: metaKey, value: remoteSha }).then(function () {
                 return Object.assign({}, result, {
                   unchanged: false,
@@ -3543,7 +4056,7 @@
             });
           });
         }).catch(function () {
-          return reindexFromGitHub(profile, chatId);
+          return reindexFromRemote(profile, chatId);
         });
       }
 
@@ -4051,7 +4564,7 @@
             return previous;
           }
 
-          if (isDemoProfile(value) || (canReadGitHub(value) && !canWriteGitHub(value))) {
+          if (isDemoProfile(value) || (canReadRemote(value) && !canWriteRemote(value))) {
             return putMeta(chatReceiptMetaKey(chatId), marker);
           }
 
@@ -4284,11 +4797,11 @@
       }
 
       function writeReadReceipt(profile, receipt) {
-        if (isDemoProfile(profile) || (canReadGitHub(profile) && !canWriteGitHub(profile))) {
+        if (isDemoProfile(profile) || (canReadRemote(profile) && !canWriteRemote(profile))) {
           return Promise.resolve(null);
         }
 
-        return canWriteGitHub(profile) ? writeGitHubReadReceipt(profile, receipt) : writeTestReadReceipt(receipt);
+        return canWriteRemote(profile) ? writeRemoteReadReceipt(profile, receipt) : writeTestReadReceipt(receipt);
       }
 
       function parseRepoJson(record) {
@@ -4393,12 +4906,12 @@
           return t("transportDemo");
         }
 
-        if (canWriteGitHub(profile)) {
-          return t("transportGithub");
+        if (canWriteRemote(profile)) {
+          return remoteLabel(profile);
         }
 
-        if (canReadGitHub(profile)) {
-          return t("transportGithubReadOnly");
+        if (canReadRemote(profile)) {
+          return remoteLabel(profile) + " read-only";
         }
 
         if (isUnsupportedRemoteProvider(profile)) {
@@ -4528,7 +5041,7 @@
 
         var reindex = isDemoProfile(value)
           ? reindexFromDemo()
-          : canReadGitHub(value) ? reindexFromGitHub(value) : reindexFromTestRepo();
+          : canReadRemote(value) ? reindexFromRemote(value) : reindexFromTestRepo();
         updateSyncStatus("reindex: " + transportLabel(value) + " · rebuilding");
 
         return reindex.then(function (result) {
@@ -4554,7 +5067,7 @@
       }
 
       function shouldRetryOutboxAfterProfileSave(previousProfile, profile) {
-        return !canWriteGitHub(previousProfile || {}) && canWriteGitHub(profile || {});
+        return !canWriteRemote(previousProfile || {}) && canWriteRemote(profile || {});
       }
 
       function retryOutboxAfterToken(profile) {
@@ -5203,13 +5716,13 @@
           ]
         };
 
-        if (canReadGitHub(value) && !canWriteGitHub(value)) {
+        if (canReadRemote(value) && !canWriteRemote(value)) {
           return Promise.reject(new Error(t("createChatTokenRequired")));
         }
 
-        var create = canWriteGitHub(value)
-          ? initGitHubRepo(value).then(function () {
-            return createGitHubChat(value, options);
+        var create = canWriteRemote(value)
+          ? initRemoteRepo(value).then(function () {
+            return createRemoteChat(value, options);
           })
           : initTestRepo(value).then(function () {
             return createTestChat(options);
@@ -5303,12 +5816,13 @@
           return Promise.reject(new Error(t("demoReadOnlyAction")));
         }
 
-        if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+        if (canReadRemote(profile) && !canWriteRemote(profile)) {
           return Promise.reject(new Error(t("joinChatTokenRequired")));
         }
 
-        if (canWriteGitHub(profile)) {
-          return githubWriteJson(createGitHubConfig(profile), path, membersDocument, "Macaroni: join chat " + chatId);
+        if (canWriteRemote(profile)) {
+          var config = createRemoteConfig(profile);
+          return config.adapter.writeJson(config, path, membersDocument, "Macaroni: join chat " + chatId);
         }
 
         return repoWriteJson(path, membersDocument);
@@ -5666,8 +6180,8 @@
           });
         }
 
-        if (canReadGitHub(profile)) {
-          return readGitHubJsonSafe(createGitHubConfig(profile), path);
+        if (canReadRemote(profile)) {
+          return readRemoteJsonSafe(createRemoteConfig(profile), path);
         }
 
         return repoReadJson(path).catch(function () {
@@ -5704,16 +6218,16 @@
           return Promise.resolve(demoChat);
         }
 
-        if (canWriteGitHub(profile)) {
-          return initGitHubRepo(profile).then(function () {
-            return githubFindFirstChatMeta(profile);
+        if (canWriteRemote(profile)) {
+          return initRemoteRepo(profile).then(function () {
+            return remoteFindFirstChatMeta(profile);
           }).then(function (existingChat) {
             if (existingChat) {
               currentChatId = existingChat.id;
               return existingChat;
             }
 
-            return createGitHubChat(profile, {
+            return createRemoteChat(profile, {
               title: "MOM",
               owner_id: CLIENT_ID,
               owner_name: profile.displayName || "Me",
@@ -5728,8 +6242,8 @@
           });
         }
 
-        if (canReadGitHub(profile)) {
-          return githubFindFirstChatMeta(profile).then(function (existingChat) {
+        if (canReadRemote(profile)) {
+          return remoteFindFirstChatMeta(profile).then(function (existingChat) {
             if (existingChat) {
               currentChatId = existingChat.id;
               return existingChat;
@@ -5784,7 +6298,7 @@
         return ensureChat.then(function (chat) {
           var reindex = isDemoProfile(value)
             ? reindexFromDemo()
-            : canReadGitHub(value) ? reindexGitHubIfChanged(value) : reindexFromTestRepo();
+            : canReadRemote(value) ? reindexRemoteIfChanged(value) : reindexFromTestRepo();
           return reindex.then(function (result) {
             reindexResult = result;
             return listOutbox();
@@ -5823,7 +6337,7 @@
       }
 
       function pollingInterval(profile) {
-        return canWriteGitHub(profile) ? POLL_WITH_TOKEN_MS : POLL_READ_ONLY_MS;
+        return canWriteRemote(profile) ? POLL_WITH_TOKEN_MS : POLL_READ_ONLY_MS;
       }
 
       function stopMessagePolling() {
@@ -5835,14 +6349,14 @@
 
       function scheduleMessagePoll(profile) {
         var value = profile || loadProfile() || {};
-        if (isDemoProfile(value) || !canReadGitHub(value) || isUnsupportedRemoteProvider(value)) {
+        if (isDemoProfile(value) || !canReadRemote(value) || isUnsupportedRemoteProvider(value)) {
           stopMessagePolling();
           return;
         }
 
         pollTimer = window.setTimeout(function () {
           var latestProfile = loadProfile() || value;
-          if (isDemoProfile(latestProfile) || !isReadyProfile(latestProfile) || !canReadGitHub(latestProfile) || isUnsupportedRemoteProvider(latestProfile)) {
+          if (isDemoProfile(latestProfile) || !isReadyProfile(latestProfile) || !canReadRemote(latestProfile) || isUnsupportedRemoteProvider(latestProfile)) {
             stopMessagePolling();
             return;
           }
@@ -5891,7 +6405,7 @@
             return items;
           }
 
-          if (items.length && canReadGitHub(profile) && !canWriteGitHub(profile)) {
+          if (items.length && canReadRemote(profile) && !canWriteRemote(profile)) {
             return updateSyncStatusFromState(profile, "send: outbox");
           }
 
@@ -5920,11 +6434,11 @@
                 var payload = Object.assign({}, item.payload, {
                   chat_id: item.payload.chat_id || chat.id
                 });
-                if (canReadGitHub(profile) && !canWriteGitHub(profile)) {
+                if (canReadRemote(profile) && !canWriteRemote(profile)) {
                   return Promise.reject(new Error(t("githubReadOnlyRetry")));
                 }
 
-                var send = canWriteGitHub(profile) ? sendGitHubMessage(profile, payload) : sendTestMessage(payload);
+                var send = canWriteRemote(profile) ? sendRemoteMessage(profile, payload) : sendTestMessage(payload);
                 return send.then(function () {
                   return deleteOutbox(item.id);
                 }).catch(function (error) {
@@ -6337,12 +6851,25 @@
         writeJson: githubWriteJson
       };
 
+      window.MacaroniRemoteAdapters = {
+        adapters: REMOTE_PROVIDER_ADAPTERS,
+        canRead: canReadRemote,
+        canWrite: canWriteRemote,
+        createConfig: createRemoteConfig,
+        reindex: reindexFromRemote,
+        reindexIfChanged: reindexRemoteIfChanged
+      };
+
       window.MacaroniProviderContract = {
         protocol: "provider adapter over " + MACARONI_ROOT + "/",
-        note: "GitHub is the first built-in browser adapter, not a protocol requirement.",
-        methods: ["readFile", "readJson", "listFiles", "writeFile", "writeJson", "head"],
+        note: "Isomorphic Git in Macaroni means small browser-side adapters over existing HTTPS/API transports.",
+        methods: ["readHead", "readFile", "readJson", "listFiles", "writeFile", "writeJson"],
         builtIn: {
           github: { read: true, write: true, adapter: "GitHub REST Contents API" },
+          gitlab: { read: true, write: true, adapter: "GitLab Repository Files/Tree API" },
+          gitverse: { read: true, write: true, adapter: "GitVerse Contents/Tree API" },
+          gitea: { read: true, write: true, adapter: "Gitea Contents API" },
+          forgejo: { read: true, write: true, adapter: "Forgejo Contents API" },
           demo: { read: true, write: false, adapter: "hardcoded read-only dataset" },
           local: { read: true, write: true, adapter: "IndexedDB test repo" }
         },

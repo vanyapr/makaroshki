@@ -4,7 +4,7 @@ Macaroni Messenger работает с git-репозиторием через �
 
 Токен нужен, чтобы клиент мог читать и записывать файлы сообщений в выбранный репозиторий.
 
-Если репозиторий публичный, GitHub-адаптер может читать его без токена в read-only режиме. Это подходит для просмотра публичного Macaroni-репозитория, но не для отправки сообщений.
+Если репозиторий публичный, provider adapter может читать его без токена в read-only режиме, если host API это разрешает. Это подходит для просмотра публичного Macaroni-репозитория, но не для отправки сообщений.
 
 Чтобы писать сообщения, создавать чаты и обновлять `.macaroni/users/<client_id>.json`, нужен токен с правами записи.
 
@@ -55,7 +55,7 @@ GitHub показывает токен только один раз. Если з
 
 ## GitVerse
 
-GitVerse тоже подходит как git-hosting, но browser adapter Macaroni для GitVerse пока не реализован. Если выбрать `GitVerse` в клиенте сейчас, приложение честно покажет ошибку вместо тихого fallback в local test repo.
+GitVerse тоже подходит как git-hosting, и browser adapter Macaroni для GitVerse уже встроен в `messenger.html`.
 
 Плюс в том, что в таком случае оператором ваших персональных данных станет Сбербанк, а это смешно.
 
@@ -75,9 +75,9 @@ GitVerse тоже подходит как git-hosting, но browser adapter Maca
 
 Официальная документация GitVerse: [Токены](https://gitverse.ru/docs/collaborative/authentification/tokens/).
 
-## GitLab И Прочие
+## GitLab, Gitea, Forgejo И Прочие
 
-Логика получения token та же, но provider adapter должен быть реализован отдельно:
+Логика получения token та же. Для GitLab, Gitea и Forgejo adapters уже встроены, но конкретная self-hosted installation может отличаться scopes, CORS и включёнными endpoints:
 
 1. Найдите настройки аккаунта.
 2. Найдите раздел access tokens / personal access tokens.

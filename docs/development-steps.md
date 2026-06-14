@@ -266,7 +266,7 @@
 
 Текущая UI-договорённость для мобильной версии: sidebar не растягивает список чатов пустотой, чаты идут компактной горизонтальной лентой, composer полностью помещается в экран и не прилипает к нижнему краю.
 
-Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `GitHub read-only`, `local test repo`), действие и размер outbox.
+Sync/outbox status показывается в header текущего чата: transport (`GitHub`, `GitLab`, `GitVerse`, `Gitea`, `Forgejo`, read-only или `local test repo`), действие и размер outbox.
 
 Sidebar дополнительно показывает локальный per-chat outbox indicator: если в `outbox` есть исходящие сообщения для чата, рядом с названием чата появляется отдельный бейдж. Это локальный UI state; git не хранит delivery/read status.
 
@@ -286,7 +286,7 @@ Composer отправляет сообщение участникам текущ
 
 Composer работает optimistic: после Enter поле сразу очищается, сообщение сразу попадает в локальный индекс и отображается в текущем чате, а готовая запись кладётся в outbox. Git write не стартует из submit напрямую: sender раз в 30 секунд делает fresh pull/reindex, затем последовательно отправляет outbox и после записи ещё раз обновляет индекс. Кнопка `Обновить` запускает тот же цикл вручную.
 
-Перед любым push/write в GitHub клиент сначала делает pull/reindex. Это снижает 409 conflict и соответствует реальной модели проекта: локальный IndexedDB - cache, git - source of truth, outbox - очередь исходящих операций.
+Перед любым remote push/write клиент сначала делает pull/reindex через выбранный provider adapter. Это снижает write conflict и соответствует реальной модели проекта: локальный IndexedDB - cache, git - source of truth, outbox - очередь исходящих операций.
 
 Read receipts тоже пишутся через outbox и не делают прямой git write при открытии чата. Если receipt не отправился, он остаётся в очереди, но не блокирует отправку текстовых сообщений.
 
@@ -298,7 +298,7 @@ Composer draft хранится отдельно для каждого `chat_id`
 
 Если `members.json` отсутствует, `Инфо о чате` показывает fallback-участника из `meta.created_by`; при вступлении клиент создаёт `members.json` и добавляет текущий `CLIENT_ID`.
 
-Если пользователь добавляет GitHub token после read-only режима, сохранение настроек автоматически запускает retry outbox. Кнопка `Обновить` остаётся ручным retry.
+Если пользователь добавляет provider token после read-only режима, сохранение настроек автоматически запускает retry outbox. Кнопка `Обновить` остаётся ручным retry.
 
 GitHub `409 Conflict` при записи автоматически повторяется один раз после свежего чтения file metadata. Если повтор тоже не прошёл, сообщение остаётся в outbox.
 
@@ -386,9 +386,13 @@ node scripts/mvp-smoke.js
 
 Дальше только после рабочего `messenger.html`:
 
-1. Второй git provider adapter: подготовлен честный guard для неподдержанных remote providers (`Generic Git HTTP`, `GitLab`, `GitVerse`). Клиент больше не делает silent fallback в local test repo, а показывает понятную ошибку до появления реального adapter.
+1. Git-agnostic provider adapters: реализован minimal runtime registry `window.MacaroniRemoteAdapters` для `GitHub`, `GitLab`, `GitVerse`, `Gitea`, `Forgejo`. `Generic Git HTTP` остаётся contract-only и показывает честную ошибку вместо silent fallback.
+   - Research готовится отдельно: `docs/git-host-api-research.md`.
+   - Practical Isomorphic Git проекта: host API adapters поверх существующих browser-compatible HTTPS/API transports, не полный raw git client.
+   - Storage branch и read-only composer guard идут отдельными backlog items, чтобы не смешивать transport research с UX/branch hygiene.
+   - Batch commit пока не реализован: несколько Protocol v1 files пишутся последовательно.
 2. Import existing repo: частично сделано как явная кнопка `Import Repo` в настройках; она пересобирает локальный IndexedDB-кеш из выбранного `.macaroni/` repo и не пишет remote-файлы.
-3. Read-only public repo mode: частично сделано для GitHub public repo без token; клиент читает историю, показывает `GitHub read-only`, но не создаёт чаты и не отправляет сообщения без write token.
+3. Read-only public repo mode: частично сделано для remote profiles без token; клиент читает историю, показывает provider-specific read-only transport, но не создаёт чаты и не отправляет сообщения без write token.
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
 5. Markdown rendering: частично сделано как безопасный inline-render `**bold**`, `*italic*`, `` `code` `` в UI сообщений, без HTML passthrough и без полноценного CommonMark-движка.
 6. Basic notifications: частично сделано как unread count в `document.title` и встроенный sound для новых входящих сообщений, без Browser Notification API и permission prompts.

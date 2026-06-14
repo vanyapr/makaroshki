@@ -55,9 +55,9 @@ Because Hacker News can create enough traffic to hit unauthenticated GitHub API 
 
 ### Can I write real messages?
 
-Yes. Today the built-in write adapter is GitHub: connect a GitHub repository in Settings and use a fine-grained token with `Contents: Read and write`.
+Yes. Built-in browser adapters exist for GitHub, GitLab, GitVerse, Gitea, and Forgejo. Connect a repository in Settings and use a provider token with repository content read/write access.
 
-The `.macaroni/` protocol itself is not GitHub-specific. Other git hosts need a browser-compatible adapter; see [generic git provider contract](generic-git-provider.en.md).
+The `.macaroni/` protocol itself is not GitHub-specific. Custom/self-hosted git hosts still need a browser-compatible API/CORS setup; see [generic git provider contract](generic-git-provider.en.md).
 
 ### Should I paste my token into Hacker News?
 

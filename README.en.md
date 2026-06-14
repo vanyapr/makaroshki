@@ -29,9 +29,9 @@ No registration.
 
 No backend.
 
-You can read demo `.macaroni` chats immediately. To read or write a real repository today, open Settings and connect a GitHub repository. GitHub is the first built-in browser adapter, not a protocol requirement.
+You can read demo `.macaroni` chats immediately. To read or write a real repository today, open Settings and connect a repository through one of the built-in browser adapters: GitHub, GitLab, GitVerse, Gitea, or Forgejo.
 
-The `.macaroni/` protocol can live in any git repository. A non-GitHub host needs a browser-compatible provider adapter: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge, or a wrapper that exposes native git operations to the same HTML client.
+The `.macaroni/` protocol can live in any git repository. A custom or self-hosted git host needs a browser-compatible surface: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge, or a wrapper that exposes native git operations to the same HTML client.
 
 ## Run Locally
 
@@ -43,10 +43,10 @@ The `.macaroni/` protocol can live in any git repository. A non-GitHub host need
 
 ## Send A Real Message
 
-1. Create or choose a GitHub repository.
-2. Create a fine-grained GitHub token with `Contents: Read and write` for that repository.
+1. Create or choose a repository on GitHub, GitLab, GitVerse, Gitea, or Forgejo.
+2. Create a provider token with read/write repository content access. For GitHub, use a fine-grained token with `Contents: Read and write`.
 3. Open `messenger.html`.
-4. Put your name, repository URL, and token into Settings.
+4. Choose the provider and put your name, repository URL, and token into Settings.
 5. Write something worth committing.
 
 Detailed guide: [How to get an access token](docs/access-token.en.md).
@@ -71,12 +71,12 @@ The demo data is hardcoded inside `messenger.html`; a real connected repository 
 
 - Macaroni Messenger is not private. Public repository means public messages. Private repository means readable by everyone with repository access.
 - The `.macaroni/` protocol is git-host agnostic. Any repository can store it.
-- GitHub is the only built-in write adapter right now.
-- GitLab, GitVerse, Gitea, Forgejo, self-hosted git, and other hosts need browser-compatible adapters. Today they are protocol targets, not finished built-in write adapters.
+- Built-in write adapters exist for GitHub, GitLab, GitVerse, Gitea, and Forgejo.
+- Self-hosted GitLab/Gitea/Forgejo can still fail in the browser if the instance blocks CORS or disables the required API endpoints.
 - Plain browser tabs cannot do raw SSH git. That needs a wrapper or host API, because browsers are funny in the wrong direction.
 - Browser support is intentionally strict: persistent storage for `file://` or `https://`, `localStorage`, `IndexedDB`, and WebCrypto are required. Recommended browsers: Chrome, Chromium, Edge.
 - There is no realtime transport. New messages arrive through polling, and outgoing writes go through a local outbox.
-- GitHub API rate limits exist. The public demo is hardcoded to avoid burning unauthenticated rate limit on first load. Real connected repositories still use GitHub API.
+- Host API rate limits exist. The public demo is hardcoded to avoid burning unauthenticated GitHub API rate limit on first load. Real connected repositories use their selected provider API.
 - Tokens are stored in browser `localStorage`. This is convenient, not secure storage.
 - Never paste a real token into public chat, screenshots, issues, README examples, or Hacker News comments. If you did, revoke it.
 - Large repositories will be slow. If a chat gets too large, create another repository. This is called scaling.

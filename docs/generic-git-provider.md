@@ -4,6 +4,8 @@ Macaroni Messenger не должен быть GitHub-only.
 
 Протокол `.macaroni/` не привязан к git-хостингу: сообщения - это JSON-файлы в репозитории. GitHub - просто первый встроенный browser adapter.
 
+Подробное сравнение GitHub, GitLab, Gitea, Forgejo и GitVerse: `docs/git-host-api-research.md`.
+
 ## Честная Браузерная Часть
 
 Один HTML-файл в браузере не может магически сходить по SSH в любой git server.
@@ -14,11 +16,15 @@ Macaroni Messenger не должен быть GitHub-only.
 - CORS-enabled HTTPS file API поверх git repository;
 - WebDAV-style endpoint, который сзади делает git commits;
 - custom adapter, встроенный в `messenger.html`;
-- Electron/WebView wrapper, который даёт тому же HTML UI native git operations.
+- optional Electron/WebView wrapper, который даёт тому же HTML UI native git operations.
 
 Это не философское ограничение.
 
 Это браузер является браузером.
+
+Base product при этом остаётся одним HTML-файлом. Wrapper может быть упаковкой, но не становится обязательной ценой за generic git support.
+
+Если для просмотра одного HTML-файла или джипега в WebView нужен bundle на 500 МБ, это уже не клиент, а бытовая техника с адресной строкой.
 
 ## Что Значит "Любой Git"
 
@@ -54,18 +60,40 @@ Macaroni Messenger не должен быть GitHub-only.
 
 Просто file operations, которые в итоге становятся git commits.
 
+Batch commit желателен, но не обязателен. Если host умеет писать только один файл за запрос, Macaroni может ехать медленнее, но всё ещё ехать.
+
 ## Статус Встроенных Adapter'ов
 
 | Provider | Read | Write | Notes |
 | --- | --- | --- | --- |
 | GitHub | yes | yes | Реализовано через GitHub REST Contents API. |
+| GitLab | yes | yes | Реализовано через Repository Files/Tree API. Repo URL: `https://gitlab.com/group/project` или self-hosted GitLab. |
+| GitVerse | yes | yes | Реализовано через GitVerse Contents/Tree API v1. Repo URL: `https://gitverse.ru/owner/repo`. |
+| Gitea | yes | yes | Реализовано через Gitea Contents API. Repo URL: `https://host/owner/repo`; browser CORS зависит от инсталляции. |
+| Forgejo | yes | yes | Реализовано через Forgejo Contents API. Repo URL: `https://host/owner/repo`; browser CORS зависит от инсталляции. |
 | Hardcoded demo | yes | no | Используется для Hacker News/demo traffic без боли от API rate limits. |
 | Local test repo | yes | yes | IndexedDB fake repo для локальной разработки. |
 | Generic Git HTTP | contract only | contract only | Нужен CORS-compatible host adapter. |
-| GitLab | planned | planned | Тот же protocol, другой host API. |
-| GitVerse | planned | planned | Тот же protocol, другой host API. |
-| Gitea/Forgejo | planned | planned | Вероятно file/content API adapter. |
 | Raw SSH git | no | no | Не из обычной browser tab. Для этого нужен wrapper. |
+
+## Реализованная Форма Isomorphic Git
+
+Встроенный browser-side transport registry живёт внутри `messenger.html` и поддерживает:
+
+- `readHead`;
+- `readFile`;
+- `readJson`;
+- `listFiles`;
+- `writeFile`;
+- `writeJson`.
+
+Batch write пока не реализован в runtime. Клиент пишет несколько Protocol v1 файлов последовательно, как уже делал GitHub adapter.
+
+Storage branch пока не реализован. Все adapters используют `profile.branch || "main"`.
+
+Generic Git HTTP остаётся contract-only, потому что без конкретного CORS-compatible endpoint браузеру нечего вызывать.
+
+Если для собственной Linux-машины нужен transport, до которого браузер сможет дотянуться, дальше очередь оператора remote садиться на шпагат.
 
 ## Почему Не Встроить Полный Git Client?
 
@@ -95,9 +123,13 @@ const adapter = {
   listFiles(config, path) {},
   writeFile(config, path, content, message) {},
   writeJson(config, path, value, message) {},
+  writeFiles(config, files, message) {},
+  ensureBranch(config, branch, fromRef) {},
   head(config) {}
 };
 ```
+
+`writeFiles` и `ensureBranch` являются optional capabilities, а не требованием к каждому provider.
 
 Если host не умеет recursive directory listing, adapter всё ещё может быть полезен. У Macaroni предсказуемый `.macaroni/` layout, и sync может обходить известные path'ы.
 

@@ -35,9 +35,9 @@ Demo открывает захардкоженный read-only `.macaroni` datas
 
 Без backend.
 
-Demo `.macaroni` чаты можно читать сразу. Чтобы читать или писать настоящий repository сегодня, откройте настройки и подключите GitHub repository. GitHub - первый встроенный browser adapter, а не требование протокола.
+Demo `.macaroni` чаты можно читать сразу. Чтобы читать или писать настоящий repository сегодня, откройте настройки и подключите repository через один из встроенных browser adapters: GitHub, GitLab, GitVerse, Gitea или Forgejo.
 
-Протокол `.macaroni/` может жить в любом git repository. Для non-GitHub host нужен browser-compatible provider adapter: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge или wrapper, который даёт тому же HTML-клиенту native git operations.
+Протокол `.macaroni/` может жить в любом git repository. Для custom или self-hosted git host нужна browser-compatible поверхность: host API, CORS-enabled HTTPS file API, WebDAV-style git bridge или wrapper, который даёт тому же HTML-клиенту native git operations.
 
 ## Запустить локально
 
@@ -49,10 +49,10 @@ Demo `.macaroni` чаты можно читать сразу. Чтобы чит�
 
 ## Отправить настоящее сообщение
 
-1. Создайте или выберите GitHub repository.
-2. Создайте fine-grained GitHub token с правами `Contents: Read and write` для этого repository.
+1. Создайте или выберите repository на GitHub, GitLab, GitVerse, Gitea или Forgejo.
+2. Создайте provider token с read/write доступом к repository content. Для GitHub используйте fine-grained token с `Contents: Read and write`.
 3. Откройте `messenger.html`.
-4. Укажите имя, URL репозитория и token в настройках.
+4. Выберите provider и укажите имя, URL репозитория и token в настройках.
 5. Напишите что-нибудь достойное commit.
 
 Подробная инструкция: [как получить токен доступа](docs/access-token.md).
@@ -77,12 +77,12 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 
 - Macaroni Messenger не является приватным. Публичный repository означает публичные сообщения. Приватный repository означает, что сообщения читают все, у кого есть доступ к repository.
 - Протокол `.macaroni/` не привязан к git-hosting. Любой repository может хранить его.
-- GitHub сейчас единственный встроенный write adapter.
-- GitLab, GitVerse, Gitea, Forgejo, self-hosted git и другие hosts требуют browser-compatible adapters. Сегодня это цели протокола, а не готовые встроенные write adapters.
+- Встроенные write adapters есть для GitHub, GitLab, GitVerse, Gitea и Forgejo.
+- Self-hosted GitLab/Gitea/Forgejo всё ещё могут не заработать в браузере, если instance блокирует CORS или отключает нужные API endpoints.
 - Обычная browser tab не умеет raw SSH git. Для этого нужен wrapper или host API, потому что браузеры смешные не в ту сторону.
 - Browser support намеренно жёсткий: нужны persistent storage для `file://` или `https://`, `localStorage`, `IndexedDB` и WebCrypto. Рекомендуются Chrome, Chromium, Edge.
 - Realtime transport нет. Новые сообщения приходят через polling, исходящие записи проходят через локальный outbox.
-- GitHub API rate limits существуют. Публичный demo захардкожен, чтобы не жечь unauthenticated rate limit при первом открытии. Настоящие подключённые repositories всё ещё используют GitHub API.
+- Host API rate limits существуют. Публичный demo захардкожен, чтобы не жечь unauthenticated GitHub API rate limit при первом открытии. Настоящие подключённые repositories используют API выбранного provider'а.
 - Токены хранятся в browser `localStorage`. Это удобно, но это не secure storage.
 - Никогда не вставляйте настоящий token в публичный чат, screenshots, issues, README examples или Hacker News comments. Если вставили - отзовите его.
 - Большие репозитории будут медленными. Если чат стал слишком большим, создайте новый repository. Это называется масштабирование.
