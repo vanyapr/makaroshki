@@ -290,9 +290,22 @@ That did not make parks or raincoats bad.
 
 The author lives in Russia, votes, pays taxes, pays utility bills, and is not planning to move anywhere.
 
-The joke is not fighting the law.
+The joke is that this is seriously, literally not fighting the law.
 
-The joke is that this is a pet project made for the joke.
+And not bypassing blocks.
+
+The joke is the question:
+
+```text
+okay, fine,
+what if we store the whole conversation
+and the keys publicly?
+take it and read it, if you can
+```
+
+This is not a call to action.
+
+This is an architectural experiment that understood the words "open infrastructure" too literally.
 
 It just happens to have tentacles, a pitchfork, and a tail sticking out of it.
 
