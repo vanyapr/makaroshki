@@ -98,6 +98,7 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 - [docs/protocol-v1.md](docs/protocol-v1.md) - файловая модель Macaroni Protocol v1.
 - [docs/github-provider.md](docs/github-provider.md) - первый реальный provider adapter.
 - [docs/generic-git-provider.md](docs/generic-git-provider.md) - как non-GitHub git hosts вписываются в transport contract.
+- [docs/legal-collision.md](docs/legal-collision.md) - юридическая коллизия: если чат лежит в git, то хранит его тот, кто хранит git.
 - [docs/plugin-boundary.md](docs/plugin-boundary.md) - browser-side plugin boundary.
 - [docs/encryption-1.01.md](docs/encryption-1.01.md) - контракт shared-secret encryption plugin.
 - [docs/encryption-1.01-implementation.md](docs/encryption-1.01-implementation.md) - implementation contract Encryption 1.01.
