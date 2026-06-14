@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T05-34-43Z_CODEX_a2c913",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-14T05:34:43Z",
+  "text": "Реализован git-agnostic runtime registry в messenger.html: window.MacaroniRemoteAdapters с built-in adapters для GitHub, GitLab, GitVerse, Gitea, Forgejo. Generic Git HTTP оставлен contract-only; raw SSH не обещаем. README, access-token docs, GitVerse docs, Show HN FAQ, roadmap, development steps, generic provider contract и research docs обновлены. Коммит feature branch: 64b88c1 feat: add git-agnostic host adapters. Проверки: git diff --check, HTML script syntax через Node, temporary adapter contract smoke без зависимостей; full mvp-smoke не запускался, потому что в repo нет Playwright dependency по принципу проекта.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 2
+  },
+  "signature": null
+}

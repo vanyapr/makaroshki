@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T05-34-43Z_HUMAN_edec83",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-14T05:34:43Z",
+  "text": "Так, тогда давай документировать фичу, и реализовывать. Контекст: practical Isomorphic Git в Macaroni означает self-written browser-side host API adapters без npm/isomorphic-git, без backend, без raw SSH; поддерживаем то, до чего браузер доезжает на квадратных колесах.",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
