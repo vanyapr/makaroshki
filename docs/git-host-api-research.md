@@ -92,6 +92,48 @@ Macaroni Protocol v1
 
 Меняется только транспорт.
 
+## Что Такое Isomorphic Git В Macaroni
+
+В Macaroni термин **Isomorphic Git** не означает npm package `isomorphic-git`.
+
+Мы не тянем готовый git client.
+
+Мы не добавляем dependency.
+
+Мы не превращаем `messenger.html` в сборку чужой библиотеки.
+
+Наше понимание:
+
+```text
+Isomorphic Git = минимальный self-written browser-side git/file transport,
+который работает ровно до той границы, где браузер может говорить с remote сам.
+```
+
+Первый слой:
+
+- host API adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo;
+- file/content/tree/commit endpoints;
+- auth headers;
+- branch/ref handling;
+- normalized errors.
+
+Второй слой, если понадобится:
+
+- свой минимальный Smart HTTP / git object subset;
+- только read/write branch data, которые нужны `.macaroni/`;
+- без полного git client;
+- без packfile-героизма там, где host API уже даёт нормальный file endpoint.
+
+Граница честности:
+
+- если remote доступен браузеру через HTTPS API или browser-compatible git endpoint - Macaroni пишет велосипед;
+- если remote требует SSH, локальный socket, запрещает CORS или прячет всё за backend-only flow - это не базовый продукт;
+- в таком случае нужен custom host adapter, настройка remote или optional wrapper, но не обязательная обёртка в поставке.
+
+То есть мы пишем своё ровно там, где браузер может работать без backend adapter.
+
+Дальше не обещаем магию.
+
 ## Сравнение Провайдеров
 
 | Provider | Read file | List files | Write file | Batch write | Branch support | Auth | Главный риск |
@@ -352,13 +394,13 @@ Transport contract не должен зависеть от них.
 4. После этого сделать Gitea/Forgejo family adapter.
 5. Добавить read-only composer guard.
 6. Отдельно реализовать storage branch.
-7. Только после этого возвращаться к настоящему "Isomorphic Git" через Smart HTTP, если оно всё ещё нужно для шутки.
+7. После host API adapters расширять наш Isomorphic Git вниз до Smart HTTP subset только там, где браузер может говорить с remote напрямую.
 
 ## Решение На Сейчас
 
-Git-agnostic Macaroni не должен начинаться с полного git implementation.
+Git-agnostic Macaroni не должен начинаться с полного git implementation и не должен брать `isomorphic-git` из npm.
 
-Он должен начинаться с browser-compatible host API adapters.
+Он должен начинаться с browser-compatible host API adapters как первой фазы нашего собственного Isomorphic Git.
 
 Это сохраняет:
 
@@ -368,7 +410,7 @@ Git-agnostic Macaroni не должен начинаться с полного g
 - понятный путь к GitLab/Gitea/Forgejo/GitVerse;
 - минимальную operational complexity.
 
-А полный "мы написали git в HTML" оставляем как отдельный вид спорта. Красивый, бессмысленный и потенциально великий.
+А полный "мы написали git в HTML" оставляем как следующий вид спорта. Красивый, бессмысленный и потенциально великий, но только после того, как обычные host APIs уже варят макароны.
 
 ## Источники
 

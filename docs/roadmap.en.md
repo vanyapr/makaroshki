@@ -395,8 +395,9 @@ Recommended:
 - The current GitHub adapter remains the reference implementation and must not be broken for the new abstraction.
 - Minimal shared contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard is a separate backlog item: if the token is missing or has no write permissions, hide the composer and honestly show that this is read-only mode.
-- **Isomorphic Git** remains the strategic meme-name for a minimal custom git transport inside `messenger.html`, but it is not the first practical step. Host API adapters first, Smart HTTP/packfile bicycle later if the joke still demands sacrifice.
-- We do not bundle existing git clients; we write the small bicycle Macaroni actually needs.
+- **Isomorphic Git** in Macaroni means not an npm package, but our minimal self-written browser-side git/file transport up to the boundary where the browser can talk to the remote without a backend adapter.
+- The first phase of Isomorphic Git is host API adapters. The second phase, if needed, is our own Smart HTTP/git object subset where a browser-compatible remote allows it.
+- We do not bundle existing git clients or `isomorphic-git` from npm; we write the small bicycle Macaroni actually needs.
 - Support only the git subset the messenger needs: read refs/HEAD, read required objects/trees, create new `.macaroni/` blobs/trees/commits, and push a branch update.
 - SSH from the browser is still not promised. Isomorphic Git targets browser-compatible HTTP(S) git flow where the remote does not block CORS/auth. If the host does not let a browser talk to the git endpoint, a wrapper or adapter is still required.
 - The goal is not "complete git in HTML". The goal is "enough git for mom to receive a message".

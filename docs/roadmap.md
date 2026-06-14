@@ -395,8 +395,9 @@ async function checkSupport() {
 - Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
 - Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
-- **Isomorphic Git** остаётся стратегическим мемным названием для минимальной собственной реализации git transport внутри `messenger.html`, но не является первым practical step. Сначала host API adapters, потом Smart HTTP/packfile велосипед, если шутка всё ещё требует жертв.
-- Готовые git-клиенты не тащим: пишем маленький велосипед под нужды Macaroni.
+- **Isomorphic Git** в Macaroni означает не npm package, а наш минимальный self-written browser-side git/file transport до границы, где браузер может говорить с remote без backend adapter.
+- Первая фаза Isomorphic Git - host API adapters. Вторая фаза, если понадобится, - свой Smart HTTP/git object subset там, где browser-compatible remote это позволяет.
+- Готовые git-клиенты и `isomorphic-git` из npm не тащим: пишем маленький велосипед под нужды Macaroni.
 - Поддерживаем только тот subset git, который реально нужен messenger'у: получить refs/HEAD, прочитать нужные объекты/деревья, записать новые `.macaroni/` blobs/trees/commits и отправить update в branch.
 - SSH из браузера по-прежнему не обещаем. Isomorphic Git ориентируется на browser-compatible HTTP(S) git flow, где remote не мешает CORS/auth. Если host не даёт браузеру говорить с git endpoint, нужен wrapper или adapter.
 - Цель не "полный git в HTML". Цель - "достаточно git, чтобы мама получила сообщение".
