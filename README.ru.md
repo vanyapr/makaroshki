@@ -124,6 +124,7 @@ English docs:
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md)
 - [docs/github-provider.en.md](docs/github-provider.en.md)
 - [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md)
+- [docs/legal-collision.en.md](docs/legal-collision.en.md)
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md)
 - [docs/encryption-1.01.en.md](docs/encryption-1.01.en.md)
 - [docs/encryption-1.01-implementation.en.md](docs/encryption-1.01-implementation.en.md)

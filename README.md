@@ -92,6 +92,7 @@ Documents:
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
 - [docs/github-provider.en.md](docs/github-provider.en.md) - first real provider adapter.
 - [docs/generic-git-provider.en.md](docs/generic-git-provider.en.md) - how non-GitHub git hosts fit the transport contract.
+- [docs/legal-collision.en.md](docs/legal-collision.en.md) - legal collision: if chat lives in git, it is stored by whoever stores git.
 - [docs/plugin-boundary.en.md](docs/plugin-boundary.en.md) - browser-side plugin boundary.
 - [docs/encryption-1.01.en.md](docs/encryption-1.01.en.md) - shared-secret encryption plugin contract.
 - [docs/encryption-1.01-implementation.en.md](docs/encryption-1.01-implementation.en.md) - implementation contract for Encryption 1.01.
@@ -117,6 +118,7 @@ Russian documents:
 - [docs/protocol-v1.md](docs/protocol-v1.md)
 - [docs/github-provider.md](docs/github-provider.md)
 - [docs/generic-git-provider.md](docs/generic-git-provider.md)
+- [docs/legal-collision.md](docs/legal-collision.md)
 - [docs/plugin-boundary.md](docs/plugin-boundary.md)
 - [docs/encryption-1.01.md](docs/encryption-1.01.md)
 - [docs/encryption-1.01-implementation.md](docs/encryption-1.01-implementation.md)
