@@ -87,6 +87,7 @@ Documents:
 - [docs/product-brief.en.md](docs/product-brief.en.md) - detailed product and architecture brief.
 - [docs/roadmap.en.md](docs/roadmap.en.md) - current implementation roadmap.
 - [docs/development-steps.en.md](docs/development-steps.en.md) - sequential development plan.
+- [docs/releases/1.03.en.md](docs/releases/1.03.en.md) - Macaroni Messenger 1.03 release notes.
 - [docs/releases/1.02.en.md](docs/releases/1.02.en.md) - Macaroni Messenger 1.02 release notes.
 - [docs/releases/1.01.en.md](docs/releases/1.01.en.md) - Macaroni Messenger 1.01 release notes.
 - [docs/protocol-v1.en.md](docs/protocol-v1.en.md) - Macaroni Protocol v1 file model.
@@ -113,6 +114,7 @@ Russian documents:
 - [docs/product-brief.md](docs/product-brief.md)
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/development-steps.md](docs/development-steps.md)
+- [docs/releases/1.03.md](docs/releases/1.03.md)
 - [docs/releases/1.02.md](docs/releases/1.02.md)
 - [docs/releases/1.01.md](docs/releases/1.01.md)
 - [docs/protocol-v1.md](docs/protocol-v1.md)
