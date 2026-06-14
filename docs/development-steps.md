@@ -387,6 +387,9 @@ node scripts/mvp-smoke.js
 Дальше только после рабочего `messenger.html`:
 
 1. Второй git provider adapter: подготовлен честный guard для неподдержанных remote providers (`Generic Git HTTP`, `GitLab`, `GitVerse`). Клиент больше не делает silent fallback в local test repo, а показывает понятную ошибку до появления реального adapter.
+   - Research готовится отдельно: `docs/git-host-api-research.md`.
+   - Первый practical шаг: host API adapters для GitLab/GitVerse/Gitea/Forgejo, не полный raw git client.
+   - Storage branch и read-only composer guard идут отдельными backlog items, чтобы не смешивать transport research с UX/branch hygiene.
 2. Import existing repo: частично сделано как явная кнопка `Import Repo` в настройках; она пересобирает локальный IndexedDB-кеш из выбранного `.macaroni/` repo и не пишет remote-файлы.
 3. Read-only public repo mode: частично сделано для GitHub public repo без token; клиент читает историю, показывает `GitHub read-only`, но не создаёт чаты и не отправляет сообщения без write token.
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.

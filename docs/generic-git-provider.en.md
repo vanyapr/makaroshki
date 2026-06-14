@@ -4,6 +4,8 @@ Macaroni Messenger is not supposed to be GitHub-only.
 
 The `.macaroni/` protocol is git-host agnostic: messages are JSON files in a repository. GitHub is only the first built-in browser adapter.
 
+Detailed comparison of GitHub, GitLab, Gitea, Forgejo, and GitVerse: `docs/git-host-api-research.en.md`.
+
 ## The Honest Browser Part
 
 A single HTML file running in a browser cannot magically SSH into any git server.
@@ -14,11 +16,15 @@ The browser needs one of these:
 - a CORS-enabled HTTPS file API over a git repository;
 - a WebDAV-style endpoint backed by git commits;
 - a custom adapter embedded into `messenger.html`;
-- an Electron/WebView wrapper that provides native git operations to the same HTML UI.
+- an optional Electron/WebView wrapper that provides native git operations to the same HTML UI.
 
 This is not a philosophical limitation.
 
 This is the browser being the browser.
+
+The base product still remains one HTML file. A wrapper may be packaging, but it does not become the required price of generic git support.
+
+If viewing one HTML file requires bringing a 500 MB wrapper, the wrapper is cooking itself, not the macaroni.
 
 ## What "Any Git" Means
 
@@ -53,6 +59,8 @@ No Macaroni backend.
 No enterprise adapter factory.
 
 Just file operations that eventually become git commits.
+
+Batch commit is useful, but not mandatory. If a host can only write one file per request, Macaroni can move slower and still move.
 
 ## Built-In Adapter Status
 
@@ -95,9 +103,13 @@ const adapter = {
   listFiles(config, path) {},
   writeFile(config, path, content, message) {},
   writeJson(config, path, value, message) {},
+  writeFiles(config, files, message) {},
+  ensureBranch(config, branch, fromRef) {},
   head(config) {}
 };
 ```
+
+`writeFiles` and `ensureBranch` are optional capabilities, not requirements for every provider.
 
 If a host cannot list directories recursively, the adapter can still be useful. Macaroni already uses a predictable `.macaroni/` layout, and sync can walk known paths.
 

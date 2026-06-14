@@ -4,6 +4,8 @@ Macaroni Messenger не должен быть GitHub-only.
 
 Протокол `.macaroni/` не привязан к git-хостингу: сообщения - это JSON-файлы в репозитории. GitHub - просто первый встроенный browser adapter.
 
+Подробное сравнение GitHub, GitLab, Gitea, Forgejo и GitVerse: `docs/git-host-api-research.md`.
+
 ## Честная Браузерная Часть
 
 Один HTML-файл в браузере не может магически сходить по SSH в любой git server.
@@ -14,11 +16,15 @@ Macaroni Messenger не должен быть GitHub-only.
 - CORS-enabled HTTPS file API поверх git repository;
 - WebDAV-style endpoint, который сзади делает git commits;
 - custom adapter, встроенный в `messenger.html`;
-- Electron/WebView wrapper, который даёт тому же HTML UI native git operations.
+- optional Electron/WebView wrapper, который даёт тому же HTML UI native git operations.
 
 Это не философское ограничение.
 
 Это браузер является браузером.
+
+Base product при этом остаётся одним HTML-файлом. Wrapper может быть упаковкой, но не становится обязательной ценой за generic git support.
+
+Если ради просмотра одного HTML хочется принести 500 МБ обёртки, значит обёртка варит себя, а не макароны.
 
 ## Что Значит "Любой Git"
 
@@ -53,6 +59,8 @@ Macaroni Messenger не должен быть GitHub-only.
 Без enterprise adapter factory.
 
 Просто file operations, которые в итоге становятся git commits.
+
+Batch commit желателен, но не обязателен. Если host умеет писать только один файл за запрос, Macaroni может ехать медленнее, но всё ещё ехать.
 
 ## Статус Встроенных Adapter'ов
 
@@ -95,9 +103,13 @@ const adapter = {
   listFiles(config, path) {},
   writeFile(config, path, content, message) {},
   writeJson(config, path, value, message) {},
+  writeFiles(config, files, message) {},
+  ensureBranch(config, branch, fromRef) {},
   head(config) {}
 };
 ```
+
+`writeFiles` и `ensureBranch` являются optional capabilities, а не требованием к каждому provider.
 
 Если host не умеет recursive directory listing, adapter всё ещё может быть полезен. У Macaroni предсказуемый `.macaroni/` layout, и sync может обходить известные path'ы.
 

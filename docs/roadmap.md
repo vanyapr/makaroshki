@@ -118,6 +118,8 @@ Git является источником истины.
 - `docs/github-provider.en.md` - GitHub adapter guide на английском.
 - `docs/generic-git-provider.md` - transport contract для non-GitHub git hosts.
 - `docs/generic-git-provider.en.md` - generic git provider contract на английском.
+- `docs/git-host-api-research.md` - сравнение GitHub, GitLab, Gitea, Forgejo и GitVerse API для git-agnostic adapter roadmap.
+- `docs/git-host-api-research.en.md` - git host API research на английском.
 - `docs/plugin-boundary.md` - browser-side plugin boundary.
 - `docs/plugin-boundary.en.md` - plugin boundary на английском.
 - `docs/encryption-1.01.md` - контракт Macaroni Encryption 1.01 как plugin layer без изменения Protocol v1.
@@ -377,7 +379,7 @@ async function checkSupport() {
 
 0.45:
 
-- **Storage branch для `.macaroni/`**: в Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
+- **Storage branch для `.macaroni/`**: backlog после git-agnostic adapters. В Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
 - Default для новых профилей: `macaroni`.
 - Backward compatibility: если `storage_branch` не задан, клиент продолжает использовать текущий `main`/configured branch, чтобы старые профили не сломались.
 - Git branch с именем `.macaroni` использовать нельзя: Git не считает `.macaroni` валидным branch name. Каталог остаётся `.macaroni/`, branch называется `macaroni`, `macaroni/data` или другим валидным именем.
@@ -389,7 +391,12 @@ async function checkSupport() {
 
 0.5:
 
-- **Isomorphic Git**: минимальная собственная реализация git transport внутри `messenger.html`, чтобы клиент мог работать с любым git remote в принципе, а не только через host-specific API. Готовые git-клиенты не тащим: пишем маленький велосипед под нужды Macaroni.
+- **Git-Agnostic Host Adapters**: ближайший шаг к "любой git" - browser-compatible host API adapters для GitLab, GitVerse, Gitea и Forgejo. Research: `docs/git-host-api-research.md`.
+- Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
+- Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
+- Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
+- **Isomorphic Git** остаётся стратегическим мемным названием для минимальной собственной реализации git transport внутри `messenger.html`, но не является первым practical step. Сначала host API adapters, потом Smart HTTP/packfile велосипед, если шутка всё ещё требует жертв.
+- Готовые git-клиенты не тащим: пишем маленький велосипед под нужды Macaroni.
 - Поддерживаем только тот subset git, который реально нужен messenger'у: получить refs/HEAD, прочитать нужные объекты/деревья, записать новые `.macaroni/` blobs/trees/commits и отправить update в branch.
 - SSH из браузера по-прежнему не обещаем. Isomorphic Git ориентируется на browser-compatible HTTP(S) git flow, где remote не мешает CORS/auth. Если host не даёт браузеру говорить с git endpoint, нужен wrapper или adapter.
 - Цель не "полный git в HTML". Цель - "достаточно git, чтобы мама получила сообщение".

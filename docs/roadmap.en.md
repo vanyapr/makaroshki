@@ -118,6 +118,8 @@ But wrappers are not the product center. They run the same HTML client or wrap i
 - `docs/github-provider.en.md` - GitHub adapter guide in English.
 - `docs/generic-git-provider.md` - transport contract for non-GitHub git hosts in Russian.
 - `docs/generic-git-provider.en.md` - generic git provider contract in English.
+- `docs/git-host-api-research.md` - comparison of GitHub, GitLab, Gitea, Forgejo, and GitVerse APIs for the git-agnostic adapter roadmap in Russian.
+- `docs/git-host-api-research.en.md` - git host API research in English.
 - `docs/plugin-boundary.md` - browser-side plugin boundary in Russian.
 - `docs/plugin-boundary.en.md` - browser-side plugin boundary in English.
 - `docs/encryption-1.01.md` - Macaroni Encryption 1.01 contract as a plugin layer without changing Protocol v1 in Russian.
@@ -377,7 +379,7 @@ Recommended:
 
 0.45:
 
-- **Storage branch for `.macaroni/`**: add a separate `storage_branch` field in Settings so messages, inbox, receipts, and chat metadata do not live in the app source branch.
+- **Storage branch for `.macaroni/`**: backlog after git-agnostic adapters. Add a separate `storage_branch` field in Settings so messages, inbox, receipts, and chat metadata do not live in the app source branch.
 - Default for new profiles: `macaroni`.
 - Backward compatibility: if `storage_branch` is not set, the client keeps using the current `main`/configured branch, so old profiles do not break.
 - A git branch named `.macaroni` cannot be used: Git does not treat `.macaroni` as a valid branch name. The directory remains `.macaroni/`; the branch is named `macaroni`, `macaroni/data`, or another valid name.
@@ -389,7 +391,12 @@ Recommended:
 
 0.5:
 
-- **Isomorphic Git**: a minimal custom git transport implementation inside `messenger.html`, so the client can work with any git remote in principle, not only through host-specific APIs. We do not bundle an existing git client; we write the small bicycle Macaroni actually needs.
+- **Git-Agnostic Host Adapters**: the immediate path to "any git" is browser-compatible host API adapters for GitLab, GitVerse, Gitea, and Forgejo. Research: `docs/git-host-api-research.en.md`.
+- The current GitHub adapter remains the reference implementation and must not be broken for the new abstraction.
+- Minimal shared contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
+- Read-only composer guard is a separate backlog item: if the token is missing or has no write permissions, hide the composer and honestly show that this is read-only mode.
+- **Isomorphic Git** remains the strategic meme-name for a minimal custom git transport inside `messenger.html`, but it is not the first practical step. Host API adapters first, Smart HTTP/packfile bicycle later if the joke still demands sacrifice.
+- We do not bundle existing git clients; we write the small bicycle Macaroni actually needs.
 - Support only the git subset the messenger needs: read refs/HEAD, read required objects/trees, create new `.macaroni/` blobs/trees/commits, and push a branch update.
 - SSH from the browser is still not promised. Isomorphic Git targets browser-compatible HTTP(S) git flow where the remote does not block CORS/auth. If the host does not let a browser talk to the git endpoint, a wrapper or adapter is still required.
 - The goal is not "complete git in HTML". The goal is "enough git for mom to receive a message".

@@ -387,6 +387,9 @@ Done when:
 Only after working `messenger.html`:
 
 1. Second git provider adapter: an honest guard now exists for unsupported remote providers (`Generic Git HTTP`, `GitLab`, `GitVerse`). The client no longer silently falls back to the local test repo and instead shows a clear error until a real adapter exists.
+   - Research is tracked separately: `docs/git-host-api-research.en.md`.
+   - First practical step: host API adapters for GitLab/GitVerse/Gitea/Forgejo, not a complete raw git client.
+   - Storage branch and read-only composer guard remain separate backlog items, so transport research does not get mixed with UX/branch hygiene.
 2. Import existing repo: partially done as an explicit `Import Repo` button in settings; it rebuilds the local IndexedDB cache from the selected `.macaroni/` repo and does not write remote files.
 3. Read-only public repo mode: partially done for GitHub public repos without a token; the client reads history, shows `GitHub read-only`, but does not create chats or send messages without a write token.
 4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
