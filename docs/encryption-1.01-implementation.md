@@ -84,8 +84,6 @@ Plugin-specific UI монтирует сам plugin через `mountSettings(co
 
 Настройки plugin не хранятся в core profile.
 
-Plugin снаружи примотан изолентой и в нужное отверстие осуществляет прокотологию.
-
 Это значит:
 
 - core profile остаётся core profile;

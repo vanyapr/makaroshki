@@ -75,7 +75,7 @@ mountSettings(container, context) {
 
 Core создаёт container и передаёт context.
 
-Дальше plugin сам осуществляет прокотологию.
+Дальше plugin сам рисует controls и работает со своим namespace.
 
 Plugin читает и пишет свой namespace напрямую:
 
