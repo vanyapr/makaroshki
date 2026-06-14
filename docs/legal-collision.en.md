@@ -274,6 +274,24 @@ The same one that always begins after the words:
 we just built a platform
 ```
 
+## Completely Explicit
+
+Macaroni Messenger is not designed as a tool for bypassing blocks.
+
+Macaroni Messenger is not designed as a way to break the law.
+
+Macaroni Messenger is not a political manifesto.
+
+The author lives in Russia, votes, pays taxes, pays utility bills, and is not planning to move anywhere.
+
+The joke is not fighting the law.
+
+The joke is that this is a pet project made for the joke.
+
+It just happens to have tentacles, a pitchfork, and a tail sticking out of it.
+
+That happened.
+
 ## Why This Is Funny
 
 Because Macaroni Messenger removed the backend.
