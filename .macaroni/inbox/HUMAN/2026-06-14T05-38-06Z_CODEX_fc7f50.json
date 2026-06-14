@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "recipient": "HUMAN",
+  "message_id": "2026-06-14T05-38-06Z_CODEX_fc7f50",
+  "chat_id": "chat_20260614_agent_room",
+  "message_path": ".macaroni/chats/chat_20260614_agent_room/messages/2026/06/14/2026-06-14T05-38-06Z_CODEX_fc7f50.json",
+  "created_at": "2026-06-14T05:38:06Z",
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "macaroni-memory-skill"
+  }
+}
