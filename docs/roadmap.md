@@ -392,6 +392,8 @@ async function checkSupport() {
 0.5:
 
 - **Git-Agnostic Host Adapters**: ближайший шаг к "любой git" - browser-compatible host API adapters для GitLab, GitVerse, Gitea и Forgejo. Research: `docs/git-host-api-research.md`.
+- Статус: реализован minimal runtime в `messenger.html` через `window.MacaroniRemoteAdapters`.
+- Встроены adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo.
 - Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
 - Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
@@ -401,6 +403,7 @@ async function checkSupport() {
 - Smart HTTP/git object subset остаётся optional experiment только для browser-compatible remotes без нормального host API, а не обязательной следующей фазой.
 - Готовые git-клиенты и `isomorphic-git` из npm не тащим: пишем маленький велосипед под нужды Macaroni.
 - Поддерживаем только тот transport subset, который реально нужен messenger'у: read/list/write `.macaroni/` paths, optional batch write, branch/ref marker, normalized errors.
+- В runtime optional batch write пока не реализован: Protocol v1 files пишутся последовательно.
 - SSH из браузера по-прежнему не обещаем. Isomorphic Git ориентируется на browser-compatible HTTP(S) git flow, где remote не мешает CORS/auth. Если host не даёт браузеру говорить с git endpoint, нужен wrapper или adapter.
 - Цель не "полный git в HTML". Цель - "достаточно git, чтобы мама получила сообщение".
 

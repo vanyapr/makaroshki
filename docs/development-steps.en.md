@@ -266,7 +266,7 @@ Steps:
 
 Current mobile UI contract: the sidebar does not stretch the chat list with empty space, chats use a compact horizontal strip, and the composer fits fully inside the viewport without sticking to the bottom edge.
 
-Sync/outbox status is shown in the current chat header: transport (`GitHub`, `GitHub read-only`, `local test repo`), action, and outbox size.
+Sync/outbox status is shown in the current chat header: transport (`GitHub`, `GitLab`, `GitVerse`, `Gitea`, `Forgejo`, read-only, or `local test repo`), action, and outbox size.
 
 The sidebar also shows a local per-chat outbox indicator: if `outbox` contains outgoing messages for a chat, a separate badge appears next to that chat title. This is local UI state; git does not store delivery/read status.
 
@@ -286,7 +286,7 @@ Composer sends messages to current chat members from `members.json`, excluding t
 
 The composer is optimistic: after Enter, the field clears immediately, the message is immediately added to the local index and rendered in the current chat, and the prepared write is stored in outbox. Git write does not start directly from submit: every 30 seconds the sender does a fresh pull/reindex, then drains outbox sequentially, and refreshes the index again after writing. The `Refresh` button runs the same cycle manually.
 
-Before any GitHub push/write, the client first does pull/reindex. This reduces 409 conflicts and matches the real project model: local IndexedDB is cache, git is the source of truth, and outbox is the outgoing operation queue.
+Before any remote push/write, the client first does pull/reindex through the selected provider adapter. This reduces write conflicts and matches the real project model: local IndexedDB is cache, git is the source of truth, and outbox is the outgoing operation queue.
 
 Read receipts also go through outbox and do not write to git directly when a chat is opened. If a receipt fails to send, it stays queued, but it does not block text messages.
 
@@ -298,7 +298,7 @@ Joining a chat means the current `CLIENT_ID` is added to `members.json`. If the 
 
 If `members.json` is missing, `Chat info` shows a fallback member from `meta.created_by`; when joining, the client creates `members.json` and adds the current `CLIENT_ID`.
 
-If the user adds a GitHub token after read-only mode, saving settings automatically retries outbox. The `Refresh` button remains the manual retry path.
+If the user adds a provider token after read-only mode, saving settings automatically retries outbox. The `Refresh` button remains the manual retry path.
 
 GitHub `409 Conflict` during a write is retried once after a fresh file metadata read. If the retry also fails, the message remains in outbox.
 
@@ -386,12 +386,13 @@ Done when:
 
 Only after working `messenger.html`:
 
-1. Second git provider adapter: an honest guard now exists for unsupported remote providers (`Generic Git HTTP`, `GitLab`, `GitVerse`). The client no longer silently falls back to the local test repo and instead shows a clear error until a real adapter exists.
+1. Git-agnostic provider adapters: minimal runtime registry `window.MacaroniRemoteAdapters` is implemented for `GitHub`, `GitLab`, `GitVerse`, `Gitea`, `Forgejo`. `Generic Git HTTP` remains contract-only and shows an honest error instead of silent fallback.
    - Research is tracked separately: `docs/git-host-api-research.en.md`.
-   - First practical step: host API adapters for GitLab/GitVerse/Gitea/Forgejo, not a complete raw git client.
+   - Project's practical Isomorphic Git: host API adapters over existing browser-compatible HTTPS/API transports, not a complete raw git client.
    - Storage branch and read-only composer guard remain separate backlog items, so transport research does not get mixed with UX/branch hygiene.
+   - Batch commit is not implemented yet: several Protocol v1 files are written sequentially.
 2. Import existing repo: partially done as an explicit `Import Repo` button in settings; it rebuilds the local IndexedDB cache from the selected `.macaroni/` repo and does not write remote files.
-3. Read-only public repo mode: partially done for GitHub public repos without a token; the client reads history, shows `GitHub read-only`, but does not create chats or send messages without a write token.
+3. Read-only public repo mode: partially done for remote profiles without a token; the client reads history, shows provider-specific read-only transport, but does not create chats or send messages without a write token.
 4. URL attachments: partially done as safe auto-linking for `http://`/`https://` URLs in message text, without binary files or previews.
 5. Markdown rendering: partially done as safe inline rendering for `**bold**`, `*italic*`, and `` `code` `` in the message UI, without HTML passthrough and without a full CommonMark engine.
 6. Basic notifications: partially done as unread count in `document.title` and an embedded sound for new incoming messages, without Browser Notification API or permission prompts.

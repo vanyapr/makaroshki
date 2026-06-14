@@ -64,7 +64,7 @@ GitHub Contents API не является raw git push.
 
 ## Send/Refresh Flow
 
-Если в профиле выбран provider `github` и указан token, основной composer использует `window.MacaroniGitHub`.
+Если в профиле выбран provider `github` и указан token, основной composer идёт через общий `window.MacaroniRemoteAdapters`, где GitHub остаётся reference adapter.
 
 Если token пустой, GitHub repo работает как read-only public repo: клиент может читать публичную историю, но не может создавать чаты и отправлять сообщения.
 

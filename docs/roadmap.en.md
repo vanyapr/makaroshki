@@ -392,6 +392,8 @@ Recommended:
 0.5:
 
 - **Git-Agnostic Host Adapters**: the immediate path to "any git" is browser-compatible host API adapters for GitLab, GitVerse, Gitea, and Forgejo. Research: `docs/git-host-api-research.en.md`.
+- Status: minimal runtime implemented in `messenger.html` through `window.MacaroniRemoteAdapters`.
+- Built-in adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo.
 - The current GitHub adapter remains the reference implementation and must not be broken for the new abstraction.
 - Minimal shared contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
 - Read-only composer guard is a separate backlog item: if the token is missing or has no write permissions, hide the composer and honestly show that this is read-only mode.
@@ -401,6 +403,7 @@ Recommended:
 - Smart HTTP/git object subset remains an optional experiment only for browser-compatible remotes without a sane host API, not a required next phase.
 - We do not bundle existing git clients or `isomorphic-git` from npm; we write the small bicycle Macaroni actually needs.
 - Support only the transport subset the messenger needs: read/list/write `.macaroni/` paths, optional batch write, branch/ref marker, normalized errors.
+- Runtime optional batch write is not implemented yet: Protocol v1 files are written sequentially.
 - SSH from the browser is still not promised. Isomorphic Git targets browser-compatible HTTP(S) git flow where the remote does not block CORS/auth. If the host does not let a browser talk to the git endpoint, a wrapper or adapter is still required.
 - The goal is not "complete git in HTML". The goal is "enough git for mom to receive a message".
 

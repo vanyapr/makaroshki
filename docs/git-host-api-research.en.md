@@ -1,6 +1,6 @@
 # Research: Git Host APIs for Git-Agnostic Macaroni
 
-Status: research, no implementation.
+Status: research complete; minimal runtime implementation added to `messenger.html`.
 
 Snapshot date: 2026-06-14.
 
@@ -396,7 +396,7 @@ The base product remains one HTML file.
 
 We do not ship Electron/Tauri/native bridge as a required part of git-agnostic support.
 
-If viewing one HTML file requires bringing a 500 MB wrapper, the wrapper is cooking itself, not the macaroni.
+If viewing one HTML file or a JPEG in a WebView needs a 500 MB bundle, it is no longer a client. It is an appliance with an address bar.
 
 Wrappers may exist as an optional packaging layer.
 
@@ -417,6 +417,49 @@ The transport contract must not depend on them.
 Git-agnostic Macaroni should not pull `isomorphic-git` from npm and does not have to write a complete git implementation.
 
 Browser-compatible host API adapters are the whole practical Isomorphic Git scope for the base product.
+
+## Runtime Implementation
+
+`messenger.html` now contains browser-side registry `window.MacaroniRemoteAdapters`.
+
+Built-in adapters:
+
+- `github` - GitHub REST Contents API;
+- `gitlab` - GitLab Repository Files/Tree API;
+- `gitverse` - GitVerse Contents/Tree API v1;
+- `gitea` - Gitea Contents API;
+- `forgejo` - Forgejo Contents API.
+
+Supported runtime subset:
+
+- read branch/head marker;
+- read file/json;
+- list directory;
+- write file/json;
+- initialize Protocol v1 layout;
+- create chat;
+- join chat;
+- send message through outbox retry;
+- read receipts;
+- reindex/polling.
+
+Not implemented in this step:
+
+- batch commit;
+- storage branch;
+- raw SSH;
+- generic `git-http` without a concrete host API;
+- complete Smart HTTP/git object transport.
+
+Provider-specific URL assumptions:
+
+- GitHub: `https://github.com/owner/repo`;
+- GitLab: `https://gitlab.com/group/project` or self-hosted GitLab URL;
+- GitVerse: `https://gitverse.ru/owner/repo`;
+- Gitea: `https://host/owner/repo`;
+- Forgejo: `https://host/owner/repo`.
+
+For self-hosted Gitea/Forgejo/GitLab, CORS remains the remote operator's responsibility. If the browser cannot reach the API, Macaroni shows an honest network/provider error.
 
 This preserves:
 

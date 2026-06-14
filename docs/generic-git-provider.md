@@ -24,7 +24,7 @@ Macaroni Messenger не должен быть GitHub-only.
 
 Base product при этом остаётся одним HTML-файлом. Wrapper может быть упаковкой, но не становится обязательной ценой за generic git support.
 
-Если ради просмотра одного HTML хочется принести 500 МБ обёртки, значит обёртка варит себя, а не макароны.
+Если для просмотра одного HTML-файла или джипега в WebView нужен bundle на 500 МБ, это уже не клиент, а бытовая техника с адресной строкой.
 
 ## Что Значит "Любой Git"
 
@@ -67,13 +67,33 @@ Batch commit желателен, но не обязателен. Если host �
 | Provider | Read | Write | Notes |
 | --- | --- | --- | --- |
 | GitHub | yes | yes | Реализовано через GitHub REST Contents API. |
+| GitLab | yes | yes | Реализовано через Repository Files/Tree API. Repo URL: `https://gitlab.com/group/project` или self-hosted GitLab. |
+| GitVerse | yes | yes | Реализовано через GitVerse Contents/Tree API v1. Repo URL: `https://gitverse.ru/owner/repo`. |
+| Gitea | yes | yes | Реализовано через Gitea Contents API. Repo URL: `https://host/owner/repo`; browser CORS зависит от инсталляции. |
+| Forgejo | yes | yes | Реализовано через Forgejo Contents API. Repo URL: `https://host/owner/repo`; browser CORS зависит от инсталляции. |
 | Hardcoded demo | yes | no | Используется для Hacker News/demo traffic без боли от API rate limits. |
 | Local test repo | yes | yes | IndexedDB fake repo для локальной разработки. |
 | Generic Git HTTP | contract only | contract only | Нужен CORS-compatible host adapter. |
-| GitLab | planned | planned | Тот же protocol, другой host API. |
-| GitVerse | planned | planned | Тот же protocol, другой host API. |
-| Gitea/Forgejo | planned | planned | Вероятно file/content API adapter. |
 | Raw SSH git | no | no | Не из обычной browser tab. Для этого нужен wrapper. |
+
+## Реализованная Форма Isomorphic Git
+
+Встроенный browser-side transport registry живёт внутри `messenger.html` и поддерживает:
+
+- `readHead`;
+- `readFile`;
+- `readJson`;
+- `listFiles`;
+- `writeFile`;
+- `writeJson`.
+
+Batch write пока не реализован в runtime. Клиент пишет несколько Protocol v1 файлов последовательно, как уже делал GitHub adapter.
+
+Storage branch пока не реализован. Все adapters используют `profile.branch || "main"`.
+
+Generic Git HTTP остаётся contract-only, потому что без конкретного CORS-compatible endpoint браузеру нечего вызывать.
+
+Если для собственной Linux-машины нужен transport, до которого браузер сможет дотянуться, дальше очередь оператора remote садиться на шпагат.
 
 ## Почему Не Встроить Полный Git Client?
 

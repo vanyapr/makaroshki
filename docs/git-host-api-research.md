@@ -1,6 +1,6 @@
 # Research: Git Host API для Git-Agnostic Macaroni
 
-Статус: research, без реализации.
+Статус: research завершён; minimal runtime implementation добавлен в `messenger.html`.
 
 Дата снимка: 2026-06-14.
 
@@ -396,7 +396,7 @@ Base product остаётся одним HTML-файлом.
 
 Мы не тянем Electron/Tauri/native bridge как обязательную часть git-agnostic поддержки.
 
-Если ради просмотра одного HTML хочется принести 500 МБ обёртки, значит обёртка варит себя, а не макароны.
+Если для просмотра одного HTML-файла или джипега в WebView нужен bundle на 500 МБ, это уже не клиент, а бытовая техника с адресной строкой.
 
 Wrappers могут быть optional packaging layer.
 
@@ -417,6 +417,49 @@ Transport contract не должен зависеть от них.
 Git-agnostic Macaroni не должен брать `isomorphic-git` из npm и не обязан писать полный git implementation.
 
 Browser-compatible host API adapters - это и есть весь practical Isomorphic Git для base product.
+
+## Runtime Implementation
+
+`messenger.html` теперь содержит browser-side registry `window.MacaroniRemoteAdapters`.
+
+Встроены adapters:
+
+- `github` - GitHub REST Contents API;
+- `gitlab` - GitLab Repository Files/Tree API;
+- `gitverse` - GitVerse Contents/Tree API v1;
+- `gitea` - Gitea Contents API;
+- `forgejo` - Forgejo Contents API.
+
+Поддержанный runtime subset:
+
+- read branch/head marker;
+- read file/json;
+- list directory;
+- write file/json;
+- init Protocol v1 layout;
+- create chat;
+- join chat;
+- send message through outbox retry;
+- read receipts;
+- reindex/polling.
+
+Не реализовано в этом шаге:
+
+- batch commit;
+- storage branch;
+- raw SSH;
+- generic `git-http` без конкретного host API;
+- полный Smart HTTP/git object transport.
+
+Provider-specific URL assumptions:
+
+- GitHub: `https://github.com/owner/repo`;
+- GitLab: `https://gitlab.com/group/project` или self-hosted GitLab URL;
+- GitVerse: `https://gitverse.ru/owner/repo`;
+- Gitea: `https://host/owner/repo`;
+- Forgejo: `https://host/owner/repo`.
+
+Для self-hosted Gitea/Forgejo/GitLab CORS остаётся ответственностью remote operator. Если браузер не может достучаться до API, Macaroni честно покажет network/provider error.
 
 Это сохраняет:
 

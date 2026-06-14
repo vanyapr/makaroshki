@@ -55,9 +55,9 @@ Demo захардкожен и работает read-only, чтобы Hacker New
 
 ### Можно писать настоящие сообщения?
 
-Да. Сегодня встроенный write adapter - GitHub: подключите GitHub repository в Settings и используйте fine-grained token с `Contents: Read and write`.
+Да. Встроенные browser adapters есть для GitHub, GitLab, GitVerse, Gitea и Forgejo. Подключите repository в Settings и используйте provider token с read/write доступом к repository content.
 
-Сам протокол `.macaroni/` не привязан к GitHub. Для других git hosts нужен browser-compatible adapter; см. [generic git provider contract](generic-git-provider.md).
+Сам протокол `.macaroni/` не привязан к GitHub. Для custom/self-hosted git hosts всё ещё нужна browser-compatible API/CORS настройка; см. [generic git provider contract](generic-git-provider.md).
 
 ### Можно вставить token в Hacker News?
 

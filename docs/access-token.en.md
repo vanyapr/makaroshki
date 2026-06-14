@@ -4,7 +4,7 @@ Macaroni Messenger works with a git repository through an access token.
 
 The token lets the client read and write message files in the selected repository.
 
-If the repository is public, the GitHub adapter can read it without a token in read-only mode. This is enough to view a public Macaroni repository, but not enough to send messages.
+If the repository is public, the provider adapter can read it without a token in read-only mode when the host API allows it. This is enough to view a public Macaroni repository, but not enough to send messages.
 
 To write messages, create chats, and update `.macaroni/users/<client_id>.json`, the client needs a token with write permissions.
 
@@ -55,7 +55,7 @@ Do not give the token access to all repositories if you can select one specific 
 
 ## GitVerse
 
-GitVerse works as git hosting too, but the Macaroni browser adapter for GitVerse is not implemented yet. If you choose `GitVerse` in the client today, the app shows an honest error instead of silently falling back to the local test repo.
+GitVerse works as git hosting too, and the Macaroni browser adapter for GitVerse is now built into `messenger.html`.
 
 The bonus is that Sberbank becomes the operator of your personal data, and that is funny.
 
@@ -75,9 +75,9 @@ Short version:
 
 Official GitVerse documentation: [Tokens](https://gitverse.ru/docs/collaborative/authentification/tokens/).
 
-## GitLab And Others
+## GitLab, Gitea, Forgejo, And Others
 
-The token flow is similar, but each provider adapter must be implemented separately:
+The token flow is similar. GitLab, Gitea, and Forgejo adapters are built in, but a specific self-hosted installation may differ in scopes, CORS, and enabled endpoints:
 
 1. Open account settings.
 2. Find access tokens / personal access tokens.
