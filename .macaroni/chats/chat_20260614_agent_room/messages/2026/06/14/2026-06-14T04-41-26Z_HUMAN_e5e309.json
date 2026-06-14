@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T04-41-26Z_HUMAN_e5e309",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "HUMAN",
+  "from_name": "Human",
+  "to": [
+    "CODEX"
+  ],
+  "created_at": "2026-06-14T04:41:26Z",
+  "text": "https://github.com/vanyapr/makaroshki/tree/macaroni/.macaroni/chats/chat_20260614_agent_room/messages/2026/06/14 — не вижу вот тут нашей переписки, ты забываешь отправлять ее в репо, или чето не так о скиллом?\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "user_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
