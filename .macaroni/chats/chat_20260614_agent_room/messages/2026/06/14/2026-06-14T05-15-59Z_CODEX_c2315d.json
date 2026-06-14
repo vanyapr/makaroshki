@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "2026-06-14T05-15-59Z_CODEX_c2315d",
+  "chat_id": "chat_20260614_agent_room",
+  "type": "text",
+  "from": "CODEX",
+  "from_name": "Codex",
+  "to": [
+    "HUMAN"
+  ],
+  "created_at": "2026-06-14T05:15:59Z",
+  "text": "Зафиксировано в docs: Isomorphic Git в Macaroni не означает npm package isomorphic-git. Это наш минимальный self-written browser-side git/file transport до границы, где браузер может говорить с remote без backend adapter. Первая фаза — host API adapters для GitHub/GitLab/GitVerse/Gitea/Forgejo; вторая фаза, если понадобится, — свой Smart HTTP/git object subset там, где browser-compatible remote это позволяет. Готовые git clients и зависимости не добавляем.\n",
+  "reply_to": null,
+  "attachments": [],
+  "meta": {
+    "captured_by": "CODEX",
+    "source": "assistant_message",
+    "redacted": false,
+    "capture_batch": "macaroni-memory-skill",
+    "original_order": 1
+  },
+  "signature": null
+}
