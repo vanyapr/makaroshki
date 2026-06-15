@@ -349,15 +349,15 @@ Done when:
 
 Goal: prove this is a full application, not a funny HTML mockup.
 
-Status: repeatable smoke harness `scripts/mvp-smoke.js` was added. It checks the unsupported screen, first-run, `CLIENT_ID` generation and persistence, profile, chat creation, send, reload, reindex, search, outbox/retry, GitHub send/reindex/read-only through a fake Contents API, and two-client recipient addressing through a locally saved `CLIENT_ID = "K2XM"`.
+Status: the permanent smoke harness was removed from the repo in 1.05. Checks are done as scratch scripts in `/tmp` or `/private/tmp` when a specific feature needs them, and we do not keep a test tarp next to one HTML file.
 
-Local command:
+Local check:
 
 ```sh
-node scripts/mvp-smoke.js
+node /tmp/macaroni-smoke.js
 ```
 
-Requires Node.js with `playwright` available, for example after `npm install -D playwright`.
+Requires Node.js with `playwright` available if the check is browser-based. The script is temporary: run it, delete it, do not make the macaroni drawer messy.
 
 Steps:
 

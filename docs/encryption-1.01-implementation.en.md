@@ -461,9 +461,7 @@ If checks are needed during development:
 - check that wrong secret returns original message;
 - delete the scratch script after checking.
 
-We do not leave a test tarp in the repo for a feature that is not written yet.
-
-When the feature becomes real code, smoke harness can be extended as a separate decision.
+We do not leave a test tarp in the repo. If smoke is needed, it lives in a temporary directory, does its job, and walks away.
 
 ## Portable Docs
 

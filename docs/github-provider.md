@@ -15,7 +15,7 @@ GitHub - первый реальный provider для Macaroni Messenger.
 - refresh/reindex читает все chat meta, messages по датам и `.macaroni/inbox/<CLIENT_ID>` как receive hint;
 - перед полным reindex клиент проверяет последний commit SHA branch и пропускает обход Contents API, если repo не изменился;
 - GitHub repo без token работает в read-only режиме для публичных repo;
-- smoke harness проверяет GitHub send, reindex и read-only через fake Contents API без реального token;
+- GitHub send, reindex и read-only можно проверять временным fake Contents API в scratch script без реального token;
 - клиент сохраняет локальный snapshot `x-ratelimit-*` headers и показывает `api: remaining/limit` в status line;
 - write path один раз автоматически повторяет `PUT` после GitHub `409 Conflict`, перечитывая file metadata перед retry;
 - human-readable ошибки для auth, permissions, rate limit, missing repo/file и conflict.

@@ -1388,6 +1388,8 @@
       const POLL_READ_ONLY_MS = 60000;
       const DEMO_REPO_URL = "https://github.com/vanyapr/makaroshki";
 
+      // === Constants and local state ===
+      // One HTML file, one kitchen. If this grows into a config server, we lost the joke.
       var LOCAL_STORAGE_PROBE = "__macaroni_storage_probe__";
       var INDEXED_DB_PROBE = "__macaroni_indexeddb_probe__";
       var APP_TITLE = "Macaroni Messenger";
@@ -1407,6 +1409,7 @@
       var DEFAULT_LANGUAGE = "en";
       var DEFAULT_SOURCE_BRANCH = "main";
       var DEFAULT_STORAGE_BRANCH = "macaroni";
+      var REMOTE_ADAPTER_METHODS = ["readHead", "ensureBranch", "readFile", "readJson", "listFiles", "writeFile", "writeJson"];
       var TOKEN_DOC_URLS = {
         en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
         ru: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.md"
@@ -1423,6 +1426,8 @@
       var incomingSoundReady = false;
       var knownIncomingMessages = {};
       var composerDraftsByChat = {};
+      // === Text table ===
+      // The UI is bilingual because the absurdity should be available in both languages.
       var I18N = {
         en: {
           browserUnsupportedLabel: "Browser is not supported",
@@ -1722,6 +1727,8 @@
         }
       };
 
+      // === DOM and language helpers ===
+      // Boring functions. If they become clever, the UI will start arguing with us.
       function get(id) {
         return document.getElementById(id);
       }
@@ -1886,6 +1893,8 @@
         });
       }
 
+      // === IDs, paths, and Protocol v1 documents ===
+      // Macaroni Protocol is a file layout. Not a backend. Not a lifestyle. Almost.
       function createClientId() {
         function rand() {
           return Math.floor(Math.random() * CLIENT_ID_ALPHABET.length);
@@ -2331,6 +2340,8 @@
         return true;
       }
 
+      // === Plugin boundary ===
+      // Plugins are taped outside the core and do protocolology through the correct hole.
       var pluginRegistry = [];
 
       function cloneJson(value) {
@@ -2537,6 +2548,8 @@
         });
       }
 
+      // === Encryption 1.01 plugin ===
+      // Ridiculously small crypto layer. Serious enough to work, honest enough to laugh at.
       function utf8Bytes(value) {
         return new TextEncoder().encode(String(value == null ? "" : value));
       }
@@ -2952,6 +2965,8 @@
         });
       }
 
+      // === GitHub adapter ===
+      // Reference transport: Contents API, tiny branch handling, no full git cosplay.
       function parseGitHubRepo(repoUrl) {
         var value = String(repoUrl || "").trim();
         var match = value.match(/^https:\/\/github\.com\/([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/?#].*)?$/i);
@@ -3215,6 +3230,8 @@
         return githubWriteFile(config, path, JSON.stringify(value, null, 2), message);
       }
 
+      // === Generic host helpers ===
+      // Shared plumbing for GitLab/GitVerse/Gitea/Forgejo. Same pasta, different faucets.
       function trimTrailingSlash(value) {
         return String(value || "").replace(/\/+$/g, "");
       }
@@ -3719,6 +3736,8 @@
         });
       }
 
+      // === Remote adapter registry ===
+      // Practical Isomorphic Git: use the host API until the browser reaches the edge of the table.
       function canReadGitHub(profile) {
         return !!(profile && profile.provider === "github" && profile.repo);
       }
@@ -4261,6 +4280,8 @@
         });
       }
 
+      // === Profile and settings ===
+      // localStorage is not a vault. It is a drawer with a sticky note saying "please behave".
       function loadProfile() {
         try {
           var raw = window.localStorage.getItem(PROFILE_KEY);
@@ -4484,6 +4505,8 @@
         window.localStorage.removeItem(PROFILE_KEY);
       }
 
+      // === IndexedDB storage ===
+      // Local cache. Git is the memory, IndexedDB is the notebook we may spill tea on.
       function requestToPromise(request) {
         return new Promise(function (resolve, reject) {
           request.onsuccess = function () {
@@ -4888,6 +4911,8 @@
         });
       }
 
+      // === Local test repo ===
+      // IndexedDB pretending to be a repo. Useful for first run, not a religion.
       function repoWriteFile(path, content) {
         requireString(path, "repo.path");
         return putRecord("repoFiles", {
@@ -5897,6 +5922,8 @@
         return chats;
       }
 
+      // === Rendering ===
+      // Dense UI, small screens, no decorative theatre. The messages are the product.
       function renderChatList() {
         return Promise.all([
           listChats(),
@@ -6079,6 +6106,8 @@
         });
       }
 
+      // === Chat info and membership ===
+      // Chat Info exists to answer "what repo/file mess am I currently looking at?"
       function chatInfoRow(label, value) {
         var row = document.createElement("div");
         var labelNode = document.createElement("div");
@@ -6627,6 +6656,8 @@
         scheduleMessagePoll(profile);
       }
 
+      // === Outbox and sync ===
+      // Pull before push. Git will not run away, but conflicts will still try.
       function retryOutbox(profile) {
         if (isUnsupportedRemoteProvider(profile)) {
           return Promise.reject(unsupportedProviderError(profile));
@@ -6749,6 +6780,8 @@
         });
       }
 
+      // === Event binding ===
+      // The place where buttons become consequences.
       function bindComposer() {
         if (composerBound) {
           return;
@@ -6995,6 +7028,8 @@
         });
       }
 
+      // === Browser support and public debug handles ===
+      // If the browser cannot persist state, messenger.html becomes postcard.html.
       async function checkSupport() {
         var checks = {
           supportedOrigin: window.location.protocol === "file:" || window.location.protocol === "https:",
@@ -7089,6 +7124,8 @@
       window.MacaroniGitHub = {
         parseRepo: parseGitHubRepo,
         createConfig: createGitHubConfig,
+        readHead: githubReadHead,
+        ensureBranch: githubEnsureBranch,
         readFile: githubReadFile,
         readJson: githubReadJson,
         listFiles: githubListFiles,
@@ -7101,6 +7138,8 @@
         canRead: canReadRemote,
         canWrite: canWriteRemote,
         createConfig: createRemoteConfig,
+        sourceBranch: sourceBranch,
+        storageBranch: effectiveStorageBranch,
         reindex: reindexFromRemote,
         reindexIfChanged: reindexRemoteIfChanged
       };
@@ -7108,7 +7147,7 @@
       window.MacaroniProviderContract = {
         protocol: "provider adapter over " + MACARONI_ROOT + "/",
         note: "Isomorphic Git in Macaroni means small browser-side adapters over existing HTTPS/API transports.",
-        methods: ["readHead", "readFile", "readJson", "listFiles", "writeFile", "writeJson"],
+        methods: REMOTE_ADAPTER_METHODS.slice(),
         builtIn: {
           github: { read: true, write: true, adapter: "GitHub REST Contents API" },
           gitlab: { read: true, write: true, adapter: "GitLab Repository Files/Tree API" },

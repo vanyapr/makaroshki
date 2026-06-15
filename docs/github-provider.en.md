@@ -15,7 +15,7 @@ The current implementation lives in `messenger.html` as `window.MacaroniGitHub`.
 - refresh/reindex reads all chat meta, messages by date, and `.macaroni/inbox/<CLIENT_ID>` as a receive hint;
 - before a full reindex, the client checks the latest branch commit SHA and skips the Contents API walk when the repo has not changed;
 - GitHub repo without a token works in read-only mode for public repos;
-- the smoke harness checks GitHub send, reindex, and read-only through a fake Contents API without a real token;
+- GitHub send, reindex, and read-only can be checked through a temporary fake Contents API scratch script without a real token;
 - the client stores a local snapshot of `x-ratelimit-*` headers and shows `api: remaining/limit` in the status line;
 - the write path automatically retries a GitHub `409 Conflict` once, rereading file metadata before retry;
 - human-readable errors for auth, permissions, rate limit, missing repo/file, and conflict.
