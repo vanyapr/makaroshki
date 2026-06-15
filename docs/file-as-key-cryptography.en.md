@@ -344,6 +344,35 @@ The file must be stored like a key.
 
 Because it is the key.
 
+## PGP-Sized Secret
+
+If `secret` and `salt` are PGP-sized material and the file with the key is permanently deleted, recovery is practically impossible.
+
+This is no longer a forgotten password.
+
+This is a small burned universe.
+
+A short password can be remembered, guessed, or brute-forced.
+
+A PGP-sized secret is not "restored".
+
+It is either stored or mourned.
+
+```text
+a new key will appear faster
+than the old one will be found by brute force
+```
+
+That is also part of the file-as-key model.
+
+No support server.
+
+No "restore account" button.
+
+No kind admin who can "check the database".
+
+If the file was the capability artifact and it died permanently, the chat for that file died with it.
+
 ## Motto
 
 ```text
