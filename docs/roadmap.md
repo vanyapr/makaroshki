@@ -363,8 +363,8 @@ async function checkSupport() {
 0.3:
 
 - URL attachments;
-- markdown rendering;
-- basic notifications: частично сделано как unread count и встроенный sound для новых входящих сообщений;
+- markdown rendering: сделан safe inline-render `**bold**`, `*italic*`, `` `code` `` без HTML passthrough; полноценный CommonMark engine не планируется;
+- basic notifications: сделано в текущем scope как unread count и встроенный sound для новых входящих сообщений, без Browser Notification API и permission prompts;
 - receipts как append-only события;
 - HTML export of chat history;
 - Electron/WebView wrapper над тем же `messenger.html`.
@@ -379,13 +379,13 @@ async function checkSupport() {
 
 0.45:
 
-- **Storage branch для `.macaroni/`**: backlog после git-agnostic adapters. В Settings добавить отдельное поле `storage_branch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
+- **Storage branch для `.macaroni/`**: реализовано в `messenger.html`. В Settings добавлено отдельное поле `storageBranch`, чтобы сообщения, inbox, receipts и chat metadata жили не в source branch приложения.
 - Default для новых профилей: `macaroni`.
 - Backward compatibility: если `storage_branch` не задан, клиент продолжает использовать текущий `main`/configured branch, чтобы старые профили не сломались.
 - Git branch с именем `.macaroni` использовать нельзя: Git не считает `.macaroni` валидным branch name. Каталог остаётся `.macaroni/`, branch называется `macaroni`, `macaroni/data` или другим валидным именем.
 - `messenger.html`, docs, release notes и GitHub Pages остаются в `main`; Macaroni data writes идут в `storage_branch`.
-- Read/write contract: все provider adapters должны принимать storage branch отдельно от app/source branch и использовать его для `.macaroni/` paths.
-- MVP creation flow: если `storage_branch` существует - используем её; если не существует - создаём от default branch и дальше пишем только `.macaroni/`.
+- Read/write contract: provider adapters принимают storage branch отдельно от app/source branch и используют его для `.macaroni/` paths.
+- MVP creation flow: если storage branch существует - используем её; если не существует - создаём от source branch и дальше пишем `.macaroni/` туда.
 - Позже можно добавить advanced action `Create clean storage branch`, которая создаёт orphan branch только с `.macaroni/`. Это красиво, но не нужно для первого рабочего варианта.
 - UI copy: "Keeps messages out of the source branch." На русском: "Чтобы макароны не падали в README."
 
@@ -396,7 +396,7 @@ async function checkSupport() {
 - Встроены adapters: GitHub, GitLab, GitVerse, Gitea, Forgejo.
 - Текущий GitHub adapter остаётся reference implementation и не ломается ради новой абстракции.
 - Минимальный общий contract: read path, list path, write path, optional batch write, optional branch creation, head marker, normalized errors.
-- Read-only composer guard - отдельный backlog item: если token отсутствует или не имеет write permissions, composer скрывается и UI честно говорит, что это read-only режим.
+- Read-only composer guard реализован: если token отсутствует или provider unsupported, composer скрывается и UI честно говорит, что это read-only режим.
 - **Isomorphic Git** в Macaroni означает не npm package, а весь наш минимальный self-written browser-side transport layer до границы, где браузер может работать с remote без backend adapter.
 - Host API adapters - это не "первая фаза перед настоящим git", а весь practical Isomorphic Git для base product: используем существующий transport remote'а и едем туда, куда доезжают квадратные колёса.
 - Если для собственной Linux-машины нужен transport, до которого браузер сможет дотянуться, дальше очередь оператора remote садиться на шпагат.

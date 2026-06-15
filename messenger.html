@@ -620,6 +620,23 @@
       line-height: 1.35;
     }
 
+    .composer-readonly-note {
+      display: none;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .composer.readonly .message-input,
+    .composer.readonly .send {
+      display: none;
+    }
+
+    .composer.readonly .composer-readonly-note {
+      display: block;
+      grid-column: 1 / -1;
+    }
+
     .checkbox-row {
       display: grid;
       grid-template-columns: 26px 1fr;
@@ -1129,6 +1146,12 @@
         </div>
 
         <div class="field">
+          <label class="field-label" for="setup-storage-branch">Storage branch</label>
+          <input class="text-field" id="setup-storage-branch" name="storageBranch" type="text" value="macaroni" autocomplete="off">
+          <p class="field-note" id="setup-storage-branch-note">Where .macaroni/ data lives. Keeps messages out of the source branch.</p>
+        </div>
+
+        <div class="field">
           <label class="field-label" for="setup-token">Access Token</label>
           <input class="text-field" id="setup-token" name="token" type="password" autocomplete="off">
           <p class="field-note">The token is saved in localStorage. This is not a bank vault. This is an HTML file that warned you honestly. <a href="docs/access-token.en.md" target="_blank" rel="noreferrer">How to get an access token</a>.</p>
@@ -1186,6 +1209,12 @@
         <div class="field">
           <label class="field-label" for="settings-repo">Repository</label>
           <input class="text-field" id="settings-repo" name="repo" type="text" autocomplete="off" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="settings-storage-branch">Storage branch</label>
+          <input class="text-field" id="settings-storage-branch" name="storageBranch" type="text" autocomplete="off">
+          <p class="field-note" id="settings-storage-branch-note">Where .macaroni/ data lives. Keeps messages out of the source branch.</p>
         </div>
 
         <div class="field">
@@ -1291,6 +1320,7 @@
         <form class="composer" id="composer-form" action="#" aria-label="Send message">
           <input class="message-input" id="message-input" name="message" type="text" placeholder="Type a message..." aria-label="Type a message" autocomplete="off" required>
           <button class="button send" type="submit">Send</button>
+          <p class="composer-readonly-note" id="composer-readonly-note">Read-only mode. Add a write-capable token in Settings to send messages.</p>
           <p class="storage-status" data-storage-status aria-live="polite"></p>
         </form>
       </section>
@@ -1375,6 +1405,8 @@
       var GITHUB_RATE_META_KEY = "github:rate_limit";
       var INCOMING_SOUND_SRC = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMQAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAKQAABOUAKiowMDU1NTo6Pz8/RUVKSkpPT1VVWlpaYGBlZWVqam9vb3V1enp6f3+FhYqKipCQlZWVmpqfn5+lpaqqsLCwtbW6urrAwMXFxcrKz8/P1dXa2uDg4OXl6urq8PD19fX6+v//AAAAAExhdmM2Mi4yOAAAAAAAAAAAAAAAACQCiwAAAAAAAATliGg4EgAAAAAAAAAAAAAAAAD/8xDEAAAAAogACEQASBoCCScuJNAj9HqVTv/zEsQNAtAagEAphABAM4ZuGWYOQCCMQWU8AP/zEMQPAcAqxeAIRgOBILBFQEwpxlZtsOAA//MQxBUBYBrF4ACCAwAlAlBMkCiTlLf/dNX/8xDEHAK4LnABRgABEQjEoCDRy1PMf6/QPf/zEMQeBCgavkGGCAIw266Kya6VM8EwYCCb//MQxBoE4AKUAYMQACF2U/3/Y1Vc45iXbGr/8xDEEwTQBpwBgQAAFf/fy/eEiyxsaMYkhv/zEMQMBUhm1AGPKADoKDgGaAAc0Ayq/9/+//MSxAMD2F7QAckAAb52S5XREOHEA6iVlPWe//MQxAEDAFbQAABYJWbqGeoaGDo5qPYzE5z/8xDEAgJYSswAAEwkRToAGACCssqjRhHACv/zEMQFAthqvAAAUiiRDF+fhau1rlMKdH0A//MQxAYCsFK8AABSCfWcirddqLM2UpcKkSr/8xDECALITrQAAFIJsi2Cqs43S1QQEKIWc//zEMQJAnhSrAAIEgSXIQZklljDAYqFbSoo//MQxAwCmFaswABMJK5vaTlUCjlZRZBI4u3/8xLEDgJoVqQACEwMnOWjgGirasWfbSDuCQ7/8xDEEgKoUqAACEwItxaFXbgDuxrylGEYMf/zEMQUArhOmCAITAjbQg4Y6rJnUCNxzS7S//MQxBYCqFKQABhGIJIv8wwcTGcXLDgVBFL/8xDEGALwUpDAEEwlgAPtXoRr9f+qHASAKP/zEMQZBTAehFAQRAAAQNaLjo8USjiHFU73//MQxBEFME6AWBjGJP/9P6YQSCgCCRSQ9Vn/8xDECQRQRoR4GEYkMFQX2t6/p/oqHwwGSP/zEsQEBAgOfFAwRgAC0FQIrCYb13Po//TVLP/zEMQBAYgetUAAxALHDwWbzio4CVDKajwI//MQxAcBEALFQAhEAhzguhc1KNpUNwHVcJD/8xDEDwEgIr1AAMYCVGAiIOHje5QhDM2Cjv/zEMQXAcgCqUAIwAIcY5lb/pqmRGC4gLFy//MQxBwCeCZ4ADJGAPyFOkwIB0gk4OlRAwH/8xDEHwKgJnggGEYAkV91CgwawYIBgqUP0P/zEMQhAigmfABJhgCbq7l16QOiMPMTH0oe//MSxCUDmCpsAGJMAGiprpUEMKoCKhMe2hn9//MQxCQDGBaEQDCEAGqYMoaP0Q7hDQMwUGn/8xDEJAMgHoAAMYIAHW0qQwgHmAoBQANFlf/zEMQkApgWiOAYggDV4MFGyRJgIgaK/61M//MQxCYBOB6IABCEAEFNRTMuMTAwVVVVVVX/8xDELgJIJnQAGYYBVVVVVVVVVVVVVVVVVf/zEMQxArgicCAxhgBVVVVVVVVVVVVVVVVV//MQxDMCsCpMADDCIFVVVVVVVVVVVVVVVVU=";
       var DEFAULT_LANGUAGE = "en";
+      var DEFAULT_SOURCE_BRANCH = "main";
+      var DEFAULT_STORAGE_BRANCH = "macaroni";
       var TOKEN_DOC_URLS = {
         en: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.en.md",
         ru: "https://github.com/vanyapr/makaroshki/blob/main/docs/access-token.md"
@@ -1408,6 +1440,8 @@
           language: "Language",
           gitProvider: "Git provider",
           repository: "Repository",
+          storageBranch: "Storage branch",
+          storageBranchNote: "Where .macaroni/ data lives. Keeps messages out of the source branch.",
           accessToken: "Access Token",
           setupTokenNote: "The token is saved in localStorage. This is not a bank vault. This is an HTML file that warned you honestly.",
           settingsTokenNote: "The token is stored locally in this browser. Security level: we did warn you.",
@@ -1524,6 +1558,7 @@
           pollingError: "Polling could not refresh messages: {message}",
           githubReadOnlyRetry: "Remote repo is read-only. Retry waits for a write-capable token.",
           githubReadOnlySend: "Remote repo is read-only. Add a write-capable token to send messages.",
+          composerReadOnly: "Read-only mode. Add a write-capable token in Settings to send messages.",
           demoReadOnlyAction: "Demo is hardcoded read-only. Add a GitHub token in Settings to use a real repo.",
           demoReadOnlySend: "Demo is read-only. Add a GitHub token in Settings to send messages.",
           sendingBackground: "sending background",
@@ -1553,6 +1588,8 @@
           language: "Язык",
           gitProvider: "Git provider",
           repository: "Репозиторий",
+          storageBranch: "Storage branch",
+          storageBranchNote: "Где живёт .macaroni/. Чтобы макароны не падали в README.",
           accessToken: "Токен доступа",
           setupTokenNote: "Токен сохраняется в localStorage. Это не банковская ячейка. Это HTML-файл, который честно предупредил.",
           settingsTokenNote: "Токен хранится локально в этом браузере. Уровень безопасности: мы предупреждали.",
@@ -1669,6 +1706,7 @@
           pollingError: "Polling не смог обновить сообщения: {message}",
           githubReadOnlyRetry: "Remote repo read-only. Retry ждет token с правом записи.",
           githubReadOnlySend: "Remote repo read-only. Добавьте token с правом записи, чтобы отправлять сообщения.",
+          composerReadOnly: "Read-only режим. Добавьте token с правом записи в настройках, чтобы отправлять сообщения.",
           demoReadOnlyAction: "Demo захардкожено и работает read-only. Добавьте GitHub token в настройках, чтобы использовать настоящий repo.",
           demoReadOnlySend: "Demo read-only. Добавьте GitHub token в настройках, чтобы отправлять сообщения.",
           sendingBackground: "отправляем в фоне",
@@ -1768,6 +1806,8 @@
         setText("label[for='setup-language'], label[for='settings-language']", t("language"));
         setText("label[for='setup-provider'], label[for='settings-provider']", t("gitProvider"));
         setText("label[for='setup-repo'], label[for='settings-repo']", t("repository"));
+        setText("label[for='setup-storage-branch'], label[for='settings-storage-branch']", t("storageBranch"));
+        setText("#setup-storage-branch-note, #settings-storage-branch-note", t("storageBranchNote"));
         setText("label[for='setup-token'], label[for='settings-token']", t("accessToken"));
         setTokenHelp("#setup-token + .field-note", "setupTokenNote");
         setTokenHelp("#settings-token + .field-note", "settingsTokenNote");
@@ -1825,6 +1865,7 @@
         setAttribute("#message-input", "placeholder", t("typeMessage"));
         setAttribute("#message-input", "aria-label", t("typeMessageAria"));
         setText("#composer-form .send", t("send"));
+        setText("#composer-readonly-note", t("composerReadOnly"));
         if (get("sync-status") && get("sync-status").textContent === I18N[DEFAULT_LANGUAGE].syncWaiting) {
           updateSyncStatus(t("syncWaiting"));
         }
@@ -2934,7 +2975,8 @@
         return {
           owner: repo.owner,
           repo: repo.repo,
-          branch: profile.branch || "main",
+          branch: effectiveStorageBranch(profile),
+          sourceBranch: sourceBranch(profile),
           token: profile.token || "",
           transport: profile.transport || window.fetch.bind(window)
         };
@@ -3052,6 +3094,39 @@
           method: "GET"
         }, false).then(function (data) {
           return data && data.sha ? data.sha : null;
+        });
+      }
+
+      function githubEnsureBranch(config, branch, fromRef) {
+        var targetBranch = String(branch || config.branch || DEFAULT_SOURCE_BRANCH).trim();
+        var sourceRef = String(fromRef || config.sourceBranch || DEFAULT_SOURCE_BRANCH).trim();
+        if (!targetBranch || targetBranch === sourceRef) {
+          return Promise.resolve({ branch: targetBranch, created: false });
+        }
+
+        var targetConfig = Object.assign({}, config, { branch: targetBranch });
+        return githubReadHead(targetConfig).then(function () {
+          return { branch: targetBranch, created: false };
+        }).catch(function (error) {
+          if (!error || error.status !== 404) {
+            throw error;
+          }
+
+          var sourceConfig = Object.assign({}, config, { branch: sourceRef });
+          return githubReadHead(sourceConfig).then(function (sha) {
+            return githubApiRequest(config, githubRepoUrl(config, "git/refs"), {
+              method: "POST",
+              headers: Object.assign({}, githubHeaders(config), {
+                "Content-Type": "application/json"
+              }),
+              body: JSON.stringify({
+                ref: "refs/heads/" + targetBranch,
+                sha: sha
+              })
+            }, false).then(function () {
+              return { branch: targetBranch, created: true };
+            });
+          });
         });
       }
 
@@ -3283,7 +3358,8 @@
           origin: repo.origin,
           apiBase: trimTrailingSlash(repo.origin) + "/api/v4",
           projectPath: repo.projectPath,
-          branch: profile.branch || "main",
+          branch: effectiveStorageBranch(profile),
+          sourceBranch: sourceBranch(profile),
           token: profile.token || "",
           transport: profile.transport || window.fetch.bind(window),
           headers: function () {
@@ -3305,6 +3381,35 @@
           method: "GET"
         }, false).then(function (data) {
           return data && data.commit ? (data.commit.id || data.commit.short_id || null) : null;
+        });
+      }
+
+      function gitlabEnsureBranch(config, branch, fromRef) {
+        var targetBranch = String(branch || config.branch || DEFAULT_SOURCE_BRANCH).trim();
+        var sourceRef = String(fromRef || config.sourceBranch || DEFAULT_SOURCE_BRANCH).trim();
+        if (!targetBranch || targetBranch === sourceRef) {
+          return Promise.resolve({ branch: targetBranch, created: false });
+        }
+
+        var targetConfig = Object.assign({}, config, { branch: targetBranch });
+        return gitlabReadHead(targetConfig).then(function () {
+          return { branch: targetBranch, created: false };
+        }).catch(function (error) {
+          if (!error || error.status !== 404) {
+            throw error;
+          }
+
+          return providerRequest(config, appendQuery(gitlabProjectUrl(config, "repository/branches"), {
+            branch: targetBranch,
+            ref: sourceRef
+          }), {
+            method: "POST",
+            headers: Object.assign({}, gitlabHeaders(config), {
+              "Content-Type": "application/json"
+            })
+          }, false).then(function () {
+            return { branch: targetBranch, created: true };
+          });
         });
       }
 
@@ -3408,7 +3513,8 @@
           apiBase: settings.apiBase ? settings.apiBase(repo.origin) : trimTrailingSlash(repo.origin) + "/api/v1",
           owner: repo.owner,
           repo: repo.repo,
-          branch: profile.branch || "main",
+          branch: effectiveStorageBranch(profile),
+          sourceBranch: sourceBranch(profile),
           token: profile.token || "",
           authPrefix: settings.authPrefix || "token",
           accept: settings.accept || "application/json",
@@ -3451,6 +3557,38 @@
         }, false).then(function (data) {
           var commit = data && data.commit;
           return commit ? (commit.sha || commit.id || null) : null;
+        });
+      }
+
+      function githubLikeEnsureBranch(config, branch, fromRef) {
+        var targetBranch = String(branch || config.branch || DEFAULT_SOURCE_BRANCH).trim();
+        var sourceRef = String(fromRef || config.sourceBranch || DEFAULT_SOURCE_BRANCH).trim();
+        if (!targetBranch || targetBranch === sourceRef) {
+          return Promise.resolve({ branch: targetBranch, created: false });
+        }
+
+        var targetConfig = Object.assign({}, config, { branch: targetBranch });
+        return githubLikeReadHead(targetConfig).then(function () {
+          return { branch: targetBranch, created: false };
+        }).catch(function (error) {
+          if (!error || error.status !== 404) {
+            throw error;
+          }
+
+          return providerRequest(config, githubLikeRepoUrl(config, "branches"), {
+            method: "POST",
+            headers: Object.assign({}, githubLikeHeaders(config), {
+              "Content-Type": "application/json"
+            }),
+            body: JSON.stringify({
+              new_branch_name: targetBranch,
+              old_branch_name: sourceRef,
+              branch_name: targetBranch,
+              ref: sourceRef
+            })
+          }, false).then(function () {
+            return { branch: targetBranch, created: true };
+          });
         });
       }
 
@@ -3589,11 +3727,41 @@
         return !!(profile && profile.demo);
       }
 
+      function sourceBranch(profile) {
+        return String((profile && profile.branch) || DEFAULT_SOURCE_BRANCH).trim() || DEFAULT_SOURCE_BRANCH;
+      }
+
+      function normalizeStorageBranch(value) {
+        var branch = String(value || "").trim();
+        if (!branch) {
+          return "";
+        }
+
+        if (branch === MACARONI_ROOT || branch === "." + MACARONI_ROOT) {
+          return DEFAULT_STORAGE_BRANCH;
+        }
+
+        return branch.replace(/^refs\/heads\//, "");
+      }
+
+      function effectiveStorageBranch(profile) {
+        if (profile && Object.prototype.hasOwnProperty.call(profile, "storageBranch")) {
+          return normalizeStorageBranch(profile.storageBranch) || sourceBranch(profile);
+        }
+
+        if (profile && Object.prototype.hasOwnProperty.call(profile, "storage_branch")) {
+          return normalizeStorageBranch(profile.storage_branch) || sourceBranch(profile);
+        }
+
+        return sourceBranch(profile);
+      }
+
       var REMOTE_PROVIDER_ADAPTERS = {
         github: {
           id: "github",
           label: "GitHub",
           createConfig: createGitHubConfig,
+          ensureBranch: githubEnsureBranch,
           readHead: githubReadHead,
           readFile: githubReadFile,
           readJson: githubReadJson,
@@ -3605,6 +3773,7 @@
           id: "gitlab",
           label: "GitLab",
           createConfig: createGitLabConfig,
+          ensureBranch: gitlabEnsureBranch,
           readHead: gitlabReadHead,
           readFile: gitlabReadFile,
           readJson: gitlabReadJson,
@@ -3616,6 +3785,7 @@
           id: "gitverse",
           label: "GitVerse",
           createConfig: createGitVerseConfig,
+          ensureBranch: githubLikeEnsureBranch,
           readHead: githubLikeReadHead,
           readFile: githubLikeReadFile,
           readJson: githubLikeReadJson,
@@ -3627,6 +3797,7 @@
           id: "gitea",
           label: "Gitea",
           createConfig: createGiteaConfig,
+          ensureBranch: githubLikeEnsureBranch,
           readHead: githubLikeReadHead,
           readFile: githubLikeReadFile,
           readJson: githubLikeReadJson,
@@ -3638,6 +3809,7 @@
           id: "forgejo",
           label: "Forgejo",
           createConfig: createForgejoConfig,
+          ensureBranch: githubLikeEnsureBranch,
           readHead: githubLikeReadHead,
           readFile: githubLikeReadFile,
           readJson: githubLikeReadJson,
@@ -3672,6 +3844,10 @@
 
       function canWriteRemote(profile) {
         return !!(canReadRemote(profile) && profile.token);
+      }
+
+      function isReadOnlyProfile(profile) {
+        return !!(isDemoProfile(profile) || isUnsupportedRemoteProvider(profile) || (canReadRemote(profile) && !canWriteRemote(profile)));
       }
 
       function remoteLabel(profile) {
@@ -3719,17 +3895,32 @@
         });
       }
 
-      function initRemoteRepo(profile) {
+      function ensureRemoteStorageBranch(profile) {
+        if (!canWriteRemote(profile)) {
+          return Promise.resolve({ created: false });
+        }
+
         var config = createRemoteConfig(profile);
+        if (!config.adapter.ensureBranch || config.branch === config.sourceBranch) {
+          return Promise.resolve({ created: false });
+        }
+
+        return config.adapter.ensureBranch(config, config.branch, config.sourceBranch);
+      }
+
+      function initRemoteRepo(profile) {
         var now = new Date().toISOString();
-        return runSequentially([
-          function () {
-            return remoteEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol");
-          },
-          function () {
-            return remoteEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID));
-          }
-        ]);
+        return ensureRemoteStorageBranch(profile).then(function () {
+          var config = createRemoteConfig(profile);
+          return runSequentially([
+            function () {
+              return remoteEnsureJson(config, macaroniPath("protocol.json"), createProtocolDocument(now), "Macaroni: init protocol");
+            },
+            function () {
+              return remoteEnsureJson(config, macaroniPath("users/" + (profile.clientId || CLIENT_ID) + ".json"), createUserDocument(profile, now), "Macaroni: create user " + (profile.clientId || CLIENT_ID));
+            }
+          ]);
+        });
       }
 
       function readRemoteJsonSafe(config, path) {
@@ -3780,7 +3971,6 @@
       }
 
       function createRemoteChat(profile, options) {
-        var config = createRemoteConfig(profile);
         var value = options || {};
         var ownerId = value.owner_id || CLIENT_ID;
         var members = value.members || [
@@ -3798,14 +3988,17 @@
         });
         var chatMembers = createChatMembers(chatMeta.id, members);
 
-        return runSequentially([
-          function () {
-            return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title);
-          },
-          function () {
-            return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id);
-          }
-        ]).then(function () {
+        return ensureRemoteStorageBranch(profile).then(function () {
+          var config = createRemoteConfig(profile);
+          return runSequentially([
+            function () {
+              return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/meta.json"), chatMeta, "Macaroni: create chat " + chatMeta.title);
+            },
+            function () {
+              return config.adapter.writeJson(config, macaroniPath("chats/" + chatMeta.id + "/members.json"), chatMembers, "Macaroni: update chat members " + chatMeta.id);
+            }
+          ]);
+        }).then(function () {
           return {
             meta: chatMeta,
             members: chatMembers
@@ -3814,7 +4007,6 @@
       }
 
       function sendRemoteMessage(profile, options) {
-        var config = createRemoteConfig(profile);
         var value = options || {};
         var message = value.message || createTextMessage({
           chat_id: value.chat_id,
@@ -3826,18 +4018,25 @@
           attachments: value.attachments
         });
         var writes = [
-          function () {
+          function (config) {
             return config.adapter.writeJson(config, messagePath(message.chat_id, message), message, "Macaroni: send message " + message.id);
           }
         ];
 
         message.to.forEach(function (recipientId) {
-          writes.push(function () {
+          writes.push(function (config) {
             return config.adapter.writeJson(config, inboxPath(recipientId, message.id), createInboxNotification(recipientId, message), "Macaroni: notify " + recipientId + " " + message.id);
           });
         });
 
-        return runSequentially(writes).then(function () {
+        return ensureRemoteStorageBranch(profile).then(function () {
+          var config = createRemoteConfig(profile);
+          return runSequentially(writes.map(function (write) {
+            return function () {
+              return write(config);
+            };
+          }));
+        }).then(function () {
           return putMessage(message);
         }).then(function () {
           return message;
@@ -3845,9 +4044,11 @@
       }
 
       function writeRemoteReadReceipt(profile, receipt) {
-        var config = createRemoteConfig(profile);
         validateReadReceipt(receipt);
-        return config.adapter.writeJson(config, receiptPath(receipt), receipt, "Macaroni: read receipt " + receipt.message_id).then(function () {
+        return ensureRemoteStorageBranch(profile).then(function () {
+          var config = createRemoteConfig(profile);
+          return config.adapter.writeJson(config, receiptPath(receipt), receipt, "Macaroni: read receipt " + receipt.message_id);
+        }).then(function () {
           return receipt;
         });
       }
@@ -4108,6 +4309,7 @@
           language: currentLanguage(),
           provider: "github",
           repo: DEMO_REPO_URL,
+          storageBranch: sourceBranch({ branch: DEFAULT_SOURCE_BRANCH }),
           token: "",
           privacyAccepted: true,
           demo: true,
@@ -4150,6 +4352,8 @@
             language: normalizeLanguage(value.language || currentLanguage()),
             provider: value.provider || "github",
             repo: value.repo || "",
+            branch: sourceBranch(value),
+            storageBranch: effectiveStorageBranch(value),
             token: value.token || "",
             privacyAccepted: !!value.privacyAccepted
           }
@@ -4171,6 +4375,8 @@
         var displayName = String(source.displayName || source.display_name || "").trim();
         var repo = String(source.repo || "").trim();
         var provider = String(source.provider || "github").trim();
+        var branch = String(source.branch || source.sourceBranch || DEFAULT_SOURCE_BRANCH).trim() || DEFAULT_SOURCE_BRANCH;
+        var storageBranch = normalizeStorageBranch(source.storageBranch || source.storage_branch || DEFAULT_STORAGE_BRANCH) || DEFAULT_STORAGE_BRANCH;
 
         if (!clientId) {
           throw new Error("profile.clientId is required");
@@ -4190,6 +4396,8 @@
           language: normalizeLanguage(source.language || DEFAULT_LANGUAGE),
           provider: provider,
           repo: repo,
+          branch: branch,
+          storageBranch: storageBranch,
           token: String(source.token || ""),
           privacyAccepted: !!source.privacyAccepted,
           updatedAt: new Date().toISOString()
@@ -4226,6 +4434,7 @@
         get("setup-language").value = currentLanguage();
         get("setup-provider").value = "github";
         get("setup-repo").value = DEMO_REPO_URL;
+        get("setup-storage-branch").value = DEFAULT_STORAGE_BRANCH;
         get("setup-token").value = "";
         get("setup-privacy").checked = false;
         setView("setup");
@@ -4984,12 +5193,15 @@
 
       function readProfileForm(form) {
         var language = normalizeLanguage(form.elements.language ? form.elements.language.value : currentLanguage());
+        var previousProfile = loadProfile() || {};
         return {
           clientId: CLIENT_ID,
           displayName: form.elements.displayName.value.trim(),
           language: language,
           provider: form.elements.provider.value,
           repo: form.elements.repo.value.trim(),
+          branch: sourceBranch(previousProfile),
+          storageBranch: normalizeStorageBranch(form.elements.storageBranch ? form.elements.storageBranch.value : "") || DEFAULT_STORAGE_BRANCH,
           token: form.elements.token.value,
           privacyAccepted: form.elements.privacyAccepted.checked,
           updatedAt: new Date().toISOString()
@@ -5002,6 +5214,8 @@
           language: currentLanguage(),
           provider: "github",
           repo: DEMO_REPO_URL,
+          branch: DEFAULT_SOURCE_BRANCH,
+          storageBranch: DEFAULT_STORAGE_BRANCH,
           token: "",
           privacyAccepted: false
         };
@@ -5012,9 +5226,30 @@
         get("setup-language").value = normalizeLanguage(value.language || fallback.language);
         get("settings-provider").value = value.provider || fallback.provider;
         get("settings-repo").value = value.repo || fallback.repo;
+        get("settings-storage-branch").value = effectiveStorageBranch(value);
+        get("setup-storage-branch").value = profile ? effectiveStorageBranch(value) : fallback.storageBranch;
         get("settings-token").value = value.token || "";
         get("settings-privacy").checked = !!value.privacyAccepted;
         renderPluginSettings(value);
+      }
+
+      function updateComposerAvailability(profile) {
+        var form = get("composer-form");
+        var input = get("message-input");
+        var value = profile || loadProfile() || {};
+        var readOnly = isReadOnlyProfile(value);
+
+        if (form) {
+          form.classList.toggle("readonly", readOnly);
+        }
+
+        if (input) {
+          input.disabled = readOnly;
+        }
+
+        if (get("composer-readonly-note")) {
+          get("composer-readonly-note").textContent = isDemoProfile(value) ? t("demoReadOnlySend") : t("composerReadOnly");
+        }
       }
 
       function showAppOrSetup() {
@@ -5023,6 +5258,7 @@
         if (isReadyProfile(profile)) {
           fillSettingsForm(profile);
           setView("app");
+          updateComposerAvailability(profile);
           if (profile.demo) {
             updateSyncStatus(t("demoBootStatus"));
           }
@@ -5089,6 +5325,7 @@
         applyLanguage(profile.language);
         fillSettingsForm(profile);
         setView("app");
+        updateComposerAvailability(profile);
         var boot = initMessengerApp(profile);
         if (shouldRetryOutboxAfterProfileSave(previousProfile, profile)) {
           boot.then(function () {
@@ -5821,8 +6058,10 @@
         }
 
         if (canWriteRemote(profile)) {
-          var config = createRemoteConfig(profile);
-          return config.adapter.writeJson(config, path, membersDocument, "Macaroni: join chat " + chatId);
+          return ensureRemoteStorageBranch(profile).then(function () {
+            var config = createRemoteConfig(profile);
+            return config.adapter.writeJson(config, path, membersDocument, "Macaroni: join chat " + chatId);
+          });
         }
 
         return repoWriteJson(path, membersDocument);
@@ -6536,6 +6775,12 @@
           var profile = loadProfile() || {};
 
           if (!text) {
+            return;
+          }
+
+          if (isReadOnlyProfile(profile)) {
+            setAppError(isDemoProfile(profile) ? t("demoReadOnlySend") : t("githubReadOnlySend"));
+            updateComposerAvailability(profile);
             return;
           }
 

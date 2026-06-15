@@ -93,6 +93,7 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 - [docs/product-brief.md](docs/product-brief.md) - подробный продуктовый и архитектурный бриф.
 - [docs/roadmap.md](docs/roadmap.md) - актуальный roadmap.
 - [docs/development-steps.md](docs/development-steps.md) - последовательный план разработки.
+- [docs/releases/1.04.md](docs/releases/1.04.md) - release notes Macaroni Messenger 1.04.
 - [docs/releases/1.03.md](docs/releases/1.03.md) - release notes Macaroni Messenger 1.03.
 - [docs/releases/1.02.md](docs/releases/1.02.md) - release notes Macaroni Messenger 1.02.
 - [docs/releases/1.01.md](docs/releases/1.01.md) - release notes Macaroni Messenger 1.01.
@@ -121,6 +122,7 @@ English docs:
 - [docs/product-brief.en.md](docs/product-brief.en.md)
 - [docs/roadmap.en.md](docs/roadmap.en.md)
 - [docs/development-steps.en.md](docs/development-steps.en.md)
+- [docs/releases/1.04.en.md](docs/releases/1.04.en.md)
 - [docs/releases/1.03.en.md](docs/releases/1.03.en.md)
 - [docs/releases/1.02.en.md](docs/releases/1.02.en.md)
 - [docs/releases/1.01.en.md](docs/releases/1.01.en.md)
