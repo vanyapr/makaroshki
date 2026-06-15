@@ -349,15 +349,15 @@ Sync/reindex сохраняет выбранный чат, если этот `ch
 
 Цель: доказать, что это полноценное приложение, а не смешной HTML-макет.
 
-Статус: добавлен повторяемый smoke harness `scripts/mvp-smoke.js`. Он проверяет unsupported screen, first-run, генерацию и persistence `CLIENT_ID`, профиль, создание чата, отправку, reload, reindex, поиск, outbox/retry, GitHub send/reindex/read-only через fake Contents API и двухклиентную адресацию через локально сохранённый `CLIENT_ID = "K2XM"`.
+Статус: постоянный smoke harness из repo убран в 1.05. Проверки делаем scratch-скриптами в `/tmp` или `/private/tmp`, когда они нужны для конкретной фичи, и не оставляем тестовую простыню рядом с одним HTML-файлом.
 
-Локальная команда:
+Локальная проверка:
 
 ```sh
-node scripts/mvp-smoke.js
+node /tmp/macaroni-smoke.js
 ```
 
-Требуется Node.js с доступным `playwright`, например после `npm install -D playwright`.
+Требуется Node.js с доступным `playwright`, если проверка browser-based. Скрипт временный: проверили, удалили, макароны не захламляем.
 
 Шаги:
 
