@@ -215,6 +215,7 @@ async function testSettingsExportImport(browser) {
     displayName: "Export Me",
     provider: "github",
     repo: "https://github.com/vanyapr/makaroshki",
+    storageBranch: "macaroni",
     token: "settings-token-smoke"
   });
 
@@ -227,6 +228,7 @@ async function testSettingsExportImport(browser) {
   const exported = await page.evaluate(() => window.MacaroniSettings.exportProfile());
   assert(exported.type === "macaroni.settings", "settings export type is wrong");
   assert(exported.profile.clientId === "SA6E", "settings export client id is wrong");
+  assert(exported.profile.storageBranch === "macaroni", "settings export did not include storage branch");
   assert(exported.profile.token === "settings-token-smoke", "settings export did not include token explicitly");
   assert(!Object.prototype.hasOwnProperty.call(exported, "messages"), "settings export must not include messages");
 
@@ -238,6 +240,7 @@ async function testSettingsExportImport(browser) {
       language: "ru",
       provider: "other",
       repo: "local-imported-repo",
+      storageBranch: "macaroni/data",
       token: "imported-token"
     })
   }), exported);
@@ -248,11 +251,13 @@ async function testSettingsExportImport(browser) {
   assert(stored.language === "ru", "settings import did not save language");
   assert(stored.provider === "other", "settings import did not save provider");
   assert(stored.repo === "local-imported-repo", "settings import did not save repo");
+  assert(stored.storageBranch === "macaroni/data", "settings import did not save storage branch");
   assert(stored.token === "imported-token", "settings import did not save token");
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
   assert(await page.locator("#settings-display-name").inputValue() === "Imported Me", "settings import did not update settings form");
+  assert(await page.locator("#settings-storage-branch").inputValue() === "macaroni/data", "settings import did not update storage branch form");
   assert(await page.locator("#settings-file-label").textContent() === "Файл настроек", "settings import did not apply imported language");
 
   const invalidRejected = await page.evaluate(async () => {
@@ -278,6 +283,7 @@ async function testSettingsExportImport(browser) {
   await page.locator("#reset-confirm").click();
   await page.waitForFunction(() => document.body.dataset.view === "setup");
   assert(await page.evaluate(() => localStorage.getItem("macaroni.profile.v1")) === null, "confirmed settings reset did not delete profile");
+  assert(await page.locator("#setup-storage-branch").inputValue() === "macaroni", "settings reset did not restore default storage branch");
 
   await context.close();
 }
@@ -572,7 +578,7 @@ async function testLocalMvpFlow(browser) {
       ]
     });
     const path = ".macaroni/chats/" + chat.meta.id + "/members.json";
-    const request = indexedDB.open("macaroni-messenger", 3);
+    const request = indexedDB.open("macaroni-messenger", 4);
     await new Promise((resolve, reject) => {
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
@@ -689,12 +695,12 @@ async function testUnsupportedProviderGuard(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await openMessenger(context);
   await installProfile(page, {
-    provider: "gitverse",
-    repo: "https://gitverse.ru/vanyapr/makaroshki",
+    provider: "private-forge",
+    repo: "https://git.example.test/vanyapr/makaroshki",
     token: "fake-token-for-unsupported-provider"
   });
 
-  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("git-host agnostic"));
+  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("adapter is not implemented"));
   const state = await page.evaluate(async () => ({
     status: document.querySelector("#sync-status").textContent,
     error: document.querySelector("[data-storage-status]").textContent,
@@ -702,18 +708,15 @@ async function testUnsupportedProviderGuard(browser) {
     repoFiles: await window.MacaroniTestRepo.listFiles(".macaroni/")
   }));
 
-  assert(state.status.includes("gitverse unsupported"), "unsupported provider transport label is missing");
-  assert(state.error.includes("Choose GitHub or Other/local test repo"), "unsupported provider error is not actionable");
-  assert(state.providerContract.note.includes("not a protocol requirement"), "provider contract should separate GitHub from the protocol");
+  assert(state.status.includes("private-forge unsupported"), "unsupported provider transport label is missing");
+  assert(state.error.includes("Built-in remotes"), "unsupported provider error is not actionable");
+  assert(state.providerContract.note.includes("browser-side adapters"), "provider contract should describe browser-side adapters");
   assert(state.providerContract.methods.includes("writeJson"), "provider contract should expose writeJson");
   assert(state.repoFiles.length === 0, "unsupported remote provider silently wrote to local test repo");
 
-  await page.locator("#message-input").fill("Should not go local");
-  await page.locator("#message-input").press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-storage-status]").textContent.includes("git-host agnostic"));
+  assert(await page.locator("#composer-form").evaluate((form) => form.classList.contains("readonly")), "unsupported provider did not switch composer to read-only");
   const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
-  assert(outbox.length === 1, "unsupported provider failed send was not kept in outbox");
-  assert(outbox[0].error.includes("host-specific HTTPS/CORS adapter"), "unsupported provider outbox error is wrong");
+  assert(outbox.length === 0, "unsupported provider created outbox even though composer is read-only");
 
   await context.close();
 }
@@ -1156,26 +1159,26 @@ async function testGitHubReadOnlyMode(browser) {
   await page.waitForFunction(() => [...document.querySelectorAll(".message-row .text")].some((node) => node.textContent.includes("Read-only public hello")));
   assert((await page.locator("#sync-status").textContent()).includes("GitHub read-only"), "read-only transport label is missing");
 
-  await page.locator("#message-input").fill("Read-only write attempt");
-  await page.locator("#composer-form").evaluate((form) => form.requestSubmit());
-  await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 1"));
+  assert(await page.locator("#composer-form").evaluate((form) => form.classList.contains("readonly")), "read-only transport did not hide composer");
+  assert(await page.locator("#composer-readonly-note").textContent() === "Read-only mode. Add a write-capable token in Settings to send messages.", "read-only composer note is wrong");
   const outbox = await page.evaluate(() => window.MacaroniStorage.listOutbox());
-  assert(outbox.length === 1, "read-only send was not kept in outbox");
-  assert(await page.locator("#chat-list .outbox-badge").textContent() === ">1", "read-only send did not create chat outbox indicator");
+  assert(outbox.length === 0, "read-only send created outbox");
+  assert(await page.locator("#chat-list .outbox-badge").count() === 0, "read-only send created chat outbox indicator");
 
   await page.locator("#open-settings").click();
   await page.waitForFunction(() => document.body.dataset.view === "settings");
   await page.locator("#settings-token").fill("fake-token-after-readonly");
   await page.locator("#settings-form").evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("outbox: 0"));
+  assert(!(await page.locator("#composer-form").evaluate((form) => form.classList.contains("readonly"))), "token save did not restore composer");
 
   const retried = await page.evaluate(async () => ({
     outbox: await window.MacaroniStorage.listOutbox(),
     writes: window.__macaroniReadOnlyWrites
   }));
-  assert(retried.outbox.length === 0, "token save did not drain outbox");
+  assert(retried.outbox.length === 0, "token save changed read-only outbox state");
   assert(await page.locator("#chat-list .outbox-badge").count() === 0, "token save did not clear chat outbox indicator");
-  assert(retried.writes.some((write) => /^\.macaroni\/chats\/chat_readonly\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path)), "token save did not write queued message");
+  assert(retried.writes.length === 0, "token save wrote a queued message even though read-only mode no longer queues");
 
   await context.close();
 }
@@ -1262,14 +1265,47 @@ async function testGitHubSendWrites(browser) {
     window.__macaroniActivePut = false;
     window.__macaroniConflictOnce = true;
     window.__macaroniConflictCount = 0;
+    window.__macaroniCreatedRefs = [];
     window.fetch = (url, options = {}) => {
       const marker = "/contents/";
-      const rawPath = String(url).slice(String(url).indexOf(marker) + marker.length).split("?")[0];
-      const repoPath = decodeURIComponent(rawPath);
+      const textUrl = String(url);
+      const hasContentPath = textUrl.includes(marker);
+      const repoPath = hasContentPath
+        ? decodeURIComponent(textUrl.slice(textUrl.indexOf(marker) + marker.length).split("?")[0])
+        : textUrl.replace(/^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/]+\//, "");
       window.__macaroniRequests.push({
         method: options.method || "GET",
         path: repoPath
       });
+
+      if (repoPath === "commits/main") {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(JSON.stringify({ sha: "main-source-sha" }))
+        });
+      }
+
+      if (repoPath === "commits/macaroni") {
+        return Promise.resolve({
+          ok: window.__macaroniCreatedRefs.length > 0,
+          status: window.__macaroniCreatedRefs.length > 0 ? 200 : 404,
+          statusText: window.__macaroniCreatedRefs.length > 0 ? "OK" : "Not Found",
+          text: () => Promise.resolve(JSON.stringify(window.__macaroniCreatedRefs.length > 0 ? { sha: "macaroni-storage-sha" } : { message: "Not Found" }))
+        });
+      }
+
+      if (repoPath === "git/refs" && options.method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        window.__macaroniCreatedRefs.push(body);
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          statusText: "Created",
+          text: () => Promise.resolve(JSON.stringify({ ref: body.ref, object: { sha: body.sha } }))
+        });
+      }
 
       if (options.method === "PUT") {
         if (window.__macaroniConflictOnce) {
@@ -1300,6 +1336,7 @@ async function testGitHubSendWrites(browser) {
             files[repoPath] = value;
             window.__macaroniWrites.push({
               path: repoPath,
+              branch: body.branch,
               message: body.message,
               value
             });
@@ -1326,7 +1363,7 @@ async function testGitHubSendWrites(browser) {
   });
 
   const page = await openMessenger(context);
-  await installProfile(page, { provider: "github", token: "fake-token-for-send-smoke" });
+  await installProfile(page, { provider: "github", storageBranch: "macaroni", token: "fake-token-for-send-smoke" });
   await page.waitForFunction(() => document.querySelector("#chat-title").textContent.includes("MOM"));
   await page.waitForFunction(() => document.querySelector("#sync-status").textContent.includes("sync:"));
   await page.evaluate(() => {
@@ -1354,6 +1391,7 @@ async function testGitHubSendWrites(browser) {
   const writes = await page.evaluate(() => window.__macaroniWrites);
   const requests = await page.evaluate(() => window.__macaroniRequests);
   const conflictCount = await page.evaluate(() => window.__macaroniConflictCount);
+  const createdRefs = await page.evaluate(() => window.__macaroniCreatedRefs);
   const messageWrite = writes.find((write) => /^\.macaroni\/chats\/chat_remote_send\/messages\/\d{4}\/\d{2}\/\d{2}\/.+\.json$/.test(write.path));
   const inboxWrite = writes.find((write) => /^\.macaroni\/inbox\/K2XM\/.+\.json$/.test(write.path));
   const firstPutIndex = requests.findIndex((request) => request.method === "PUT");
@@ -1361,8 +1399,10 @@ async function testGitHubSendWrites(browser) {
 
   assert(firstGetIndex !== -1 && firstPutIndex !== -1 && firstGetIndex < firstPutIndex, "GitHub flush did not pull before first push");
   assert(conflictCount === 1, "GitHub conflict retry smoke did not trigger one conflict");
+  assert(createdRefs.some((ref) => ref.ref === "refs/heads/macaroni" && ref.sha === "main-source-sha"), "GitHub storage branch was not created from main");
   assert(messageWrite, "GitHub send did not write message file");
   assert(inboxWrite, "GitHub send did not write recipient inbox");
+  assert(messageWrite.branch === "macaroni" && inboxWrite.branch === "macaroni", "GitHub writes did not use storage branch");
   assert(messageWrite.value.text === "Remote send hello", "GitHub message text is wrong");
   assert(messageWrite.value.from === "SA6E", "GitHub message author is wrong");
   assert(messageWrite.value.to.includes("K2XM"), "GitHub message recipient is wrong");

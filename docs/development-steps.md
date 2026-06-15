@@ -389,13 +389,13 @@ node scripts/mvp-smoke.js
 1. Git-agnostic provider adapters: реализован minimal runtime registry `window.MacaroniRemoteAdapters` для `GitHub`, `GitLab`, `GitVerse`, `Gitea`, `Forgejo`. `Generic Git HTTP` остаётся contract-only и показывает честную ошибку вместо silent fallback.
    - Research готовится отдельно: `docs/git-host-api-research.md`.
    - Practical Isomorphic Git проекта: host API adapters поверх существующих browser-compatible HTTPS/API transports, не полный raw git client.
-   - Storage branch и read-only composer guard идут отдельными backlog items, чтобы не смешивать transport research с UX/branch hygiene.
+   - Storage branch и read-only composer guard реализованы в 1.04: `.macaroni/` может жить в отдельной ветке, а read-only profile больше не показывает composer.
    - Batch commit пока не реализован: несколько Protocol v1 files пишутся последовательно.
 2. Import existing repo: частично сделано как явная кнопка `Import Repo` в настройках; она пересобирает локальный IndexedDB-кеш из выбранного `.macaroni/` repo и не пишет remote-файлы.
-3. Read-only public repo mode: частично сделано для remote profiles без token; клиент читает историю, показывает provider-specific read-only transport, но не создаёт чаты и не отправляет сообщения без write token.
+3. Read-only public repo mode: сделано для remote profiles без token; клиент читает историю, показывает provider-specific read-only transport, не создаёт чаты, не отправляет сообщения и скрывает composer без write token.
 4. URL attachments: частично сделано как безопасный auto-link `http://`/`https://` в тексте сообщения, без бинарных файлов и preview.
-5. Markdown rendering: частично сделано как безопасный inline-render `**bold**`, `*italic*`, `` `code` `` в UI сообщений, без HTML passthrough и без полноценного CommonMark-движка.
-6. Basic notifications: частично сделано как unread count в `document.title` и встроенный sound для новых входящих сообщений, без Browser Notification API и permission prompts.
+5. Markdown rendering: сделан безопасный inline-render `**bold**`, `*italic*`, `` `code` `` в UI сообщений, без HTML passthrough. Полноценный CommonMark-движок не делаем.
+6. Basic notifications: сделано в текущем scope как unread count в `document.title` и встроенный sound для новых входящих сообщений, без Browser Notification API и permission prompts.
 7. Receipts как append-only события: частично сделано как `read` receipt files в `.macaroni/chats/<chat_id>/receipts/<client_id>/YYYY/MM/DD/`, которые пишутся только при продвижении последнего прочитанного message marker.
 8. HTML export of chat history: частично сделано как локальный экспорт текущего чата из IndexedDB в standalone HTML-файл, без записи в git.
 9. Electron/WebView wrapper над тем же HTML: частично сделано как optional `wrappers/electron/main.js`, который открывает корневой `messenger.html` через `loadFile`, без localhost, backend и копии клиента.
