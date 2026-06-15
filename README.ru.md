@@ -111,6 +111,7 @@ Demo data захардкожен внутри `messenger.html`; настоящи
 - [docs/settings-export-import.md](docs/settings-export-import.md) - ручной backup и restore настроек.
 - [docs/portable-mom.md](docs/portable-mom.md) - portable HTML-файл для мамы с преднастроенным профилем.
 - [CONTRIBUTING.md](CONTRIBUTING.md) - правила contribution: один HTML-файл, без backend cosplay.
+- [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md) - русская версия contribution rules: документация, сарказм и без backend cosplay.
 - [docs/show-hn.ru.md](docs/show-hn.ru.md) - Show HN pitch и FAQ.
 - [docs/browser-support.md](docs/browser-support.md) - browser feature support matrix.
 - [docs/access-token.md](docs/access-token.md) - как получить токен доступа.

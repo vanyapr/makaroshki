@@ -105,6 +105,7 @@ Documents:
 - [docs/settings-export-import.en.md](docs/settings-export-import.en.md) - manual settings backup and restore.
 - [docs/portable-mom.en.md](docs/portable-mom.en.md) - portable HTML file for mom with a preconfigured profile.
 - [CONTRIBUTING.md](CONTRIBUTING.md) - contribution rules: one HTML file, no backend cosplay.
+- [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md) - Russian contribution rules: docs, sarcasm, and no backend cosplay.
 - [docs/show-hn.md](docs/show-hn.md) - Show HN pitch and FAQ.
 - [docs/browser-support.en.md](docs/browser-support.en.md) - supported browser feature matrix.
 - [docs/access-token.en.md](docs/access-token.en.md) - how to get an access token.
@@ -134,6 +135,7 @@ Russian documents:
 - [docs/electron-wrapper.md](docs/electron-wrapper.md)
 - [docs/settings-export-import.md](docs/settings-export-import.md)
 - [docs/portable-mom.md](docs/portable-mom.md)
+- [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md)
 - [docs/show-hn.ru.md](docs/show-hn.ru.md)
 - [docs/browser-support.md](docs/browser-support.md)
 - [docs/access-token.md](docs/access-token.md)
