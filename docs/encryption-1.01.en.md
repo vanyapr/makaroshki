@@ -193,6 +193,61 @@ This is not "military-grade cryptography".
 
 This is knee cryptography that at least has a knee.
 
+## Math For The Impatient
+
+Everything here is dumb, primitive, and direct.
+
+That is true.
+
+But secret/salt size changes the conversation a lot.
+
+If you use:
+
+```text
+secret = 12345
+salt = macaroni
+```
+
+you brought a wooden door and asked us to call it a vault.
+
+If you use unrelated PGP-sized secrets as `secret` and `salt`, the conversation changes.
+
+Even if all that luxury leaves "only" 128 or 256 practically useful bits of entropy, brute force looks like this:
+
+```text
+2^128 variants ~= 3.4e38
+2^256 variants ~= 1.1e77
+```
+
+Even at a fantasy `10^12` checks per second, `2^128` is roughly `10^19` years.
+
+The age of the Universe is roughly `10^10` years.
+
+So if you encrypted:
+
+```text
+mom, cook macaroni
+```
+
+with two fat, unrelated PGP-sized chunks of key material, we would like to live long enough to see someone decrypt it by honest brute force.
+
+We probably will not.
+
+A strong secret moves the attack from "guess the key" to "obtain the key".
+
+So the attacker is more likely to:
+
+- steal `messenger.html`;
+- extract `localStorage`;
+- find a backup;
+- replace hosted HTML;
+- catch the clipboard;
+- practice old-fashioned offline cryptography with a soldering iron.
+
+This does not prove that our bicycle became PGP.
+
+It proves that a fat secret makes brute force a bad plan.
+
 ## Token Confetti
 
 In a normal write-enabled Macaroni profile, a local write token is already present: without it, the user is not writing to git, just looking at macaroni through the shop window.
