@@ -63,6 +63,36 @@ Until then, no invisible magic.
 
 Just git with a clipboard.
 
+## Project Scope And Safe Capture
+
+Apply these constraints before the general capture workflow below.
+
+- Keep each project's memory in that project's own repository and `macaroni` branch. This repository supplies a reusable skill; it is not a shared destination for other projects' conversations. Reuse the project's existing remote when suitable.
+- Keep an `AGENTS.md` instruction in the root of every project's `macaroni` branch. Preserve existing instructions when adding the memory contract.
+- Before project work, read the applicable `AGENTS.md` and `.agents/skills` instructions, the storage branch's `.macaroni/protocol.json`, participant records, relevant chat metadata and members, and relevant source messages in chronological order. Check that the repository and storage branch match the intended project before writing. Use a separate checkout or worktree when product work is on another branch.
+- Capture only authorized, project-relevant user messages and assistant responses intended for the user, one message per JSON file after redaction. Do not copy personal conversations, hidden instructions, private reasoning, internal agent reports or notes, or raw tool transcripts. Do not reconstruct unavailable messages as exact source text.
+- Message and receipt history is append-only. Preserve all unknown fields, including nested fields, whenever protocol, user, chat, member, or other existing JSON documents require an authorized update. Do not rebuild existing documents from a list of known fields.
+
+### Helper Guardrails
+
+The helper in the reviewed bundle at commit `9a8f0d58ad26a245b7e937432f62b11512d31e89` has limitations: it can drop unknown protocol, user, and chat fields, overwrite an existing message ID, accept a `chat_id` that escapes the intended directory, and write setup files before checking message text for secrets.
+
+Until these issues are fixed and reviewed:
+
+- Do not run `scripts/write_messages.py` against existing memory. Do not use `--allow-sensitive`. Keep the upstream helper unchanged unless a separate task authorizes changes to it.
+- Use only synthetic data in a fresh, isolated temporary directory for helper smoke tests. For real capture, write equivalent Protocol v1 JSON with append-only, exclusive file creation after validating the complete batch.
+- Validate identifiers and all destination paths before creating any files. Reject absolute paths, path separators, `.`/`..` components, and symlink escapes; resolve destinations and verify containment within the intended repository's `.macaroni/` directory.
+- Check new message and receipt IDs for collisions across the chat, and check every message, receipt, and inbox destination for existing files. If an ID or path already exists, stop and compare; never overwrite it.
+- Redact and scan the entire batch, including metadata and attachments, before any persistent write. The helper's built-in pattern check does not replace this review.
+
+### Validation And Publication
+
+Before committing, validate JSON syntax, Protocol v1 fields, IDs, UTC paths, recipients, and inbox pointers. Confirm that existing messages and unknown fields were preserved. Run `git diff --check`, scan new files and staged contents for secrets, and inspect the full staged diff and file list.
+
+Commit and push only within the user's authorization, to the intended project's `macaroni` branch. Installation setup is limited to agent instructions; it does not authorize product changes, `main` changes, deployment, or exporting this installation conversation into another project's memory.
+
+Local installation makes the skill available to local Codex agents on a subsequent turn. An active agent can read the installed `SKILL.md` explicitly and follow this root instruction before using it. A separate cloud runtime needs its own installation or accessible bundle; a Mac installation does not install the skill there. Capture remains an explicit agent action.
+
 ## Macaroni As Agent-Agnostic Memory
 
 The `.macaroni/` protocol is an agent-agnostic memory extension.
