@@ -435,3 +435,7 @@ If a feature requires a Macaroni backend, it is not in the base product.
 If a feature requires `localhost`, it is suspicious and is out of the base product by default.
 
 If a feature breaks single-file delivery, it must provide very clear value. Otherwise, skip it.
+
+## Agent Navigation
+
+The root `AGENTS.md` points to project history in the `macaroni` branch and its setup guide, `skills/macaroni-memory/references/connect-project.md`. Memory uses a separate checkout; memory setup does not change the product contract or code.
