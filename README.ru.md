@@ -245,6 +245,7 @@ Codex skill:
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом` - устанавливаемый Codex skill для `.macaroni` extended memory.
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом` - helper, который пишет Protocol v1 message JSON и inbox pointers.
 - [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `сгенерировано агентом` - UI metadata skill.
+- [Подключить проект](skills/macaroni-memory/references/connect-project.ru.md), [capture](skills/macaroni-memory/references/capture.ru.md) и [карта источников](memory/INDEX.ru.md) `сгенерировано агентом` - установка, проверяемая запись и поиск контекста.
 
 Curated memory indexes:
 
@@ -421,3 +422,7 @@ Git помнит.
 Держите пасту вне кода.
 
 Держите память достаточно читаемой, чтобы будущему агенту не пришлось вызывать духов.
+
+## Подключить Память В Другом Проекте
+
+Начните с [инструкции подключения](skills/macaroni-memory/references/connect-project.ru.md), затем используйте [prepare/review/apply](skills/macaroni-memory/references/capture.ru.md). Полный bundle находится в [skills/macaroni-memory](skills/macaroni-memory/). Каждый проект хранит собственную ветку `macaroni` с корневым `AGENTS.md`; в продуктовых инструкциях нужен короткий указатель. [memory/INDEX.ru.md](memory/INDEX.ru.md) — компактная карта источников. Capture выполняется явно; установка не запускает фоновый сбор и не устанавливает skill в другой runtime.

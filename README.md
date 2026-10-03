@@ -243,6 +243,7 @@ Codex skill:
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated` - installable Codex skill for `.macaroni` extended memory.
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated` - helper that writes Protocol v1 message JSON and inbox pointers.
 - [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `agent-generated` - skill UI metadata.
+- [Connect a project](skills/macaroni-memory/references/connect-project.md), [capture](skills/macaroni-memory/references/capture.md) and [source map](memory/INDEX.md) `agent-generated` - installation, reviewed capture and focused retrieval.
 
 Curated memory indexes:
 
@@ -419,3 +420,7 @@ Keep code out of pasta.
 Keep pasta out of code.
 
 Keep memory readable enough that a future agent does not need a séance.
+
+## Connect Memory To Another Project
+
+Start with [the connection guide](skills/macaroni-memory/references/connect-project.md), then use [prepare/review/apply capture](skills/macaroni-memory/references/capture.md). The complete reusable bundle lives in [skills/macaroni-memory](skills/macaroni-memory/). Each project keeps its own `macaroni` branch and root `AGENTS.md`; add a short pointer in its product instructions. [memory/INDEX.md](memory/INDEX.md) is a compact source map. Capture is explicit; installation does not start background collection or install into another runtime.
