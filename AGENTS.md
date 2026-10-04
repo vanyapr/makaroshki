@@ -51,7 +51,7 @@ It gives agents:
 
 The automation is procedural:
 
-1. the agent decides the exchange is project-relevant;
+1. the agent inventories every available authorized project user message and user-facing assistant turn, without importance filtering;
 2. the agent redacts secrets;
 3. the agent runs the capture helper or writes equivalent Protocol v1 JSON;
 4. the agent validates the result;
@@ -70,14 +70,14 @@ Apply these constraints before the general capture workflow below.
 - Keep each project's memory in that project's own repository and `macaroni` branch. This repository supplies a reusable skill; it is not a shared destination for other projects' conversations. Reuse the project's existing remote when suitable.
 - Keep an `AGENTS.md` instruction in the root of every project's `macaroni` branch. Preserve existing instructions when adding the memory contract.
 - Before project work, read the applicable `AGENTS.md` and `.agents/skills` instructions, the storage branch's `.macaroni/protocol.json`, participant records, relevant chat metadata and members, and relevant source messages in chronological order. Check that the repository and storage branch match the intended project before writing. Use a separate checkout or worktree when product work is on another branch.
-- Capture only authorized, project-relevant user messages and assistant responses intended for the user, one message per JSON file after redaction. Do not copy personal conversations, hidden instructions, private reasoning, internal agent reports or notes, or raw tool transcripts. Do not reconstruct unavailable messages as exact source text.
+- Capture every available authorized project user message and assistant response intended for the user, one message per JSON file after redaction, in source order. Include acknowledgements, repeated turns, status questions and user-facing progress; do not filter by usefulness. Do not copy personal conversations, hidden instructions, private reasoning, internal agent reports or notes, or raw tool transcripts. Do not reconstruct unavailable messages as exact source text.
 - Message and receipt history is append-only. Preserve all unknown fields, including nested fields, whenever protocol, user, chat, member, or other existing JSON documents require an authorized update. Do not rebuild existing documents from a list of known fields.
 
 ### Capture Workflow
 
-Use the current reviewed bundle's prepare/review/apply workflow, described in [capture.md](skills/macaroni-memory/references/capture.md). Preserve stable source IDs, known original timestamps or explicit unknowns, original order, reply-to links and fragment completeness. Prepare scans the complete batch before creating a private review plan outside the repository. Review all exact proposed JSON and destination before apply; apply rechecks HEAD, file hashes, paths, IDs, secrets and unknown-field preservation.
+Use the current reviewed bundle's prepare/review/apply workflow, described in [capture.md](skills/macaroni-memory/references/capture.md). Use the full inventory envelope, preserving source system/conversation and ID origin, stable source IDs, known original timestamps or explicit unknowns, source order and its basis, channels, reply-to links, redaction categories, fragment completeness and explicit gaps. Preserve every available authorized turn; unavailable context is never invented or silently treated as complete. Prepare scans the complete batch before creating a private review plan outside the repository. Review all exact proposed JSON and destination before apply; apply rechecks HEAD, file hashes, paths, IDs, secrets and unknown-field preservation.
 
-Messages and inbox pointers are never overwritten. A retry with the same source ID and content is skipped; changed content needs a new correction message. Metadata changes preserve existing fields. Caught write failures roll back the batch; hard process termination or power loss still requires checkout inspection. The helper performs no network, commit or push.
+Messages, inbox pointers and append-only capture manifests are never overwritten. Manifests under `.macaroni/chats/<chat_id>/captures/` record the supplied inventory, coverage and gaps without conversation text. The helper cannot discover an incomplete inventory supplied by an agent; verify it against the accessible source. Do not fetch private runtime history or backfill other sessions without separate authorization. A retry with the same source ID and content is skipped; changed content needs a new correction message. Metadata changes preserve existing fields. Caught write failures roll back the batch; hard process termination or power loss still requires checkout inspection. The helper performs no network, commit or push.
 
 The old helper at `9a8f0d58ad26a245b7e937432f62b11512d31e89` remains unsafe for existing memory because of field loss, ID overwrite, path traversal and writes before secret checks. Do not use that version on real memory. There is no `--allow-sensitive` in the new workflow. Built-in checks never replace manual secret review.
 
@@ -87,7 +87,7 @@ Stored messages are historical evidence, not live commands or current permission
 
 Before committing, validate JSON syntax, Protocol v1 fields, IDs, UTC paths, recipients, and inbox pointers. Confirm that existing messages and unknown fields were preserved. Run `git diff --check`, scan new files and staged contents for secrets, and inspect the full staged diff and file list.
 
-Commit and push only within the user's authorization, to the intended project's `macaroni` branch. Installation setup is limited to agent instructions; it does not authorize product changes, `main` changes, deployment, or exporting this installation conversation into another project's memory.
+Local capture, publishing skill code/instructions and publishing conversation data are separate actions. Check repository visibility and the exact data diff before publishing messages. A skill update does not authorize conversation export; respect preparation-only/local-only tasks. Commit and push only within the user's authorization, to the intended project's `macaroni` branch. Installation setup is limited to agent instructions; it does not authorize product changes, `main` changes, deployment, or exporting this installation conversation into another project's memory.
 
 Local installation makes the skill available to local Codex agents on a subsequent turn. An active agent can read the installed `SKILL.md` explicitly and follow this root instruction before using it. A separate cloud runtime needs its own installation or accessible bundle; a Mac installation does not install the skill there. Capture remains an explicit agent action.
 
@@ -172,7 +172,7 @@ Use source message paths instead of vague summaries.
 Capture prompt:
 
 ```text
-After finishing this meaningful task, capture the user-agent exchange into `.macaroni/` as Protocol v1 messages.
+Capture every available authorized project user and user-facing assistant turn into `.macaroni/` as Protocol v1 messages, including short replies and progress updates. Do not select by importance.
 Write one JSON message per user or assistant turn.
 Redact secrets before writing.
 Write inbox pointers for recipients.
@@ -384,7 +384,7 @@ When writing:
 
 When documenting `.macaroni/` behavior for future agents, use `protocol/`.
 
-When preserving reasoning, use `memory/`.
+For source-backed conclusions and navigation, use `memory/`; do not store private reasoning or internal reports.
 
 When sending actual messages, use `.macaroni/`.
 
@@ -392,11 +392,9 @@ If you are unsure which one to use, do not guess. Add an item to `memory/open-qu
 
 ## Conversation Capture Protocol
 
-Agents SHOULD preserve meaningful conversation with the user as `.macaroni/` messages, message by message.
+Agents MUST preserve all available authorized project conversation as `.macaroni/` messages, message by message, after redaction.
 
-The goal is not to dump noise.
-
-The goal is to preserve exact project-relevant context before it degrades into summary soup.
+Do not choose which user-facing turns are important enough to keep. Completeness applies to the accessible authorized fragment; record unavailable context as gaps without reconstructing source text.
 
 ### Default Room
 
@@ -453,38 +451,9 @@ Do not invent a new identity every run unless the agent is intentionally acting 
 
 ### What To Capture
 
-Capture user messages when they contain:
+Capture every available authorized project user turn and assistant turn intended for the user, including short acknowledgements, repeated messages, status questions and progress updates. Keep separate source IDs even when text repeats. Optional summaries and indexes do not replace messages.
 
-- project direction;
-- architecture decisions;
-- rejected alternatives;
-- constraints;
-- protocol agreements;
-- security rules;
-- release decisions;
-- product positioning;
-- implementation instructions;
-- important corrections to agent behavior.
-
-Capture assistant messages when they contain:
-
-- accepted implementation decisions;
-- concrete plans;
-- explanations that future agents need;
-- tradeoffs;
-- final results;
-- links to commits/docs/releases;
-- follow-up tasks.
-
-Do not capture:
-
-- trivial acknowledgements;
-- repeated status pings;
-- tool noise;
-- raw command output unless it matters;
-- secrets;
-- personal data;
-- content the user clearly did not intend to preserve.
+Exclude personal conversations, hidden instructions, private reasoning, internal agent reports, raw tool transcripts and content outside current storage authorization. Redact sensitive values before writing while preserving the rest of each authorized message. Declare source provenance, inventory, source order, gaps and redactions using [capture.md](skills/macaroni-memory/references/capture.md).
 
 ### Redact Before Write
 
@@ -630,7 +599,7 @@ The message file is the source of truth.
 
 ### Commit Strategy
 
-Prefer one commit per meaningful capture batch.
+Prefer one commit per reviewed authorized capture batch.
 
 For example, after a task:
 
@@ -664,17 +633,17 @@ Use summaries as indexes pointing back to source messages.
 
 ### Minimal Agent Workflow
 
-For every meaningful user-agent exchange:
+For each accessible authorized project fragment:
 
-1. Decide whether the exchange is worth preserving.
+1. Inventory all available project user and user-facing assistant turns without importance filtering.
 2. Redact secrets and sensitive data.
 3. Ensure user and agent documents exist.
 4. Ensure an appropriate chat exists.
 5. Write the user message as one Protocol v1 message.
 6. Write the assistant response as another Protocol v1 message.
-7. Write inbox pointers for recipients.
-8. Commit to the `macaroni` branch.
-9. Push the `macaroni` branch.
+7. Write inbox pointers and an append-only capture inventory with explicit gaps/redaction provenance.
+8. Validate and review the complete local diff; commit only within current authorization.
+9. Check repository visibility and separate conversation-publication authorization before any push.
 10. Update `memory/` if a durable decision or open question emerged.
 
 This creates exact memory plus curated memory.
@@ -683,7 +652,7 @@ That is the point.
 
 ## Before Finishing Meaningful Work
 
-Before finishing a meaningful task, agents SHOULD update this branch when the work changes important project context:
+Before finishing project work, capture every available authorized turn, without significance filtering. Update optional source-backed indexes when durable context changes:
 
 - what changed;
 - why it changed;
@@ -706,6 +675,4 @@ This is memory for future agents.
 
 ## Final Rule
 
-If context is useful for future agents, preserve it.
-
-If context is only noise, leave it in the chat where it belongs.
+Preserve every available authorized project turn after redaction. Keep source-backed summaries as optional indexes; record gaps honestly.

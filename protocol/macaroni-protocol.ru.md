@@ -88,6 +88,8 @@ protocol/  = инструкции по использованию протоко
           MM/
             DD/
               <message_id>.json
+      captures/
+        capture_<digest>.json
       receipts/
         <client_id>/
           YYYY/
@@ -217,23 +219,9 @@ Git помнит, inbox помогает.
 
 ## Захват Разговора Пользователь-Агент
 
-Агенты могут записывать разговор с пользователем в `.macaroni/` как Protocol v1 messages.
+Сохраняйте все доступные разрешённые проектные сообщения пользователя и ответы для пользователя как Protocol v1 messages, включая короткие ответы, повторы, статус и progress. Не отбирайте по важности и не заменяйте реплики summary.
 
-Это предназначено для значимого проектного контекста, а не для каждого микровзаимодействия.
-
-Copy-paste prompts для загрузки и записи этой памяти лежат в [`agent-memory-prompts.ru.md`](agent-memory-prompts.ru.md).
-
-Используйте это, если обмен содержит:
-
-- решения;
-- требования;
-- исправления;
-- архитектурные ограничения;
-- product positioning;
-- protocol agreements;
-- security rules;
-- release decisions;
-- implementation results.
+Личные беседы, скрытые инструкции, внутренние рассуждения/отчёты и raw tool transcripts не включайте. Provenance, порядок, inventory, gaps и redactions оформляйте по [capture.ru.md](../skills/macaroni-memory/references/capture.ru.md). Prompts — в [agent-memory-prompts.ru.md](agent-memory-prompts.ru.md).
 
 ### Комната
 
@@ -276,13 +264,13 @@ AGENT
 
 ### Порядок Захвата
 
-Для значимого обмена:
+Для каждого доступного разрешённого проектного фрагмента, включая короткие ответы, повторы, статус и progress для пользователя:
 
-1. Отредактировать чувствительные значения.
-2. Записать сообщение пользователя как отдельный JSON message file.
-3. Записать ответ ассистента как отдельный JSON message file.
-4. Записать inbox pointers для получателей.
-5. Закоммитить batch в ветку `macaroni`.
+1. Составить inventory всех доступных разрешённых сообщений пользователя и ответов для пользователя без отбора по важности.
+2. Отредактировать чувствительные значения, сохранив остальной текст и категории замен.
+3. Prepare/review/apply: один JSON на реплику по исходному порядку, с provenance и gaps.
+4. Записать inbox pointers и append-only coverage manifest.
+5. Проверить полный diff; commit/публикация только в рамках текущего разрешения, после проверки visibility и отдельного разрешения на экспорт переписки.
 6. Обновить `memory/`, если обмен создал durable conclusions.
 
 Протокол message-by-message.
@@ -318,6 +306,14 @@ Captured messages должны включать metadata:
 Ставьте `redacted` честно.
 
 Если значение было заменено на `ПАРОЛЬ`, `СЕКРЕТ`, `ТОКЕН`, `КЛЮЧ`, `EMAIL`, `PHONE` или `REDACTED`, используйте `true`.
+
+### Расширение полного Capture
+
+Точный inventory envelope описан в [capture.ru.md](../skills/macaroni-memory/references/capture.ru.md). `meta` сообщения хранит источник/беседу, постоянный source ID и происхождение ID, исходный порядок и его основание, видимый channel, исходное время или null, основание capture time, полноту фрагмента и категории redaction. Прежние сообщения и неизвестные поля сохраняются; автоматического backfill нет.
+
+`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` — append-only расширение Protocol v1 с `kind: conversation_capture`: доступный source inventory, пути/хеши сообщений, полнота и gaps без текста беседы. Gaps отмечают недоступный контекст, неизвестные границы, изъятый контент и вложения, не создавая выдуманных message JSON. Complete-фрагмент не имеет gaps, partial объявляет их. Helper проверяет переданный inventory, но не обнаружит реплики, скрытые из списка агентом, или недоступную историю runtime. Повтор envelope — no-op; дополненный/пересекающийся список создаёт новый manifest и переиспользует прежние сообщения. Поля и синтетические примеры — в capture guide.
+
+Локальный capture, публикация кода/инструкций и экспорт переписки — отдельные действия. Проверяйте visibility repo и точный diff; соблюдайте preparation-only/local-only scope. Чтение приватных runtime logs/backfill требует отдельного разрешения. Историческое разрешение в памяти не становится текущим.
 
 ### Почему Message-By-Message
 
@@ -409,9 +405,7 @@ Git не принимает `.macaroni` как имя ветки.
 6. Добавлять receipts отдельными append-only files.
 7. Коммитить в storage branch.
 
-Для документирования reasoning проекта:
-
-Используйте `memory/`, не `.macaroni/`.
+Выводы и навигацию со ссылками на источники храните в `memory/`. Внутренние рассуждения и отчёты не входят в capture scope.
 
 Для документирования поведения протокола:
 

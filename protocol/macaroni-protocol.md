@@ -86,6 +86,8 @@ Agents should not confuse these layers.
           MM/
             DD/
               <message_id>.json
+      captures/
+        capture_<digest>.json
       receipts/
         <client_id>/
           YYYY/
@@ -215,23 +217,9 @@ Agents should append new files.
 
 ## Capturing User-Agent Conversation
 
-Agents may write the conversation with the user into `.macaroni/` as Protocol v1 messages.
+Capture all available authorized project user and user-facing assistant turns as Protocol v1 messages, including short replies, repeats, status and progress. Do not filter by importance or replace turns with summaries.
 
-This is intended for meaningful project context, not every tiny interaction.
-
-Copy-paste prompts for loading and writing this memory live in [`agent-memory-prompts.md`](agent-memory-prompts.md).
-
-Use this when the exchange contains:
-
-- decisions;
-- requirements;
-- corrections;
-- architecture constraints;
-- product positioning;
-- protocol agreements;
-- security rules;
-- release decisions;
-- implementation results.
+Exclude personal conversations, hidden instructions, private reasoning, internal reports and raw tool transcripts. Preserve provenance, source order, inventory, gaps and redaction categories using [capture.md](../skills/macaroni-memory/references/capture.md). Prompts live in [agent-memory-prompts.md](agent-memory-prompts.md).
 
 ### Room
 
@@ -274,13 +262,13 @@ Do not create a new agent id for every run.
 
 ### Capture Order
 
-For a meaningful exchange:
+For every accessible authorized project fragment, including short replies, repeats, status and user-facing progress:
 
-1. Redact sensitive values.
-2. Write the user message as a message JSON file.
-3. Write the assistant response as a separate message JSON file.
-4. Write inbox pointers for recipients.
-5. Commit the batch to the `macaroni` branch.
+1. Inventory all available authorized user/user-facing assistant turns without importance filtering.
+2. Redact sensitive values, retaining the rest of each message and recording replacement categories.
+3. Prepare/review/apply one message JSON per turn in source order, with explicit provenance and gaps.
+4. Write inbox pointers and an append-only coverage manifest.
+5. Validate the complete diff; commit/publish only within current authorization, after checking visibility and separate conversation-publication scope.
 6. Update `memory/` if the exchange produced durable conclusions.
 
 The protocol is message-by-message.
@@ -316,6 +304,14 @@ For assistant messages:
 Set `redacted` truthfully.
 
 If a value was replaced with `ПАРОЛЬ`, `СЕКРЕТ`, `ТОКЕН`, `КЛЮЧ`, `EMAIL`, `PHONE`, or `REDACTED`, use `true`.
+
+### Full Capture Extension
+
+Use [capture.md](../skills/macaroni-memory/references/capture.md) for the inventory envelope. Message `meta` records source system/conversation, stable source ID and origin, original source order and basis, visible channel, original time or null, capture time basis, fragment completeness and redaction categories. Old messages and unknown fields remain intact; no automatic backfill.
+
+`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` is an append-only Protocol v1 extension with `kind: conversation_capture`. It stores the available source inventory, source-to-message paths/hashes, completeness and gaps, without conversation text. Gaps describe unavailable context, unknown boundaries, withheld content or attachments; they do not invent message JSON. Complete fragments have no gaps; partial fragments declare them. The helper verifies the supplied inventory but cannot discover caller omissions or unseen runtime history. An identical envelope is a no-op; extended/overlapping inventories append manifests and reuse unchanged messages. See the capture guide for exact fields and synthetic examples.
+
+Local capture, publishing code/instructions and exporting conversation data are separate actions. Check repository visibility and the exact data diff; obey preparation-only/local-only scope. Private runtime-history extraction or backfill needs separate authorization. Past stored permission is historical evidence, not current authorization.
 
 ### Why Message-By-Message
 
@@ -407,9 +403,7 @@ When writing `.macaroni/`:
 6. Add receipts as separate append-only files.
 7. Commit to the storage branch.
 
-When documenting project reasoning:
-
-Use `memory/`, not `.macaroni/`.
+For source-backed conclusions and navigation, use `memory/`. Private reasoning and internal reports are outside capture scope.
 
 When documenting protocol behavior:
 

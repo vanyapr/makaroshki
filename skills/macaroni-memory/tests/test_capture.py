@@ -53,6 +53,210 @@ class CaptureTests(unittest.TestCase):
     def messages(self):
         return [json.loads(p.read_text()) for p in sorted((self.root / '.macaroni/chats').glob('*/messages/**/*.json'))]
 
+    def envelope(self, messages=None):
+        messages = copy.deepcopy(self.batch if messages is None else messages)
+        for order, message in enumerate(messages, 1):
+            message['original_order'] = order
+            message['source_channel'] = 'user' if message.get('from') == 'HUMAN' else 'assistant_final'
+        return {'version': 1, 'capture': {
+            'source_system': 'synthetic_runtime', 'source_conversation_id': 'synthetic-thread-1',
+            'source_id_origin': 'provider', 'completeness': 'complete',
+            'order_basis': 'source_conversation',
+            'available_source_message_ids': [m['source_message_id'] for m in messages], 'gaps': [],
+        }, 'messages': messages}
+
+    def test_full_capture_retains_short_repeated_and_status_turns(self):
+        batch = [
+            {'source_message_id': 'turn-1', 'from': 'HUMAN', 'text': 'OK'},
+            {'source_message_id': 'turn-2', 'from': 'CODEX', 'text': 'Checking.'},
+            {'source_message_id': 'turn-3', 'from': 'HUMAN', 'text': 'Status?'},
+            {'source_message_id': 'turn-4', 'from': 'HUMAN', 'text': 'OK'},
+            {'source_message_id': 'turn-5', 'from': 'CODEX', 'text': ''},
+        ]
+        raw = self.envelope(batch)
+        raw['messages'][1]['source_channel'] = 'assistant_commentary'
+        plan = self.prepare(raw)
+        self.assertFalse((self.root / '.macaroni').exists())
+        capture.apply(self.root, plan)
+        docs = self.messages()
+        self.assertEqual([d['text'] for d in docs], [m['text'] for m in batch])
+        self.assertEqual(len(docs), 5)
+        self.assertTrue(all(d['meta']['source_id_origin'] == 'provider' for d in docs))
+        self.assertTrue(all(d['meta']['source_conversation_id'] == 'synthetic-thread-1' for d in docs))
+        self.assertEqual(docs[1]['meta']['source_channel'], 'assistant_commentary')
+        manifest = json.loads((self.root / plan['capture_manifest_path']).read_text())
+        self.assertEqual(manifest['available_source_message_ids'], [m['source_message_id'] for m in batch])
+        self.assertEqual(len(manifest['messages']), 5)
+        self.assertNotIn('text', manifest['messages'][0])
+
+    def test_inventory_omission_or_reordering_blocks_before_writes(self):
+        for fault in ['omit', 'reorder', 'duplicate']:
+            raw = self.envelope()
+            if fault == 'omit': raw['messages'].pop()
+            elif fault == 'reorder': raw['messages'].reverse()
+            else: raw['capture']['available_source_message_ids'].append('fixture-user-1')
+            with self.subTest(fault=fault), self.assertRaises(capture.CaptureError): self.prepare(raw)
+            self.assertFalse((self.root / '.macaroni').exists())
+
+    def test_partial_gap_and_redaction_provenance_are_retained(self):
+        raw = self.envelope()
+        raw['capture']['completeness'] = 'partial'
+        raw['capture']['source_id_origin'] = 'assigned_local'
+        raw['capture']['gaps'] = [{'id': 'gap_1', 'reason': 'unavailable_context', 'source_message_id': 'missing-turn-2', 'after_source_message_id': 'fixture-user-1', 'before_source_message_id': 'fixture-agent-1', 'original_order': 2}]
+        raw['messages'][1]['original_order'] = 3
+        raw['messages'][0]['text'] = 'Token: ТОКЕН'
+        raw['messages'][0]['redacted'] = True
+        raw['messages'][0]['redactions'] = [{'kind': 'credential', 'target': 'text', 'replacement': 'ТОКЕН', 'count': 1}]
+        plan = self.prepare(raw)
+        capture.apply(self.root, plan)
+        docs = self.messages()
+        self.assertEqual([d['meta']['original_order'] for d in docs], [1, 3])
+        self.assertEqual(docs[0]['meta']['redactions'], raw['messages'][0]['redactions'])
+        self.assertEqual(docs[0]['meta']['source_id_origin'], 'assigned_local')
+        manifest = json.loads((self.root / plan['capture_manifest_path']).read_text())
+        self.assertEqual(manifest['gaps'], raw['capture']['gaps'])
+        self.assertFalse(any(d['meta']['source_message_id'] == 'missing-turn-2' for d in docs))
+
+    def test_full_capture_retry_and_overlapping_fragment_are_idempotent(self):
+        raw = self.envelope()
+        capture.apply(self.root, self.prepare(raw))
+        self.committed()
+        before = self.snapshot()
+        retry = self.prepare(raw)
+        self.assertEqual(retry['messages_skipped'], 2)
+        self.assertEqual(retry['changes'], [])
+        self.assertEqual(capture.apply(self.root, retry), 0)
+        extra = {'source_message_id': 'fixture-user-2', 'from': 'HUMAN', 'text': 'OK', 'original_order': 3, 'source_channel': 'user', 'reply_to_source_id': 'fixture-agent-1'}
+        raw['messages'].append(extra)
+        raw['capture']['available_source_message_ids'].append(extra['source_message_id'])
+        plan = self.prepare(raw)
+        self.assertEqual(plan['messages_new'], 1)
+        self.assertEqual(plan['messages_skipped'], 2)
+        capture.apply(self.root, plan)
+        self.assertTrue(all((self.root / p).read_bytes() == data for p, data in before.items()))
+        self.assertEqual(len(list((self.root / '.macaroni/chats').glob('*/captures/*.json'))), 2)
+
+    def test_original_order_and_source_provenance_cannot_change_on_retry(self):
+        raw = self.envelope()
+        capture.apply(self.root, self.prepare(raw))
+        before = self.snapshot()
+        for fault in ['order', 'conversation', 'origin', 'channel']:
+            changed = copy.deepcopy(raw)
+            if fault == 'order':
+                for message in changed['messages']: message['original_order'] += 10
+            elif fault == 'conversation': changed['capture']['source_conversation_id'] = 'another-thread'
+            elif fault == 'origin': changed['capture']['source_id_origin'] = 'assigned_local'
+            else: changed['messages'][1]['source_channel'] = 'assistant_commentary'
+            with self.subTest(fault=fault), self.assertRaises(capture.CaptureError): self.prepare(changed)
+            self.assertEqual(before, self.snapshot())
+
+    def test_new_source_cannot_claim_existing_conversation_order(self):
+        capture.apply(self.root, self.prepare(self.envelope()))
+        raw = self.envelope([{'source_message_id': 'different-source', 'from': 'HUMAN', 'text': 'Different turn.'}])
+        before = self.snapshot()
+        with self.assertRaises(capture.CaptureError): self.prepare(raw)
+        self.assertEqual(before, self.snapshot())
+
+    def test_invalid_gap_redaction_or_internal_channel_blocks(self):
+        for fault in ['partial-no-gap', 'complete-gap', 'gap-for-available', 'gap-text', 'internal', 'redaction-original', 'redacted-no-description', 'redaction-false']:
+            raw = self.envelope()
+            if fault == 'partial-no-gap': raw['capture']['completeness'] = 'partial'
+            elif fault.startswith('complete') or fault.startswith('gap'):
+                raw['capture']['completeness'] = 'complete' if fault == 'complete-gap' else 'partial'
+                gap = {'id': 'gap_1', 'reason': 'unavailable_context'}
+                if fault == 'gap-for-available': gap['source_message_id'] = 'fixture-user-1'
+                if fault == 'gap-text': gap['text'] = 'Invented missing turn.'
+                raw['capture']['gaps'] = [gap]
+            elif fault == 'internal': raw['messages'][0]['source_channel'] = 'analysis'
+            else:
+                message = raw['messages'][0]
+                message['redacted'] = fault != 'redaction-false'
+                if fault != 'redacted-no-description':
+                    message['redactions'] = [{'kind': 'credential', 'target': 'text', 'replacement': 'REDACTED'}]
+                    if fault == 'redaction-original': message['redactions'][0]['original'] = 'Do not retain this.'
+            with self.subTest(fault=fault), self.assertRaises(capture.CaptureError): self.prepare(raw)
+            self.assertFalse((self.root / '.macaroni').exists())
+
+    def test_secret_in_envelope_gap_or_provenance_blocks_entire_batch(self):
+        for place in ['conversation', 'gap', 'redaction']:
+            raw = self.envelope()
+            secret = 'ghp_' + 'Q' * 32
+            if place == 'conversation': raw['capture']['source_conversation_id'] = secret
+            elif place == 'gap':
+                raw['capture']['completeness'] = 'partial'
+                raw['capture']['gaps'] = [{'id': 'gap_1', 'reason': 'unavailable_context', 'source_message_id': secret}]
+            else: raw['messages'][-1]['redactions'] = [{'kind': 'credential', 'target': 'text', 'replacement': secret}]
+            with self.subTest(place=place), self.assertRaises(capture.CaptureError): self.prepare(raw)
+            self.assertFalse((self.root / '.macaroni').exists())
+
+    def test_apply_revalidates_manifest_coverage_hash_and_order(self):
+        for fault in ['missing-manifest', 'omit-row', 'hash', 'order']:
+            plan = self.prepare(self.envelope())
+            change = next(c for c in plan['changes'] if '/captures/' in c['path'])
+            if fault == 'missing-manifest': plan['changes'].remove(change)
+            else:
+                doc = change['content']
+                if fault == 'omit-row': doc['messages'].pop()
+                elif fault == 'hash': doc['messages'][0]['message_sha256'] = '0' * 64
+                else: doc['messages'][1]['original_order'] = 1
+                identity = {k: v for k, v in doc.items() if k not in {'id', 'prepared_at'}}
+                doc['id'] = 'capture_' + capture.object_digest(identity)[:32]
+                change['path'] = f".macaroni/chats/{self.chat}/captures/{doc['id']}.json"
+                plan['capture_manifest_path'] = change['path']
+            plan['review_digest'] = capture.plan_digest(plan)
+            with self.subTest(fault=fault), self.assertRaises((capture.CaptureError, FileNotFoundError)): capture.apply(self.root, plan)
+            self.assertFalse((self.root / '.macaroni').exists())
+
+    def test_legacy_array_cannot_claim_complete_capture(self):
+        with self.assertRaises(capture.CaptureError): self.prepare(completeness='complete')
+        self.assertEqual(self.prepare()['capture_policy'], 'legacy_partial_fragment')
+
+    def test_envelope_key_order_does_not_create_duplicate_manifest(self):
+        raw = self.envelope()
+        capture.apply(self.root, self.prepare(raw))
+        before = self.snapshot()
+        raw['capture'] = dict(reversed(list(raw['capture'].items())))
+        retry = self.prepare(raw)
+        self.assertEqual(retry['changes'], [])
+        self.assertEqual(capture.apply(self.root, retry), 0)
+        self.assertEqual(before, self.snapshot())
+
+    def test_available_fragment_order_is_marked_without_claiming_source_ordinals(self):
+        raw = self.envelope()
+        raw['capture']['order_basis'] = 'available_fragment'
+        raw['capture']['completeness'] = 'partial'
+        raw['capture']['gaps'] = [{'id': 'earlier_context', 'reason': 'unknown_history_boundary', 'before_source_message_id': 'fixture-user-1'}]
+        capture.apply(self.root, self.prepare(raw))
+        self.assertTrue(all(d['meta']['original_order_basis'] == 'available_fragment' for d in self.messages()))
+        self.assertTrue(all(d['meta']['original_created_at'] is None or d['meta']['original_timestamp_status'] == 'known' for d in self.messages()))
+
+    def test_unknown_manifest_fields_are_preserved_on_retry(self):
+        raw = self.envelope()
+        plan = self.prepare(raw)
+        capture.apply(self.root, plan)
+        manifest_path = plan['capture_manifest_path']
+        doc = json.loads((self.root / manifest_path).read_text())
+        doc['extension'] = {'nested': [{'future': True}]}
+        self.write(manifest_path, doc)
+        before = self.snapshot()
+        retry = self.prepare(raw)
+        self.assertEqual(capture.apply(self.root, retry), 0)
+        self.assertEqual(before, self.snapshot())
+
+    def test_read_only_index_exposes_source_order_and_gap_manifest_paths(self):
+        raw = self.envelope()
+        raw['capture']['completeness'] = 'partial'
+        raw['capture']['gaps'] = [{'id': 'earlier_context', 'reason': 'unknown_history_boundary'}]
+        capture.apply(self.root, self.prepare(raw))
+        before = self.snapshot()
+        result = capture.index(self.root, 'importer')
+        self.assertEqual(len(result['captures']), 1)
+        self.assertEqual(result['captures'][0]['gaps_count'], 1)
+        self.assertEqual(result['messages'][0]['original_order_basis'], 'source_conversation')
+        self.assertEqual(result['messages'][0]['source_id_origin'], 'provider')
+        self.assertTrue(all('text' not in row for row in result['messages'] + result['captures']))
+        self.assertEqual(before, self.snapshot())
+
     def test_prepare_never_writes_memory(self):
         plan = self.prepare()
         self.assertEqual(plan['messages_new'], 2)
