@@ -252,9 +252,6 @@ STORAGE_BRANCH_ROOM
 
 ```text
 HUMAN
-CODEX
-CLAUDE
-DEEPSEEK
 AGENT
 ```
 
@@ -266,7 +263,7 @@ AGENT
 
 Для каждого доступного разрешённого проектного фрагмента, включая короткие ответы, повторы, статус и progress для пользователя:
 
-1. Составить inventory всех доступных разрешённых сообщений пользователя и ответов для пользователя без отбора по важности.
+1. Сохранять доступные разрешённые сообщения пользователя и ответы для пользователя без отбора по важности; inventory и проверка полноты не нужны.
 2. Отредактировать чувствительные значения, сохранив остальной текст и категории замен.
 3. Prepare/review/apply: один JSON на реплику по исходному порядку, с provenance и gaps.
 4. Записать inbox pointers и append-only coverage manifest.
@@ -284,7 +281,7 @@ Captured messages должны включать metadata:
 ```json
 {
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "user_message",
     "redacted": true
   }
@@ -296,7 +293,7 @@ Captured messages должны включать metadata:
 ```json
 {
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "assistant_message",
     "redacted": false
   }
@@ -309,9 +306,9 @@ Captured messages должны включать metadata:
 
 ### Расширение полного Capture
 
-Точный inventory envelope описан в [capture.ru.md](../skills/macaroni-memory/references/capture.ru.md). `meta` сообщения хранит источник/беседу, постоянный source ID и происхождение ID, исходный порядок и его основание, видимый channel, исходное время или null, основание capture time, полноту фрагмента и категории redaction. Прежние сообщения и неизвестные поля сохраняются; автоматического backfill нет.
+Provenance envelope с необязательными inventory/completeness/gaps описан в [capture.ru.md](../skills/macaroni-memory/references/capture.ru.md). `meta` сообщения хранит источник/беседу, постоянный source ID и происхождение ID, исходный порядок и его основание, видимый channel, исходное время или null, основание capture time, полноту фрагмента и категории redaction. Прежние сообщения и неизвестные поля сохраняются; автоматического backfill нет.
 
-`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` — append-only расширение Protocol v1 с `kind: conversation_capture`: доступный source inventory, пути/хеши сообщений, полнота и gaps без текста беседы. Gaps отмечают недоступный контекст, неизвестные границы, изъятый контент и вложения, не создавая выдуманных message JSON. Complete-фрагмент не имеет gaps, partial объявляет их. Helper проверяет переданный inventory, но не обнаружит реплики, скрытые из списка агентом, или недоступную историю runtime. Повтор envelope — no-op; дополненный/пересекающийся список создаёт новый manifest и переиспользует прежние сообщения. Поля и синтетические примеры — в capture guide.
+`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` — append-only расширение Protocol v1 с `kind: conversation_capture`: доступный source inventory, пути/хеши сообщений, полнота и gaps без текста беседы. Gaps отмечают недоступный контекст, неизвестные границы, изъятый контент и вложения, не создавая выдуманных message JSON. Старые completeness/gaps необязательны. Созданный список переданных сообщений проверяется по JSON/хешам/ссылкам без аудита внешней истории. Hooks UserPromptSubmit/Stop используют приватный local store вне Git по regular-capture guide. Повтор envelope — no-op; дополненный/пересекающийся список создаёт новый manifest и переиспользует прежние сообщения. Поля и синтетические примеры — в capture guide.
 
 Локальный capture, публикация кода/инструкций и экспорт переписки — отдельные действия. Проверяйте visibility repo и точный diff; соблюдайте preparation-only/local-only scope. Чтение приватных runtime logs/backfill требует отдельного разрешения. Историческое разрешение в памяти не становится текущим.
 

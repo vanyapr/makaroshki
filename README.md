@@ -60,7 +60,7 @@ Layer model:
 .macaroni/ = canonical append-only conversation log
 memory/    = optional curated index over .macaroni
 protocol/  = instructions for agents and humans
-skills/    = reusable Codex tooling
+skills/    = reusable agent tooling
 ```
 
 If `memory/` and `.macaroni/` disagree, believe `.macaroni/`.
@@ -200,7 +200,7 @@ Protocol notes:
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `agent-generated`;
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated`.
 
-Codex skill:
+The [direct Python interface](skills/macaroni-memory/references/agent-capture.md) accepts messages from any runtime. [Codex hooks](skills/macaroni-memory/references/regular-capture.md) are an optional adapter.
 
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated`;
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated`;
@@ -238,9 +238,9 @@ Protocol documents:
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `agent-generated` - copy-paste prompts for loading and writing Macaroni memory.
 - [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `agent-generated` - Russian mirror.
 
-Codex skill:
+Macaroni Memory:
 
-- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated` - installable Codex skill for `.macaroni` extended memory.
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `agent-generated` - installable agent skill for `.macaroni` extended memory.
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `agent-generated` - helper that writes Protocol v1 message JSON and inbox pointers.
 - [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `agent-generated` - skill UI metadata.
 - [Connect a project](skills/macaroni-memory/references/connect-project.md), [capture](skills/macaroni-memory/references/capture.md) and [source map](memory/INDEX.md) `agent-generated` - installation, reviewed capture and focused retrieval.

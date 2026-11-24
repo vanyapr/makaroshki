@@ -34,40 +34,23 @@ It solves one concrete problem: agent context gets compressed until important de
 
 This branch keeps the original messages.
 
+For a project without a verified origin, use [local-directory.md](skills/macaroni-memory/references/local-directory.md): exact directory/private-store binding with a persistent local UUID and repository:null, export_policy:local_only. Use explicit agent capture; never fabricate a remote or publish local-directory history. Preserve existing preparations and report them separately from observed messages.
+
 ## Automation Contract
 
-The Macaroni memory skill is not a background service.
+For agent runtimes that supply messages directly, use [agent-driven capture](skills/macaroni-memory/references/agent-capture.md). Local command hooks do not run there. Save each accessible authorized input with `agent_capture.py --messages`; before emitting a reply, persist its frozen text with `--prepare-reply`, and later confirm its actual source ID/body with `--confirm-reply`. Prepared replies are durable but remain separate from observed history. Read the registered local store and `--status` on startup/resume; no daemon or CLI trust is needed for this path.
 
-It does not automatically watch a chat window.
+The skill provides manual reviewed capture and optional regular local capture through supported Codex `UserPromptSubmit` and `Stop` hooks. Read [regular-capture.md](skills/macaroni-memory/references/regular-capture.md) before configuring them.
 
-It does not commit every token while nobody is looking.
+Hooks save the text actually delivered by those events immediately after redaction. There is no timer, background service, transcript access or completeness audit. They do not expose every progress update or attachment. Installation alone does not enable capture: explicit project registration, a private destination outside Git, and native `/hooks` review/trust are required. Keep existing notify/hooks; show the exact persistent scope before activation.
 
-It gives agents:
-
-- the protocol contract;
-- prompts for reading and writing memory;
-- a helper script for writing Protocol v1 JSON messages;
-- validation rules.
-
-The automation is procedural:
-
-1. the agent inventories every available authorized project user message and user-facing assistant turn, without importance filtering;
-2. the agent redacts secrets;
-3. the agent runs the capture helper or writes equivalent Protocol v1 JSON;
-4. the agent validates the result;
-5. the agent commits and pushes the `macaroni` branch within current task authorization.
-
-If future tooling adds a real background capture hook, document it here before relying on it.
-
-Until then, no invisible magic.
-
-Just git with a clipboard.
+New conversation data stays in each project's private local store (`storage_branch: local`); the published `macaroni` branch remains a historical source. These are distinct destinations. Publishing skill code/docs does not authorize uploading conversation data. Neither helper commits or pushes. A manual batch can be published only under separate current authorization for its exact data and destination.
 
 ## Project Scope And Safe Capture
 
 Apply these constraints before the general capture workflow below.
 
-- Keep each project's memory in that project's own repository and `macaroni` branch. This repository supplies a reusable skill; it is not a shared destination for other projects' conversations. Reuse the project's existing remote when suitable.
+- Keep published memory in the project's own repository and `macaroni` branch. Regular capture uses its explicitly registered private local store outside Git. This source repository is never a shared destination for other projects' conversations.
 - Keep an `AGENTS.md` instruction in the root of every project's `macaroni` branch. Preserve existing instructions when adding the memory contract.
 - Before project work, read the applicable `AGENTS.md` and `.agents/skills` instructions, the storage branch's `.macaroni/protocol.json`, participant records, relevant chat metadata and members, and relevant source messages in chronological order. Check that the repository and storage branch match the intended project before writing. Use a separate checkout or worktree when product work is on another branch.
 - Capture every available authorized project user message and assistant response intended for the user, one message per JSON file after redaction, in source order. Include acknowledgements, repeated turns, status questions and user-facing progress; do not filter by usefulness. Do not copy personal conversations, hidden instructions, private reasoning, internal agent reports or notes, or raw tool transcripts. Do not reconstruct unavailable messages as exact source text.
@@ -75,9 +58,9 @@ Apply these constraints before the general capture workflow below.
 
 ### Capture Workflow
 
-Use the current reviewed bundle's prepare/review/apply workflow, described in [capture.md](skills/macaroni-memory/references/capture.md). Use the full inventory envelope, preserving source system/conversation and ID origin, stable source IDs, known original timestamps or explicit unknowns, source order and its basis, channels, reply-to links, redaction categories, fragment completeness and explicit gaps. Preserve every available authorized turn; unavailable context is never invented or silently treated as complete. Prepare scans the complete batch before creating a private review plan outside the repository. Review all exact proposed JSON and destination before apply; apply rechecks HEAD, file hashes, paths, IDs, secrets and unknown-field preservation.
+For manual batches use [prepare/review/apply](skills/macaroni-memory/references/capture.md), preserving source system/conversation, ID origin, stable IDs, time/order provenance, channels, reply links and redaction categories. Inventory, completeness and gap declarations are optional compatibility metadata. Do not audit completeness or block capture because inventory is absent. Prepare scans the supplied batch before a private plan is created; review all proposed JSON and destination before manual apply. Regular hooks prepare/apply each delivered event locally under their reviewed scope.
 
-Messages, inbox pointers and append-only capture manifests are never overwritten. Manifests under `.macaroni/chats/<chat_id>/captures/` record the supplied inventory, coverage and gaps without conversation text. The helper cannot discover an incomplete inventory supplied by an agent; verify it against the accessible source. Do not fetch private runtime history or backfill other sessions without separate authorization. A retry with the same source ID and content is skipped; changed content needs a new correction message. Metadata changes preserve existing fields. Caught write failures roll back the batch; hard process termination or power loss still requires checkout inspection. The helper performs no network, commit or push.
+Messages, pointers and manifests are append-only. Generated manifests reference supplied messages and protect JSON/hash/link integrity; they do not audit unseen history. Do not fetch private runtime history or backfill sessions without separate authorization. Identical source events are skipped; corrections use new IDs. Unknown fields are retained. Caught failures roll back the batch; a crash or busy lock may leave an event unsaved and needs inspection. Neither helper performs network, commit or push.
 
 The old helper at `9a8f0d58ad26a245b7e937432f62b11512d31e89` remains unsafe for existing memory because of field loss, ID overwrite, path traversal and writes before secret checks. Do not use that version on real memory. There is no `--allow-sensitive` in the new workflow. Built-in checks never replace manual secret review.
 
@@ -89,7 +72,7 @@ Before committing, validate JSON syntax, Protocol v1 fields, IDs, UTC paths, rec
 
 Local capture, publishing skill code/instructions and publishing conversation data are separate actions. Check repository visibility and the exact data diff before publishing messages. A skill update does not authorize conversation export; respect preparation-only/local-only tasks. Commit and push only within the user's authorization, to the intended project's `macaroni` branch. Installation setup is limited to agent instructions; it does not authorize product changes, `main` changes, deployment, or exporting this installation conversation into another project's memory.
 
-Local installation makes the skill available to local Codex agents on a subsequent turn. An active agent can read the installed `SKILL.md` explicitly and follow this root instruction before using it. A separate cloud runtime needs its own installation or accessible bundle; a Mac installation does not install the skill there. Capture remains an explicit agent action.
+Each runtime needs access to the complete skill bundle. Read its SKILL.md before use.
 
 ## Macaroni As Agent-Agnostic Memory
 
@@ -165,7 +148,7 @@ Continuation prompt:
 ```text
 Continue work from Macaroni memory.
 Load the latest messages in `.macaroni/chats/chat_YYYYMMDD_agent_room/messages/**`.
-Reconstruct what the user asked, what Codex answered, what was changed, and what remains open.
+Reconstruct what the user asked, what the assistant answered, what was changed, and what remains open.
 Use source message paths instead of vague summaries.
 ```
 
@@ -314,7 +297,7 @@ skills/
 
 `protocol/` contains protocol notes for agents.
 
-`skills/` contains reusable Codex skills that help agents work with Macaroni memory.
+`skills/` contains reusable agent skills that help agents work with Macaroni memory.
 
 Do not confuse pasta with lore.
 
@@ -394,7 +377,7 @@ If you are unsure which one to use, do not guess. Add an item to `memory/open-qu
 
 Agents MUST preserve all available authorized project conversation as `.macaroni/` messages, message by message, after redaction.
 
-Do not choose which user-facing turns are important enough to keep. Completeness applies to the accessible authorized fragment; record unavailable context as gaps without reconstructing source text.
+Do not choose user-facing turns by importance. Save available authorized messages without a separate completeness audit; never reconstruct unavailable source text.
 
 ### Default Room
 
@@ -437,9 +420,6 @@ Suggested ids:
 
 ```text
 HUMAN
-CODEX
-CLAUDE
-DEEPSEEK
 AGENT
 ```
 
@@ -509,7 +489,7 @@ YYYY-MM-DDTHH-mm-ss.sssZ_<from>_<short_suffix>
 Example:
 
 ```text
-2026-06-14T12-30-15.123Z_CODEX_a8k2md
+2026-06-14T12-30-15.123Z_AGENT_a8k2md
 ```
 
 ### Message Document Shape
@@ -519,18 +499,18 @@ Use Protocol v1 message JSON:
 ```json
 {
   "version": 1,
-  "id": "2026-06-14T12-30-15.123Z_CODEX_a8k2md",
+  "id": "2026-06-14T12-30-15.123Z_AGENT_a8k2md",
   "chat_id": "chat_20260614_agent_room",
   "type": "text",
-  "from": "CODEX",
-  "from_name": "Codex",
+  "from": "AGENT",
+  "from_name": "Agent",
   "to": ["HUMAN"],
   "created_at": "2026-06-14T12:30:15.123Z",
   "text": "Message text after redaction.",
   "reply_to": null,
   "attachments": [],
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "agent_conversation",
     "redacted": true
   },
@@ -544,9 +524,9 @@ For user messages:
 {
   "from": "HUMAN",
   "from_name": "Human",
-  "to": ["CODEX"],
+  "to": ["AGENT"],
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "user_message",
     "redacted": true
   }
@@ -557,11 +537,11 @@ For assistant messages:
 
 ```json
 {
-  "from": "CODEX",
-  "from_name": "Codex",
+  "from": "AGENT",
+  "from_name": "Agent",
   "to": ["HUMAN"],
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "assistant_message",
     "redacted": false
   }
@@ -586,9 +566,9 @@ Shape:
 {
   "version": 1,
   "recipient": "HUMAN",
-  "message_id": "2026-06-14T12-30-15.123Z_CODEX_a8k2md",
+  "message_id": "2026-06-14T12-30-15.123Z_AGENT_a8k2md",
   "chat_id": "chat_20260614_agent_room",
-  "message_path": ".macaroni/chats/chat_20260614_agent_room/messages/2026/06/14/2026-06-14T12-30-15.123Z_CODEX_a8k2md.json",
+  "message_path": ".macaroni/chats/chat_20260614_agent_room/messages/2026/06/14/2026-06-14T12-30-15.123Z_AGENT_a8k2md.json",
   "created_at": "2026-06-14T12:30:15.123Z"
 }
 ```
@@ -635,13 +615,13 @@ Use summaries as indexes pointing back to source messages.
 
 For each accessible authorized project fragment:
 
-1. Inventory all available project user and user-facing assistant turns without importance filtering.
+1. Capture available authorized project user and user-facing assistant turns without importance filtering; no inventory audit is required.
 2. Redact secrets and sensitive data.
 3. Ensure user and agent documents exist.
 4. Ensure an appropriate chat exists.
 5. Write the user message as one Protocol v1 message.
 6. Write the assistant response as another Protocol v1 message.
-7. Write inbox pointers and an append-only capture inventory with explicit gaps/redaction provenance.
+7. Write inbox pointers and an append-only source manifest; optional gaps and redaction provenance must be truthful.
 8. Validate and review the complete local diff; commit only within current authorization.
 9. Check repository visibility and separate conversation-publication authorization before any push.
 10. Update `memory/` if a durable decision or open question emerged.

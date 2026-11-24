@@ -14,12 +14,17 @@ import re
 import shutil
 import subprocess
 import tempfile
+import uuid
 from urllib.parse import urlparse
 
 
 class CaptureError(ValueError):
     pass
 
+
+AGENT_ID = "AGENT"
+# Older clients used this participant ID for assistant messages.
+ASSISTANT_IDS = {AGENT_ID, "CODEX"}
 
 SECRET = re.compile(
     r"github_pat_[A-Za-z0-9_]{20,}|gh[opusb]_[A-Za-z0-9]{20,}|"
@@ -55,7 +60,7 @@ def validate_redactions(value, redacted, required=False):
 
 
 def capture_input(raw, completeness):
-    """Account for the caller's entire available, authorized project fragment."""
+    """Validate supplied messages; no runtime history or completeness audit."""
     if isinstance(raw, list):
         if completeness != "partial":
             raise CaptureError("Complete capture requires an inventory envelope; legacy arrays are partial")
@@ -63,14 +68,21 @@ def capture_input(raw, completeness):
     if not isinstance(raw, dict) or set(raw) != {"version", "capture", "messages"} or raw["version"] != 1:
         raise CaptureError("Use a legacy array or a version 1 capture envelope")
     spec = raw["capture"]
-    required = {"source_system", "source_conversation_id", "source_id_origin", "order_basis", "completeness", "available_source_message_ids", "gaps"}
-    if not isinstance(spec, dict) or set(spec) != required:
-        raise CaptureError("Capture envelope needs exact source provenance, inventory and gaps")
+    required = {"source_system", "source_conversation_id", "source_id_origin", "order_basis"}
+    optional = {"completeness", "available_source_message_ids", "gaps"}
+    if not isinstance(spec, dict) or not required.issubset(spec) or set(spec) - required - optional:
+        raise CaptureError("Capture envelope needs source provenance")
+    spec = copy.deepcopy(spec)
+    spec.setdefault("completeness", "partial")  # Compatibility metadata, not an audited claim.
+    spec.setdefault("gaps", [])
     identifier(spec["source_system"])
     source_id(spec["source_conversation_id"])
     if spec["source_id_origin"] not in ID_ORIGINS - {"unknown"} or spec["order_basis"] not in ORDER_BASES or spec["completeness"] not in {"partial", "complete"}:
         raise CaptureError("Declare source ID origin and fragment completeness")
     messages = raw["messages"]
+    if not isinstance(messages, list):
+        raise CaptureError("Messages must be an array")
+    spec.setdefault("available_source_message_ids", [message.get("source_message_id") if isinstance(message, dict) else None for message in messages])
     available = spec["available_source_message_ids"]
     if not isinstance(messages, list) or not isinstance(available, list) or len(set(source_id(s) for s in available)) != len(available):
         raise CaptureError("Available source inventory must contain unique IDs")
@@ -90,8 +102,8 @@ def capture_input(raw, completeness):
 
 
 def validate_gaps(gaps, available, completeness):
-    if not isinstance(gaps, list) or (completeness == "complete" and gaps) or (completeness == "partial" and not gaps):
-        raise CaptureError("Complete fragments have no gaps; partial fragments must declare gaps")
+    if not isinstance(gaps, list) or (completeness == "complete" and gaps):
+        raise CaptureError("Optional gaps must be an array; a complete claim cannot also declare gaps")
     seen = set()
     for gap in gaps:
         allowed = {"id", "reason", "source_message_id", "after_source_message_id", "before_source_message_id", "original_order"}
@@ -165,6 +177,8 @@ def git(root, *args):
 
 
 def repository_url(value):
+    if not isinstance(value, str):
+        raise CaptureError("A Git binding needs an actual repository URL")
     if value.startswith("git@"):
         host, path = value[4:].split(":", 1)
         value = "https://" + host + "/" + path
@@ -177,8 +191,62 @@ def repository_url(value):
     return "https://" + parsed.hostname.lower() + path
 
 
+def binding_identity(doc):
+    """Structural identity only: inactive local mappings must not block other projects."""
+    kind = doc.get("binding_kind", "git_repository")
+    if kind == "git_repository":
+        return {"repository": repository_url(doc.get("repository"))}
+    if kind != "local_directory" or "repository" not in doc or doc["repository"] is not None or doc.get("export_policy") != "local_only":
+        raise CaptureError("Unsupported project binding")
+    identity = doc.get("project_id")
+    try:
+        if not isinstance(identity, str) or str(uuid.UUID(identity)) != identity:
+            raise ValueError()
+    except (ValueError, AttributeError):
+        raise CaptureError("Local project identity needs a canonical UUID") from None
+    root = doc.get("project_root")
+    if not isinstance(root, str) or not Path(root).is_absolute() or str(Path(root).resolve()) != root:
+        raise CaptureError("Local project identity needs an exact absolute path")
+    if any(p.is_symlink() for p in [Path(root), *Path(root).parents]):
+        raise CaptureError("Local project paths cannot be symlinks")
+    stat = doc.get("root_identity")
+    if not isinstance(stat, dict) or set(stat) != {"device", "inode"} or any(type(v) is not int or v < 0 for v in stat.values()):
+        raise CaptureError("Local project identity needs directory device and inode")
+    return {"binding_kind": kind, "project_id": identity, "project_root": root,
+            "root_identity": dict(stat), "repository": None, "export_policy": "local_only"}
+
+
+def verify_local_root(doc):
+    identity = binding_identity(doc)
+    if identity.get("binding_kind") == "local_directory":
+        root = Path(identity["project_root"])
+        if not root.is_dir():
+            raise CaptureError("Registered local project is missing; explicit rebinding is required")
+        stat = root.stat()
+        if identity["root_identity"] != {"device": stat.st_dev, "inode": stat.st_ino}:
+            raise CaptureError("Registered local directory changed; explicit rebinding is required")
+    return identity
+
+
 def state(root, branch, writing=True):
     root = root.resolve()
+    if branch == "local":
+        if any((parent / ".git").exists() for parent in [root, *root.parents]):
+            raise CaptureError("Local memory must be outside every Git checkout")
+        marker = root / "local-store.json"
+        if marker.is_symlink():
+            raise CaptureError("Local store marker cannot be a symlink")
+        doc = load(marker)
+        if not doc or doc.get("kind") != "macaroni_local_store" or doc.get("root") != str(root):
+            raise CaptureError("Local capture requires an explicitly registered private store")
+        scan(doc)
+        identity = verify_local_root(doc)
+        if identity.get("binding_kind") == "local_directory" and (root.stat().st_mode & 0o077 or marker.stat().st_mode & 0o077):
+            raise CaptureError("Local directory memory needs private store and marker permissions")
+        protocol = load(target(root, ".macaroni/protocol.json"))
+        if protocol is not None and (binding_identity(protocol) != identity or protocol.get("storage_branch") != "local"):
+            raise CaptureError("Local protocol differs from the registered store identity")
+        return {"repo_root": str(root), **identity, "branch": "local", "base_commit": None, "store_identity": digest(marker.read_bytes())}
     if Path(git(root, "rev-parse", "--show-toplevel")).resolve() != root:
         raise CaptureError("repo-root must be the Git checkout root")
     actual_branch = git(root, "branch", "--show-current")
@@ -279,7 +347,7 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
     if completeness not in {"partial", "complete"}:
         raise CaptureError("Capture completeness must be partial or complete")
     protocol = load(target(root, ".macaroni/protocol.json"))
-    if protocol is not None and (repository_url(protocol["repository"]) != destination["repository"] or protocol["storage_branch"] != branch):
+    if protocol is not None and (binding_identity(protocol) != binding_identity(destination) or protocol["storage_branch"] != branch):
         raise CaptureError("Protocol repository or storage branch does not match destination")
     scan(raw_messages)  # No setup files or plans written before the entire input passes.
     raw_messages, capture_spec, completeness = capture_input(raw_messages, completeness)
@@ -303,8 +371,14 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
         if source in source_ids:
             raise CaptureError("Every message needs a unique stable source_message_id")
         source_ids.add(source)
-        sender = identifier(raw.get("from", "CODEX"))
-        recipients = raw.get("to", ["CODEX" if sender == "HUMAN" else "HUMAN"])
+        old = existing.get(source)
+        # Replaying an older batch must keep the original implicit participants.
+        prior = old[1] if old else {}
+        default_sender = "CODEX" if prior.get("from") == "CODEX" else AGENT_ID
+        sender = identifier(raw.get("from", default_sender))
+        assistant_recipient = "CODEX" if prior.get("to") == ["CODEX"] else AGENT_ID
+        recipients = raw.get("to", [assistant_recipient if sender == "HUMAN" else "HUMAN"])
+        sender_name = raw.get("from_name", sender.title())
         if not isinstance(recipients, list) or not recipients or len(recipients) != len(set(recipients)):
             raise CaptureError("to must be a non-empty array of unique participant IDs")
         recipients = [identifier(value) for value in recipients]
@@ -318,7 +392,6 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
         msg_id = explicit_id or captured.replace(":", "-") + "_" + sender + "_" + digest(source.encode())[:12]
         if not MESSAGE_ID.fullmatch(msg_id):
             raise CaptureError("Invalid message ID")
-        old = existing.get(source)
         if old:
             if old[1]["chat_id"] != chat_id or (explicit_id and explicit_id != old[1]["id"]):
                 raise CaptureError("Source already belongs to a different chat or message ID")
@@ -338,7 +411,7 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
         redactions = copy.deepcopy(raw.get("redactions", metadata.get("redactions", [])))
         validate_redactions(redactions, raw.get("redacted", False), required=capture_spec is not None)
         source_kind = "user_message" if (raw.get("source_channel") == "user" if capture_spec else sender == "HUMAN") else "assistant_message"
-        metadata.update({"captured_by": "CODEX", "source": raw.get("source", source_kind), "source_message_id": source, "redacted": bool(raw.get("redacted", False)), "original_created_at": original, "original_timestamp_status": "known" if original else "unknown", "created_at_basis": "capture_time", "original_order": order, "capture_completeness": completeness})
+        metadata.update({"captured_by": AGENT_ID, "source": raw.get("source", source_kind), "source_message_id": source, "redacted": bool(raw.get("redacted", False)), "original_created_at": original, "original_timestamp_status": "known" if original else "unknown", "created_at_basis": "capture_time", "original_order": order, "capture_completeness": completeness})
         metadata.update({"original_order": original_order, "original_order_basis": capture_spec["order_basis"] if capture_spec else ("source_conversation" if "original_order" in raw else "capture_batch"), "redactions": redactions,
                          "source_system": capture_spec["source_system"] if capture_spec else metadata.get("source_system", "unknown"),
                          "source_conversation_id": capture_spec["source_conversation_id"] if capture_spec else metadata.get("source_conversation_id"),
@@ -347,7 +420,7 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
         reply_source = raw.get("reply_to_source_id")
         if reply_source:
             metadata["source_reply_to_message_id"] = reply_source
-        normal.append({"version": 1, "id": msg_id, "chat_id": chat_id, "type": "text", "from": sender, "from_name": raw.get("from_name", "Human" if sender == "HUMAN" else "Codex"), "to": recipients, "created_at": captured, "text": raw["text"], "reply_to": raw.get("reply_to"), "attachments": copy.deepcopy(raw.get("attachments", [])), "meta": metadata, "signature": None})
+        normal.append({"version": 1, "id": msg_id, "chat_id": chat_id, "type": "text", "from": sender, "from_name": sender_name, "to": recipients, "created_at": captured, "text": raw["text"], "reply_to": raw.get("reply_to"), "attachments": copy.deepcopy(raw.get("attachments", [])), "meta": metadata, "signature": None})
     source_to_id = {source: doc["id"] for source, (_, doc) in existing.items() if doc["chat_id"] == chat_id}
     source_to_id.update({doc["meta"]["source_message_id"]: doc["id"] for doc in normal})
     changes = {}
@@ -420,8 +493,8 @@ def prepare(root, raw_messages, chat_id, branch="macaroni", repo_url=None, compl
         protocol_path = ".macaroni/protocol.json"
         protocol = load(target(root, protocol_path))
         if protocol is None:
-            propose(protocol_path, {"version": 1, "name": "Macaroni Project Memory", "repository": destination["repository"], "storage_branch": branch, "created_at": stamp, "updated_at": stamp, "meta": {}})
-        elif repository_url(protocol["repository"]) != destination["repository"] or protocol["storage_branch"] != branch:
+            propose(protocol_path, {"version": 1, "name": "Macaroni Project Memory", **binding_identity(destination), "storage_branch": branch, "created_at": stamp, "updated_at": stamp, "meta": {}})
+        elif binding_identity(protocol) != binding_identity(destination) or protocol["storage_branch"] != branch:
             raise CaptureError("Protocol repository or storage branch does not match destination")
         people = {doc["from"]: doc["from_name"] for doc in normal}
         for doc in normal:
@@ -468,7 +541,7 @@ def validate_plan(root, plan):
     if not isinstance(plan.get("changes"), list):
         raise CaptureError("Plan changes must be an array")
     protocol = load(target(root, ".macaroni/protocol.json"))
-    if protocol is not None and (repository_url(protocol["repository"]) != plan["destination"]["repository"] or protocol["storage_branch"] != plan["destination"]["branch"]):
+    if protocol is not None and (binding_identity(protocol) != binding_identity(plan["destination"]) or protocol["storage_branch"] != plan["destination"]["branch"]):
         raise CaptureError("Existing protocol destination mismatch")
     known, stored_ids = existing_messages(root)
     pending = {}
@@ -489,7 +562,7 @@ def validate_plan(root, plan):
         scan(doc)
         parts = Path(relative).parts
         if relative == ".macaroni/protocol.json":
-            if repository_url(doc["repository"]) != plan["destination"]["repository"] or doc["storage_branch"] != plan["destination"]["branch"]:
+            if binding_identity(doc) != binding_identity(plan["destination"]) or doc["storage_branch"] != plan["destination"]["branch"]:
                 raise CaptureError("Protocol destination mismatch")
         elif len(parts) == 3 and parts[1] == "users":
             if identifier(doc["id"]) + ".json" != parts[2] or not isinstance(doc.get("display_name"), str) or not isinstance(doc.get("role"), str):
@@ -623,7 +696,7 @@ def apply(root, plan):
     validate_plan(root, plan)
     if not plan["changes"]:
         return 0
-    lock = Path(git(root, "rev-parse", "--git-path", "macaroni-capture.lock"))
+    lock = root / ".capture.lock" if plan["destination"]["branch"] == "local" else Path(git(root, "rev-parse", "--git-path", "macaroni-capture.lock"))
     if not lock.is_absolute():
         lock = root / lock
     try:
@@ -652,7 +725,7 @@ def apply(root, plan):
                 missing.append(parent)
                 parent = parent.parent
             for directory in reversed(missing):
-                directory.mkdir()
+                directory.mkdir(mode=0o700 if plan["destination"]["branch"] == "local" else 0o777)
                 directories.append(directory)
             target(root, change["path"])
             if old is None:
@@ -669,6 +742,8 @@ def apply(root, plan):
             else:
                 restore = stage / "restore"
                 restore.write_bytes(old)
+                if plan["destination"]["branch"] == "local":
+                    os.chmod(restore, 0o600)
                 os.replace(restore, path)
         for directory in reversed(directories):
             directory.rmdir()
@@ -714,14 +789,14 @@ def main():
     mode.add_argument("--apply-plan", metavar="PLAN_JSON")
     mode.add_argument("--index", action="store_true")
     parser.add_argument("--search")
-    parser.add_argument("--batch-json", help="Full inventory envelope, or a legacy partial message array")
+    parser.add_argument("--batch-json", help="Source-provenance envelope (inventory optional), or a legacy partial message array")
     parser.add_argument("--chat-id")
     parser.add_argument("--chat-title", default="AGENT_ROOM")
     parser.add_argument("--storage-branch", default="macaroni")
     parser.add_argument("--repo-url")
     parser.add_argument("--completeness", choices=["partial", "complete"], default="partial", help="Legacy arrays must be partial; envelopes declare their own completeness")
     parser.add_argument("--source-message-id")
-    parser.add_argument("--from-id", default="CODEX")
+    parser.add_argument("--from-id")
     parser.add_argument("--from-name")
     parser.add_argument("--to")
     parser.add_argument("--source")
@@ -743,10 +818,16 @@ def main():
                 raw = strict_json(Path(args.batch_json).read_text(encoding="utf-8"))
             else:
                 text = Path(args.text_file).read_text(encoding="utf-8") if args.text_file else args.text
-                sender_name = args.from_name or ("Human" if args.from_id == "HUMAN" else "Codex")
-                source_kind = args.source or ("user_message" if args.from_id == "HUMAN" else "assistant_message")
-                recipients = args.to.split(",") if args.to else ["CODEX" if args.from_id == "HUMAN" else "HUMAN"]
-                raw = [{"source_message_id": args.source_message_id, "from": args.from_id, "from_name": sender_name, "to": recipients, "source": source_kind, "text": text, "original_created_at": args.created_at, "redacted": args.redacted}]
+                row = {"source_message_id": args.source_message_id, "text": text, "original_created_at": args.created_at, "redacted": args.redacted}
+                if args.from_id:
+                    row["from"] = args.from_id
+                if args.from_name:
+                    row["from_name"] = args.from_name
+                if args.to:
+                    row["to"] = args.to.split(",")
+                if args.source:
+                    row["source"] = args.source
+                raw = [row]
             chat = args.chat_id or "chat_" + now()[:10].replace("-", "") + "_agent_room"
             plan = prepare(root, raw, chat, args.storage_branch, args.repo_url, args.completeness, args.chat_title)
             output = Path(args.prepare)

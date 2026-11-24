@@ -2,7 +2,7 @@
 
 Capture every available authorized project message, including acknowledgements, repeated turns, status questions and user-facing progress. Do not filter by importance, summarize messages or deduplicate by text. Keep personal conversations, hidden instructions, private reasoning, internal reports and tool transcripts outside this scope. This is an explicit workflow, not background access to chat history.
 
-Use this inventory envelope of exact, already redacted source messages. All IDs and text below are synthetic:
+Use a provenance envelope of exact, already redacted source messages. `completeness`, `available_source_message_ids` and `gaps` are optional; the helper derives a manifest from supplied messages without an external completeness audit. All IDs and text below are synthetic; the optional legacy fields illustrate compatibility:
 
 ```json
 {
@@ -24,7 +24,7 @@ Use this inventory envelope of exact, already redacted source messages. All IDs 
       "original_order": 12,
       "source_channel": "user",
       "from": "HUMAN",
-      "to": ["CODEX"],
+      "to": ["AGENT"],
       "text": "Use the importer token: ТОКЕН",
       "original_created_at": null,
       "redacted": true,
@@ -35,7 +35,7 @@ Use this inventory envelope of exact, already redacted source messages. All IDs 
       "source_message_id": "synthetic-agent-1",
       "original_order": 13,
       "source_channel": "assistant_final",
-      "from": "CODEX",
+      "from": "AGENT",
       "to": ["HUMAN"],
       "text": "OK",
       "original_created_at": "2026-10-03T10:00:00+03:00",
@@ -46,26 +46,26 @@ Use this inventory envelope of exact, already redacted source messages. All IDs 
 }
 ```
 
-Use stable `HUMAN` and `CODEX` IDs unless the project already uses other identities.
+Use stable `HUMAN` and `AGENT` IDs unless the project already uses other identities.
 A source ID is required. Use the actual provider ID when available; declare `capture.source_id_origin: provider`. Otherwise assign and retain a local capture ID and use `assigned_local`; do not describe it as a provider ID. Namespace IDs consistently if the provider only guarantees uniqueness within a conversation: the helper rejects ID collisions across the repository. Keep the same source ID and input file for retries. Identical text in two distinct source messages needs two IDs. `source_system` is a non-secret identifier; `source_conversation_id` identifies the actual accessible source, not a fabricated original session for delegated snippets.
 
-`available_source_message_ids` inventories every available, authorized user/user-facing assistant turn in this project fragment in order. `messages` must cover it exactly. Use source channels `user`, `assistant_final` or `assistant_commentary` (visible to the user). Explicit `original_order` must increase and remain stable across retries and overlapping fragments. Use `order_basis: source_conversation` for known source ordinals; otherwise assign and retain ordinals with `available_fragment`. Do not infer missing earlier turns or restart ordinals on overlapping fragments. The helper can validate the declared inventory, but cannot discover messages the caller omitted from that inventory or recover hidden runtime history. Verify inventory against the actual accessible source before preparing it. User-facing replies that cannot yet be read as finalized source are captured on the next turn with their real IDs, not predicted text.
+Omit `available_source_message_ids` for routine capture; it is derived from `messages`. If explicitly supplied, it must reference the same batch in order, as a consistency check. There is no comparison with runtime history and no mandatory inventory audit. Use source channels `user`, `assistant_final` or visible `assistant_commentary`. Explicit `original_order` must increase and remain stable across retries. Use `source_conversation` for known source ordinals; otherwise use `available_fragment` with retained local ordinals. Do not invent missing turns or predict unfinished replies. Regular hook capture is described in [regular-capture.md](regular-capture.md).
 
 `original_created_at` is the original timestamp with explicit timezone, or null when unknown. The legacy input field `created_at` is accepted as an original timestamp. Stored message `created_at` is the UTC time assigned during preparation of a new capture; it is retained by apply and is not the filesystem write time. `meta.created_at_basis` records this distinction. No original time is inferred from capture time. Envelope messages retain the declared `meta.original_order_basis`; legacy arrays use `capture_batch` unless they explicitly supply source order.
 
 `reply_to_source_id` resolves to a stored message ID in the same chat. Supply the target message or reference a source already captured there. A missing reply target blocks preparation. Optional `attachments` is an array; optional `meta` carries additional source metadata and topics. Both are scanned for sensitive patterns. `redacted` is a boolean and must describe actual redaction.
 
-## Gaps, redaction and coverage
+## Optional compatibility metadata and redaction
 
-Use `capture.completeness: partial` with at least one gap when context, a history boundary, withheld content or an attachment is unavailable. Gap fields are `id`, `reason` and optional `source_message_id`, `after_source_message_id`, `before_source_message_id`, `original_order`. Reasons: `unavailable_context`, `unknown_history_boundary`, `withheld_content`, `unavailable_attachment`. Boundary IDs must reference this fragment. Attachment gaps identify their available source message. A gap never replaces an available authorized message and never contains reconstructed text, hidden instructions or withheld data. For a missing reply target, retain its source ID in non-secret `meta.unresolved_reply_to_source_id` and record a gap; leave `reply_to_source_id` unset so it does not claim a resolvable link.
+`capture.completeness` and `gaps` may be omitted. Compatibility defaults are `partial` and `[]`; they are not an audited claim. Optional gap fields are `id`, `reason`, `source_message_id`, `after_source_message_id`, `before_source_message_id`, `original_order`; reasons are `unavailable_context`, `unknown_history_boundary`, `withheld_content`, `unavailable_attachment`. Supplied boundaries reference this batch. Gaps never contain reconstructed or withheld text. For an unavailable reply target, optionally keep its non-secret source ID in `meta.unresolved_reply_to_source_id`; leave `reply_to_source_id` unset.
 
-`complete` requires an empty gap list and covers only the declared, known complete fragment, not the project's entire history. Unknown original timestamps may still be null. Do not fetch private session logs or backfill another conversation without separate authorization.
+An explicitly supplied legacy `complete` claim cannot also declare gaps; the helper does not verify its truth against external history. Do not introduce this claim in routine capture. Unknown original timestamps remain null. Do not fetch private session logs or backfill another conversation without separate authorization.
 
 Redact complete sensitive values before any persistent input file or plan is created, while retaining the rest of each message. `redacted: true` requires `redactions` entries with `kind` (`credential`, `personal_data`, `sensitive_project_data`, `attachment`), `target` (`text`, `meta`, `attachments`), `replacement` (one allowed marker), and optional positive `count`. Use `false` with no entries when nothing was replaced. Never include original values, prefixes, suffixes, hashes of secrets, or free-form descriptions in redaction records. When an entire authorized body must be withheld, keep a redacted message stub under its source ID if permitted; otherwise record only a permitted gap without sensitive identifiers.
 
 Allowed replacement markers: `REDACTED`, `ТОКЕН`, `ПАРОЛЬ`, `СЕКРЕТ`, `КЛЮЧ`, `PRIVATE_KEY`, `EMAIL`, `PHONE`, `COOKIE`, `SESSION`.
 
-For each envelope the helper appends `.macaroni/chats/<chat_id>/captures/capture_<digest>.json`: a Protocol v1 extension with `kind: conversation_capture`, provenance, inventory, gaps and source-to-message paths/hashes. It has no conversation text and creates no fake message/inbox entries for gaps. Messages, inbox pointers and capture manifests are immutable. The same envelope is a no-op after apply; an overlapping or extended inventory appends a new manifest while reusing unchanged messages. Keep unknown fields of existing documents intact. Append corrections using new source IDs.
+For each envelope the helper appends `.macaroni/chats/<chat_id>/captures/capture_<digest>.json` with provenance and supplied-message paths/hashes. The generated inventory protects reference integrity; it is not a completeness audit. Manifests contain no conversation text or invented messages. Messages, inbox pointers and manifests are immutable. Replay is a no-op; an extended batch appends a manifest while reusing unchanged messages. Preserve unknown fields. Corrections use new source IDs.
 
 Legacy JSON arrays and single-message CLI remain supported as `legacy_partial_fragment`, without an inventory/completeness guarantee. They cannot use `--completeness complete`; use an envelope for new full capture. Legacy messages are not rewritten or automatically backfilled.
 

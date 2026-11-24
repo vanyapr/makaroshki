@@ -158,10 +158,9 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_invalid_gap_redaction_or_internal_channel_blocks(self):
-        for fault in ['partial-no-gap', 'complete-gap', 'gap-for-available', 'gap-text', 'internal', 'redaction-original', 'redacted-no-description', 'redaction-false']:
+        for fault in ['complete-gap', 'gap-for-available', 'gap-text', 'internal', 'redaction-original', 'redacted-no-description', 'redaction-false']:
             raw = self.envelope()
-            if fault == 'partial-no-gap': raw['capture']['completeness'] = 'partial'
-            elif fault.startswith('complete') or fault.startswith('gap'):
+            if fault.startswith('complete') or fault.startswith('gap'):
                 raw['capture']['completeness'] = 'complete' if fault == 'complete-gap' else 'partial'
                 gap = {'id': 'gap_1', 'reason': 'unavailable_context'}
                 if fault == 'gap-for-available': gap['source_message_id'] = 'fixture-user-1'
@@ -176,6 +175,17 @@ class CaptureTests(unittest.TestCase):
                     if fault == 'redaction-original': message['redactions'][0]['original'] = 'Do not retain this.'
             with self.subTest(fault=fault), self.assertRaises(capture.CaptureError): self.prepare(raw)
             self.assertFalse((self.root / '.macaroni').exists())
+
+    def test_capture_does_not_require_inventory_completeness_or_gaps(self):
+        raw = self.envelope()
+        for key in ['available_source_message_ids', 'completeness', 'gaps']:
+            raw['capture'].pop(key)
+        plan = self.prepare(raw)
+        self.assertEqual(plan['messages_new'], 2)
+        capture.apply(self.root, plan)
+        retry = self.prepare(raw)
+        self.assertEqual(retry['changes'], [])
+        self.assertEqual(retry['messages_skipped'], 2)
 
     def test_secret_in_envelope_gap_or_provenance_blocks_entire_batch(self):
         for place in ['conversation', 'gap', 'redaction']:
@@ -512,6 +522,19 @@ class CaptureTests(unittest.TestCase):
         with self.assertRaises(capture.CaptureError): self.prepare()
         self.assertEqual(before, self.snapshot())
 
+    def test_replay_legacy_implicit_participants(self):
+        rows = [
+            {"source_message_id": "legacy-user", "from": "HUMAN", "text": "Question"},
+            {"source_message_id": "legacy-agent", "text": "Answer"},
+        ]
+        legacy = [dict(rows[0], to=["CODEX"]), dict(rows[1], **{"from": "CODEX"})]
+        capture.apply(self.root, self.prepare(legacy))
+        before = self.snapshot()
+        replay = self.prepare(rows)
+        self.assertEqual(replay["messages_skipped"], 2)
+        self.assertEqual(replay["changes"], [])
+        self.assertEqual(self.snapshot(), before)
+
     def test_single_message_cli_has_correct_human_defaults(self):
         path = Path(self.temp.name) / 'single-plan.json'
         script = Path(__file__).parents[1] / 'scripts/write_messages.py'
@@ -519,7 +542,8 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         doc = next(c['content'] for c in json.loads(path.read_text())['changes'] if '/messages/' in c['path'])
         self.assertEqual(doc['from_name'], 'Human')
-        self.assertEqual(doc['to'], ['CODEX'])
+        self.assertEqual(doc['to'], ['AGENT'])
+        self.assertEqual(doc['meta']['captured_by'], 'AGENT')
         self.assertEqual(doc['meta']['source'], 'user_message')
 
 

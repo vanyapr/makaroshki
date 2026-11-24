@@ -62,7 +62,7 @@
 .macaroni/ = canonical append-only log разговоров
 memory/    = optional curated index поверх .macaroni
 protocol/  = инструкции для агентов и людей
-skills/    = reusable Codex tooling
+skills/    = reusable agent tooling
 ```
 
 Если `memory/` и `.macaroni/` расходятся, верьте `.macaroni/`.
@@ -202,7 +202,7 @@ Protocol notes:
 - [`protocol/macaroni-protocol.md`](protocol/macaroni-protocol.md) `сгенерировано агентом`;
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом`.
 
-Codex skill:
+[Python-интерфейс](skills/macaroni-memory/references/agent-capture.md) принимает сообщения из любой среды. Для Codex есть [дополнительные хуки](skills/macaroni-memory/references/regular-capture.ru.md).
 
 - [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом`;
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом`;
@@ -240,9 +240,9 @@ Codex skill:
 - [`protocol/agent-memory-prompts.md`](protocol/agent-memory-prompts.md) `сгенерировано агентом` - copy-paste prompts для загрузки и записи Macaroni memory.
 - [`protocol/agent-memory-prompts.ru.md`](protocol/agent-memory-prompts.ru.md) `сгенерировано агентом` - русское зеркало.
 
-Codex skill:
+Macaroni Memory:
 
-- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом` - устанавливаемый Codex skill для `.macaroni` extended memory.
+- [`skills/macaroni-memory/SKILL.md`](skills/macaroni-memory/SKILL.md) `сгенерировано агентом` - переиспользуемый навык для `.macaroni` extended memory.
 - [`skills/macaroni-memory/scripts/write_messages.py`](skills/macaroni-memory/scripts/write_messages.py) `сгенерировано агентом` - helper, который пишет Protocol v1 message JSON и inbox pointers.
 - [`skills/macaroni-memory/agents/openai.yaml`](skills/macaroni-memory/agents/openai.yaml) `сгенерировано агентом` - UI metadata skill.
 - [Подключить проект](skills/macaroni-memory/references/connect-project.ru.md), [capture](skills/macaroni-memory/references/capture.ru.md) и [карта источников](memory/INDEX.ru.md) `сгенерировано агентом` - установка, проверяемая запись и поиск контекста.

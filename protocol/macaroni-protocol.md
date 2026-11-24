@@ -250,9 +250,6 @@ Recommended ids:
 
 ```text
 HUMAN
-CODEX
-CLAUDE
-DEEPSEEK
 AGENT
 ```
 
@@ -264,7 +261,7 @@ Do not create a new agent id for every run.
 
 For every accessible authorized project fragment, including short replies, repeats, status and user-facing progress:
 
-1. Inventory all available authorized user/user-facing assistant turns without importance filtering.
+1. Capture available authorized user/user-facing assistant turns without importance filtering; no completeness audit or inventory prerequisite.
 2. Redact sensitive values, retaining the rest of each message and recording replacement categories.
 3. Prepare/review/apply one message JSON per turn in source order, with explicit provenance and gaps.
 4. Write inbox pointers and an append-only coverage manifest.
@@ -282,7 +279,7 @@ Captured messages should include metadata:
 ```json
 {
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "user_message",
     "redacted": true
   }
@@ -294,7 +291,7 @@ For assistant messages:
 ```json
 {
   "meta": {
-    "captured_by": "CODEX",
+    "captured_by": "AGENT",
     "source": "assistant_message",
     "redacted": false
   }
@@ -307,9 +304,9 @@ If a value was replaced with `ПАРОЛЬ`, `СЕКРЕТ`, `ТОКЕН`, `КЛ
 
 ### Full Capture Extension
 
-Use [capture.md](../skills/macaroni-memory/references/capture.md) for the inventory envelope. Message `meta` records source system/conversation, stable source ID and origin, original source order and basis, visible channel, original time or null, capture time basis, fragment completeness and redaction categories. Old messages and unknown fields remain intact; no automatic backfill.
+Use [capture.md](../skills/macaroni-memory/references/capture.md) for the provenance envelope; inventory, completeness and gaps are optional. Message `meta` records source system/conversation, stable source ID and origin, original source order and basis, visible channel, original time or null, capture time basis, fragment completeness and redaction categories. Old messages and unknown fields remain intact; no automatic backfill.
 
-`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` is an append-only Protocol v1 extension with `kind: conversation_capture`. It stores the available source inventory, source-to-message paths/hashes, completeness and gaps, without conversation text. Gaps describe unavailable context, unknown boundaries, withheld content or attachments; they do not invent message JSON. Complete fragments have no gaps; partial fragments declare them. The helper verifies the supplied inventory but cannot discover caller omissions or unseen runtime history. An identical envelope is a no-op; extended/overlapping inventories append manifests and reuse unchanged messages. See the capture guide for exact fields and synthetic examples.
+`.macaroni/chats/<chat_id>/captures/capture_<digest>.json` is an append-only Protocol v1 extension with `kind: conversation_capture`. It stores the available source inventory, source-to-message paths/hashes, completeness and gaps, without conversation text. Gaps describe unavailable context, unknown boundaries, withheld content or attachments; they do not invent message JSON. Legacy completeness/gap metadata is optional. The generated supplied-message inventory is checked for JSON/hash/link integrity, without auditing external history. Regular UserPromptSubmit/Stop hooks use private local storage outside Git; see the regular-capture guide. An identical envelope is a no-op; extended/overlapping inventories append manifests and reuse unchanged messages. See the capture guide for exact fields and synthetic examples.
 
 Local capture, publishing code/instructions and exporting conversation data are separate actions. Check repository visibility and the exact data diff; obey preparation-only/local-only scope. Private runtime-history extraction or backfill needs separate authorization. Past stored permission is historical evidence, not current authorization.
 
